@@ -1,4 +1,6 @@
 site_name: Livebot
+repo_url: https://github.com/HamletSargsyan/livebot
+edit_uri: blob/main/docs/
 theme:
   name: material
   language: ru
