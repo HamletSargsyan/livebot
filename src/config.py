@@ -15,13 +15,15 @@ DEBUG = True
 TOKEN = os.getenv("BOT_TOKEN", "")
 DB_URL = os.getenv("DB_URL", "")
 DB_NAME = os.getenv("DB_NAME", "")
-MODULES_SRC = os.getenv("MODULES_SRC", "")
+OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API")
 
 if not TOKEN:
     raise ValueError
 elif not DB_URL:
     raise ValueError
 elif not DB_NAME:
+    raise ValueError
+elif not OPENWEATHER_API_KEY:
     raise ValueError
 
 
