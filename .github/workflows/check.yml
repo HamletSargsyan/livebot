@@ -1,0 +1,23 @@
+name: Checks
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  init:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Install requirements
+      run: pip install -r requirements.txt
+
+    - name: Install dev requitements
+      run: pip install ruff
+    
+    - name: Ruff
+      run: ruff check .
