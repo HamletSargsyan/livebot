@@ -1,5 +1,7 @@
 .env
 *test*.*
 *.log
-__pycache__
+__pycache__/
 .pid
+.venv/
+nohup.out

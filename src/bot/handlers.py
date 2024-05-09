@@ -11,6 +11,6 @@ def start_cmd(message: Message):
 # ---------------------------------------------------------------------------- #
 
 
-@bot.message_handler()
+@bot.message_handler(func=lambda m: True)
 def message_handler(message: Message):
     bot.reply_to(message, message.text)

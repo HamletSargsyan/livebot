@@ -2,6 +2,7 @@ from datetime import datetime
 import os
 import sys
 import logging
+from typing import Final
 
 from dotenv import load_dotenv
 import telebot
@@ -34,12 +35,28 @@ bot = telebot.TeleBot(
 )
 
 
-log_chat_id = ""
-log_thread_id = 0
+TELEGRAM_ID: Final = 777000
+
+
+log_chat_id = "-1002110527910"
+log_thread_id = 2
+
+weather_region: Final = "Сыктывкар"
+
+timezone: Final = datetime.utcnow().tzinfo
+
+event_end_time: Final = datetime(2024, 6, 1, 0, 0, 0, tzinfo=timezone)
+event_open: Final = True
+
+channel_id: Final = "-1002081230318"
+chat_id: Final = "-1001869913117"
+
+GUIDE_FILE_PATH: Final = "guide.toml"
+
 
 timezone = datetime.utcnow().tzinfo
 
-bot_owners = []  # type: list[int]
+bot_owners = [5161392463]  # type: list[int]
 
 logger = logging.Logger("Bot")
 
