@@ -946,12 +946,15 @@ def guide_cmd(message: Message):
 
     #     bot.send_message(message.chat.id, mess, reply_markup=markup)
 
-    mess = "Гайд по LiveBot 🍃"
 
+    mess = "Гайд по LiveBot 🍃"
     markup = InlineKeyboardMarkup()
-    markup.add(
-        InlineKeyboardButton("Читать", web_app=WebAppInfo("https://hamletsargsyan.github.io/livebot/guide/"))
-    )
+    if message.chat.type == "private":
+        markup.add(
+            InlineKeyboardButton("Читать", web_app=WebAppInfo("https://hamletsargsyan.github.io/livebot/guide/"))
+        )
+    else:
+        mess += "\n\nhttps://hamletsargsyan.github.io/livebot/"
 
 
     bot.send_message(message.chat.id, mess, reply_markup=markup)
