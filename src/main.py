@@ -52,7 +52,7 @@ def init_threads():
 
 
 def main():
-    logger.success("Бот включен")
+    logger.info("Бот включен")
 
     if DEBUG:
         logger.warning("Бот работает в режиме DEBUG")
