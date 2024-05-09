@@ -95,6 +95,7 @@ def get_item(name: str) -> Union[Item, NoReturn]:
             return item
     raise ItemNotFoundError(f"Item {name} not found")
 
+
 def get_item_emoji(item_name: str) -> Union[str, None]:
     try:
         return get_item(item_name).emoji or ""
