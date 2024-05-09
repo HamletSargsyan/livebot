@@ -1,4 +1,4 @@
-from bot import handlers  # noqa
+import bot as _  # noqa
 from middlewares.register import RegisterMiddleware
 from config import bot, DEBUG, logger
 
