@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 import random
 from typing import NoReturn, Union
 
-from telebot.types import Message, ReplyParameters
+from telebot.types import Message, ReplyParameters, InlineKeyboardButton
 from telebot.util import antiflood, escape, split_string
 
 from config import bot, logger, timezone, log_chat_id, log_thread_id
@@ -138,3 +138,23 @@ class Loading:
 
     def __exit__(self, exc_type, exc_value, traceback):
         bot.delete_message(self.loading_message.chat.id, self.loading_message.id)
+
+
+PAGER_CONTROLLERS = [
+    InlineKeyboardButton("↩️", callback_data="{name} start {pos} {user_id}"),
+    InlineKeyboardButton("⬅️", callback_data="{name} back {pos} {user_id}"),
+    InlineKeyboardButton("➡️", callback_data="{name} next {pos} {user_id}"),
+    InlineKeyboardButton("↪️", callback_data="{name} end {pos} {user_id}"),
+]
+
+
+def get_pager_controllers(name: str, pos: int, user_id: Union[int, str]):
+    return [
+        InlineKeyboardButton(
+            controller.text,
+            callback_data=controller.callback_data.format(
+                name=name, pos=pos, user_id=user_id
+            ),
+        )
+        for controller in PAGER_CONTROLLERS
+    ]
