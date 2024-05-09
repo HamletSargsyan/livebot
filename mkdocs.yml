@@ -1,0 +1,7 @@
+site_name: Livebot
+theme:
+  name: material
+  language: ru
+  palette:
+    primary: teal
+    
