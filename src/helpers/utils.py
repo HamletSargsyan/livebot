@@ -1,10 +1,17 @@
 import logging
 from datetime import datetime, timedelta
+import random
+from typing import NoReturn, Union
 
+from telebot.types import Message, ReplyParameters
 from telebot.util import antiflood, escape, split_string
 
 from config import bot, logger, timezone, log_chat_id, log_thread_id
 from database.models import UserModel
+from helpers.datatypes import Item
+from helpers.exceptions import ItemNotFoundError
+from base.items import items_list
+from helpers.enums import ItemRarity
 
 
 def log(log_text: str, log_level: str, record: logging.LogRecord) -> None:
@@ -75,3 +82,58 @@ def get_time_difference_string(d: timedelta) -> str:
 
 def get_user_tag(user: UserModel):
     return f"<a href='tg://user?id={user.id}'>{user.name}</a>"
+
+
+def get_item(name: str) -> Union[Item, NoReturn]:
+    for item in items_list:
+        item.name = item.name.lower()
+        if item.name == name:
+            return item
+        elif item.altnames and name in item.altnames:
+            return item
+        elif name == item.translit():
+            return item
+    raise ItemNotFoundError(f"Item {name} not found")
+
+def get_item_emoji(item_name: str) -> Union[str, None]:
+    try:
+        return get_item(item_name).emoji or ""
+    except AttributeError:
+        return ""
+
+
+def get_item_count_for_rarity(rarity: ItemRarity) -> int:
+    if rarity == ItemRarity.COMMON:
+        quantity = random.randint(5, 20)
+    elif rarity == ItemRarity.UNCOMMON:
+        quantity = random.randint(3, 5)
+    elif rarity == ItemRarity.RARE:
+        quantity = random.randint(1, 2)
+    elif rarity == ItemRarity.EPIC:
+        quantity = random.randint(0, 2)
+    else:
+        quantity = random.randint(0, 1)
+    return quantity
+
+
+class Loading:
+    def __init__(self, message: Message):
+        self.message = message
+
+    def __enter__(self):
+        sitcker_id = (
+            "CAACAgEAAxkBAAEpskNl2JfOUfS1vL2nDBb_rqz40YJKsAACjQQAApbcoUZgQGLo1I2DijQE"
+        )
+
+        try:
+            msg = bot.send_sticker(
+                self.message.chat.id,
+                sitcker_id,
+                reply_parameters=ReplyParameters(self.message.id),
+            )
+        except Exception:
+            msg = bot.send_sticker(self.message.chat.id, sitcker_id)
+        self.loading_message = msg
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        bot.delete_message(self.loading_message.chat.id, self.loading_message.id)
