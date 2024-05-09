@@ -5,3 +5,4 @@ __pycache__/
 .pid
 .venv/
 nohup.out
+.ruff_cache/

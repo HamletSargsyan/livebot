@@ -8,7 +8,8 @@ from telebot.types import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
     ReplyKeyboardMarkup,
-    KeyboardButton,)
+    KeyboardButton,
+)
 from telebot.util import (
     extract_arguments,
     user_link,
@@ -134,8 +135,7 @@ def help(message: Message):
 def profile_cmd(message: Message):
     with Loading(message):
         if message.reply_to_message:
-            user = user = database.users.get(
-                id=message.reply_to_message.from_user.id)
+            user = user = database.users.get(id=message.reply_to_message.from_user.id)
         else:
             user = database.users.get(id=message.from_user.id)
 
@@ -222,8 +222,7 @@ def shop_cmd(message: Message):
         item = get_item(item_name)
 
         if not item.price:
-            bot.reply_to(
-                message, "Этот придмет нельзя купить, у него нет цены")
+            bot.reply_to(message, "Этот придмет нельзя купить, у него нет цены")
             return
 
         price = item.price * count
@@ -299,8 +298,7 @@ def casino(message: Message):
             user.casino_loose += count
 
         else:
-            bot.send_message(
-                message.chat.id, f"Нифига се\n——————\n+{count * 2}")
+            bot.send_message(message.chat.id, f"Нифига се\n——————\n+{count * 2}")
             user.coin += count * 2
             user.casino_win += count * 2
 
@@ -394,8 +392,7 @@ def transfer_cmd(message: Message):
             return
 
         user = database.users.get(id=message.from_user.id)
-        reply_user = database.users.get(
-            id=message.reply_to_message.from_user.id)
+        reply_user = database.users.get(id=message.reply_to_message.from_user.id)
 
         args = message.text.split(" ")
 
@@ -424,8 +421,7 @@ def transfer_cmd(message: Message):
                 bot.reply_to(message, f"У тебя нет <i>{item}</i>")
                 return
             elif user.coin <= count:
-                bot.reply_to(
-                    message, "У тебя недостатично бабла, иди работать")
+                bot.reply_to(message, "У тебя недостатично бабла, иди работать")
                 return
             user.coin -= count
             reply_user.coin += count
@@ -627,8 +623,7 @@ def promo(message: Message) -> None:
         chat_info = bot.get_chat(channel_id)
         bot.delete_message(message.chat.id, message.id)
         if tg_user.status not in ["member", "administrator", "creator"]:
-            markup = quick_markup(
-                {"Подписатся": {"url": f"t.me/{chat_info.username}"}})
+            markup = quick_markup({"Подписатся": {"url": f"t.me/{chat_info.username}"}})
             bot.send_message(
                 message.chat.id,
                 "Чтобы активировать промо нужно подписатся на новостной канал",
@@ -651,8 +646,7 @@ def promo(message: Message) -> None:
                     return
 
                 if code.is_used:
-                    bot.send_message(
-                        message.chat.id, "Этот промокод уже активировали")
+                    bot.send_message(message.chat.id, "Этот промокод уже активировали")
                     return
 
                 code.usage_count -= 1
@@ -681,8 +675,7 @@ def promo(message: Message) -> None:
                 )
                 bot.send_message(message.chat.id, mess)
             else:
-                bot.send_message(
-                    message.chat.id, "Такого промокода не существует")
+                bot.send_message(message.chat.id, "Такого промокода не существует")
 
 
 @bot.message_handler(commands=["stats"])
@@ -732,8 +725,7 @@ def quest_cmd(message: Message):
                 InlineKeyboardButton(
                     finish_button_text, callback_data=f"finish_quest {user.id}"
                 ),
-                InlineKeyboardButton(
-                    "Пропуск", callback_data=f"skip_quest {user.id}"),
+                InlineKeyboardButton("Пропуск", callback_data=f"skip_quest {user.id}"),
             ]
         )
 
@@ -813,8 +805,7 @@ def exchanger_cmd(message: Message):
         user_item = get_or_add_user_item(user, exchanger.item)
 
         if not user_item:
-            bot.reply_to(
-                message, f"У тебя нет {get_item_emoji(exchanger.item)}")
+            bot.reply_to(message, f"У тебя нет {get_item_emoji(exchanger.item)}")
             return
 
         if user_item.quantity < quantity:
@@ -990,8 +981,7 @@ def handle_channel_post(message: Message):
 
     for user in database.users.get_all():
         try:
-            antiflood(bot.forward_message, user.id,
-                      message.chat.id, message.id)
+            antiflood(bot.forward_message, user.id, message.chat.id, message.id)
             antiflood(
                 bot.send_message,
                 user.id,
@@ -1026,8 +1016,7 @@ def text_message_handler(message: Message):
         items_cmd(message)
     elif text == "бабло":
         with Loading(message):
-            bot.reply_to(
-                message, f"{get_item_emoji('бабло')} Бабло: {user.coin}")
+            bot.reply_to(message, f"{get_item_emoji('бабло')} Бабло: {user.coin}")
     elif text == "статы":
         stats_cmd(message)
     elif text == "квест":

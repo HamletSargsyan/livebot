@@ -22,7 +22,11 @@ from base.player import (
     get_or_add_user_item,
     level_top,
     use_item,
-    get_available_items_for_use, game, sleep, street, work
+    get_available_items_for_use,
+    game,
+    sleep,
+    street,
+    work,
 )
 from base.items import items_list
 from helpers.utils import (
@@ -166,8 +170,7 @@ def dog_callback(call: CallbackQuery):
             show_alert=True,
         )
     elif data[1] == "wakeup" and dog:
-        bot.answer_callback_query(
-            call.id, f"{dog.name} проснулся", show_alert=True)
+        bot.answer_callback_query(call.id, f"{dog.name} проснулся", show_alert=True)
         dog.sleep_time = datetime.utcnow()
 
     database.users.update(**user.to_dict())
@@ -227,8 +230,7 @@ def finish_quest_callback(call: CallbackQuery):
     item = get_or_add_user_item(user, quest.name)
 
     if item.quantity < quest.quantity:
-        bot.answer_callback_query(
-            call.id, "Кудааа, тебе не хватает", show_alert=True)
+        bot.answer_callback_query(call.id, "Кудааа, тебе не хватает", show_alert=True)
         return
 
     item.quantity -= quest.quantity
@@ -424,8 +426,7 @@ def top_callback(call: CallbackQuery):
         }
     )
 
-    tops = {"coin": coin_top(), "level": level_top(),
-            "dog_level": dog_level_top()}
+    tops = {"coin": coin_top(), "level": level_top(), "dog_level": dog_level_top()}
 
     try:
         bot.edit_message_text(
@@ -449,8 +450,7 @@ def chest_callback(call: CallbackQuery):
     if data[1] == "open":
         key = get_or_add_user_item(user, "ключ")
         if key.quantity < 1:
-            bot.answer_callback_query(
-                call.id, "У тебя нет ключа", show_alert=True)
+            bot.answer_callback_query(call.id, "У тебя нет ключа", show_alert=True)
             return
         key.quantity -= 1
         mess = "Открыл сундук\n\n"
