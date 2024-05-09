@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## [2.2.1] - 10.05.2024
+
+### Исправлено
+- Исправлен баг [#1](https://github.com/HamletSargsyan/livebot/issues/1)
+
 ## [2.2] - 09.05.2024
 
 ### Добавлено
