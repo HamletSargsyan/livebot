@@ -9,6 +9,7 @@ from telebot.types import (
     InlineKeyboardMarkup,
     ReplyKeyboardMarkup,
     KeyboardButton,
+    WebAppInfo
 )
 from telebot.util import (
     extract_arguments,
@@ -77,9 +78,7 @@ def start(message: Message):
 
         mess = (
             f"Здарова {message.from_user.first_name}, добро пожаловать в игру\n\n"
-            "Канал: @LiveBotOfficial\n"
-            "Чат: @LiveBotOfficialChat\n"
-            "Гайд: /guide"
+            "Помошь: /help"
         )
 
         if len(message.text.split("/start ")) != 1:  # pyright: ignore
@@ -125,7 +124,7 @@ def help(message: Message):
         "<b>Помощь</b>\n\n"
         "<b>Канал:</b> @LiveBotOfficial\n"
         "<b>Чат</b>: @LiveBotOfficialChat\n"
-        "<b>Гайд</b>: /guide\n"
+        "<b>Гайд</b>: https://hamletsargsyan.github.io/livebot/guide\n"
     )
 
     bot.reply_to(message, mess)
@@ -927,26 +926,35 @@ def home_cmd(message: Message):
 
 @bot.message_handler(commands=["guide"])
 def guide_cmd(message: Message):
-    with Loading(message):
-        mess = "Гайд по LiveBot 🍃"
+    # with Loading(message):
+    #     mess = "Гайд по LiveBot 🍃"
 
-        markup = quick_markup(
-            {
-                "Для новичков ✨": {
-                    "callback_data": f"guide beginner {message.from_user.id}"
-                },
-                "Для продвинутых 🔫": {
-                    "callback_data": f"guide advanced {message.from_user.id}"
-                },
-                "Остальное 🧩": {
-                    "callback_data": f"guide other {message.from_user.id}"
-                },
-            },
-            row_width=1,
-        )
+    #     markup = quick_markup(
+    #         {
+    #             "Для новичков ✨": {
+    #                 "callback_data": f"guide beginner {message.from_user.id}"
+    #             },
+    #             "Для продвинутых 🔫": {
+    #                 "callback_data": f"guide advanced {message.from_user.id}"
+    #             },
+    #             "Остальное 🧩": {
+    #                 "callback_data": f"guide other {message.from_user.id}"
+    #             },
+    #         },
+    #         row_width=1,
+    #     )
 
-        bot.send_message(message.chat.id, mess, reply_markup=markup)
+    #     bot.send_message(message.chat.id, mess, reply_markup=markup)
 
+    mess = "Гайд по LiveBot 🍃"
+
+    markup = InlineKeyboardMarkup()
+    markup.add(
+        InlineKeyboardButton("Читать", web_app=WebAppInfo("https://hamletsargsyan.github.io/livebot/guide/"))
+    )
+
+
+    bot.send_message(message.chat.id, mess, reply_markup=markup)
 
 @bot.message_handler(commands=["market"])
 def market_cmd(message: Message):
