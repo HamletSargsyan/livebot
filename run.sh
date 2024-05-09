@@ -1,2 +1,2 @@
-nohup python3 main.py & > /dev/null
+nohup python3 src/main.py & > /dev/null
 echo $! > .pid
