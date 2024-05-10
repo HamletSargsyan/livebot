@@ -773,9 +773,6 @@ def exchanger_cmd(message: Message):
         try:
             exchanger = database.exchangers.get(**{"owner": user._id})
         except NoResult:
-            exchanger = None
-
-        if not exchanger:
             exchanger = generate_exchanger(user)
             database.exchangers.update(**exchanger.to_dict())
 
