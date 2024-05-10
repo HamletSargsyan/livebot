@@ -194,9 +194,7 @@ def generate_exchanger(user: UserModel):
     try:
         old_exchanger = database.exchangers.get(**{"owner": user._id})
         database.exchangers.delete(**old_exchanger.to_dict())
-        print(1)
     except NoResult:
-        print(2)
         pass
 
     allowed_items: List[Item] = []

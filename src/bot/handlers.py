@@ -776,9 +776,10 @@ def exchanger_cmd(message: Message):
             exchanger = generate_exchanger(user)
             database.exchangers.update(**exchanger.to_dict())
 
-        if (datetime.utcnow() - exchanger.last_update) >= timedelta(days=1):
+        if exchanger.expires <= datetime.utcnow():
             exchanger = generate_exchanger(user)
             database.exchangers.update(**exchanger.to_dict())
+        
 
         mess = (
             "<b>Обменник 🔄</b>\n\n"

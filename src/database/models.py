@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Union
 from bson import ObjectId
 
@@ -67,7 +67,7 @@ class QuestModel(BaseModel):
 class ExchangerModel(BaseModel):
     def __init__(self, **kwargs) -> None:
         self._id: ObjectId
-        self.last_update: datetime = datetime.utcnow()
+        self.expires: datetime = datetime.utcnow() + timedelta(days=1)
         self.item: str
         self.price: int
         self.owner: ObjectId

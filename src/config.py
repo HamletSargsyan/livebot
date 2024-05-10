@@ -10,7 +10,7 @@ import telebot
 
 load_dotenv()
 
-DEBUG = True
+DEBUG = False
 
 TOKEN = os.getenv("BOT_TOKEN", "")
 DB_URL = os.getenv("DB_URL", "")
