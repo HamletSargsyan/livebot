@@ -20,7 +20,7 @@ def send_release_notification():
     release_version = os.getenv("GITHUB_REF").split("/")[-1]
     release = get_github_release_info(release_version) # type: dict
         
-    message = (f"*{'Пре-р' if release.get('prerelease') else 'р'}елиз — {release.get('name')}* ✨\n\n"
+    message = (f"*{'Пре-р' if release.get('prerelease') else 'Р'}елиз — {release.get('name')}* ✨\n\n"
                f"{release.get('body')}")
     
     markup = quick_markup({
