@@ -5,7 +5,7 @@ from telebot import TeleBot
 from telebot.util import quick_markup
 
 def get_github_release_info(version):
-    url = f"  https://api.github.com/repos/HamletSargsyan/_tests/releases/tags/{version}"
+    url = f"  https://api.github.com/repos/HamletSargsyan/livebot/releases/tags/{version}"
     response = requests.get(url)
     if response.status_code == 200:
         release_info = response.json() #type: dict
