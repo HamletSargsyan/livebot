@@ -619,3 +619,78 @@ def open_callback(call: CallbackQuery):
         bot.edit_message_text(
             mess, call.message.chat.id, call.message.id, reply_markup=markup
         )
+    elif data[1] == "market-profile":
+        mess = "Твой ларек"
+        markup = InlineMarkup.market_profile(user)
+
+        bot.edit_message_text(mess, call.message.chat.id, call.message.id, reply_markup=markup)
+
+
+@bot.callback_query_handler(lambda c: c.data.split(" ")[0] == "market")
+def market_callback(call: CallbackQuery):
+    data = call.data.split(" ")
+
+    if data[-1] != str(call.from_user.id):
+        return
+
+    user = database.users.get(id=call.from_user.id)
+
+    if data[1] == "add":
+        from base.user_input.add_new_market_item import AddNewItemState
+        
+        user_items = sorted(database.items.get_all(owner=user._id), key=lambda i: i.quantity, reverse=True)
+
+        buttons = []
+        for item in user_items:
+            if item.quantity <= 0:
+                continue
+            try:
+                database.market_items.get(name=item.name, owner=user._id)
+                continue
+            except NoResult:
+                pass
+            
+            buttons.append(
+                InlineKeyboardButton(f"{get_item_emoji(item.name)} {item.quantity}", callback_data=f"sell {get_item(item.name).translit()} {user.id}")
+            )
+
+        markup = InlineKeyboardMarkup(row_width=3)
+        if len(buttons) == 0:
+            bot.edit_message_text("У тебя нет придметов для продажы", call.message.chat.id, call.message.id)
+            return    
+
+        markup.add(*buttons)
+
+        bot.edit_message_text("<b>Продажа придмета</b>\nВыбери придмет", call.message.chat.id, call.message.id, reply_markup=markup)
+
+        bot.set_state(user.id, AddNewItemState.name, call.message.chat.id)
+    else:
+        try:
+            action = call.data.split(" ")[1]
+            pos = int(call.data.split(" ")[2])
+            
+            market_items = database.market_items.get_all()
+            max_pos = len(list(chunks(market_items, 6))) - 1
+
+            if action == "next":
+                pos += 1
+            elif action == "back":
+                pos -= 1
+            elif action == "start":
+                pos = 0
+            elif action == "end":
+                pos = max_pos
+
+            if pos < 0:
+                raise IndexError
+
+            mess = f"<b>Рынок</b>\n\n{pos + 1} / {max_pos + 1}"
+            markup = InlineMarkup.market_pager(user=user, index=pos)
+
+            bot.edit_message_text(
+                mess, call.message.chat.id, call.message.id, reply_markup=markup
+            )
+        except (IndexError, ApiTelegramException):
+            bot.answer_callback_query(call.id, "Дальше ничо нету", show_alert=True)
+
+

@@ -2,8 +2,9 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from telebot.util import quick_markup, chunks
 
 from base.items import items_list
-from helpers.utils import get_pager_controllers
+from helpers.utils import get_item_emoji, get_pager_controllers
 from database.models import UserModel
+from database.funcs import database
 
 
 class InlineMarkup:
@@ -67,3 +68,36 @@ class InlineMarkup:
         markup.row(*get_pager_controllers("item_info_main", pos=index, user_id=user.id))
 
         return markup
+
+    @classmethod
+    def market_pager(cls, user: UserModel, index: int = 0) -> InlineKeyboardMarkup:
+        market_items = database.market_items.get_all()
+        items = list(chunks(market_items, 6))
+        buttons = []
+
+        for item in items[index]:
+            buttons.append(
+                InlineKeyboardButton(
+                    f"{item.quantity} {get_item_emoji(item.name)} — {item.price} {get_item_emoji('бабло')}",
+                    callback_data=f"market_item_open {item._id} {index} {user.id}",
+                )
+            )
+
+        markup = InlineKeyboardMarkup(row_width=1)
+        markup.add(*buttons)
+        pager_controllers = get_pager_controllers("market", pos=index, user_id=user.id)
+        pager_controllers.insert(
+            2,
+            InlineKeyboardButton("🛍", callback_data=f"open market-profile {user.id}")
+        )
+        markup.row(*pager_controllers)
+
+        return markup
+
+
+    @classmethod
+    def market_profile(cls, user: UserModel) -> InlineKeyboardMarkup:
+        return quick_markup({
+            "◀️": {"callback_data": f"market start 0 {user.id}"},
+            "➕": {"callback_data": f"market add {user.id}"}
+        })

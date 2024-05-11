@@ -666,3 +666,4 @@ def game(call: CallbackQuery, user: UserModel):
     mess = "Как же хорошо было играть 😊"
     bot.edit_message_text(mess, call.message.chat.id, call.message.id)
     check_user_stats(user, call.message.chat.id)
+
