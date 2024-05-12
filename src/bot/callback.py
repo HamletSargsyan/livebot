@@ -734,7 +734,7 @@ def market_callback(call: CallbackQuery):
             elif action == "end":
                 pos = max_pos
 
-            if pos < 0:
+            if pos < 0 or pos > max_pos:
                 raise IndexError
 
             mess = f"<b>Рынок</b>\n\n{pos + 1} / {max_pos + 1}"
