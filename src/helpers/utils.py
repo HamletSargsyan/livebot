@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime, timedelta
 import random
+import statistics
 from typing import NoReturn, Union
 
 from telebot.types import Message, ReplyParameters, InlineKeyboardButton
@@ -159,14 +160,18 @@ def get_pager_controllers(name: str, pos: int, user_id: Union[int, str]):
         for controller in PAGER_CONTROLLERS
     ]
 
-def get_middle_item_price(name: str):
+def get_middle_item_price(name: str) -> int:
     from database.funcs import database
     item = get_item(name)
     market_items = database.market_items.get_all(name=item.name)
 
     price = 0
-    if item.price:
-        price += item.price
+    try:
+        if item.price:
+            price += statistics.median([item.price, *[market_item.price / market_item.quantity for market_item in market_items]])
+        else:
+            price += statistics.median([market_item.price / market_item.quantity for market_item in market_items])
+    except statistics.StatisticsError:
+        pass
+    return int(price)
 
-    for market_item in market_items:
-        price

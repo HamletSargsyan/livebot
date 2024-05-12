@@ -3,10 +3,11 @@ from telebot.handler_backends import State, StatesGroup
 
 
 from config import bot
-from helpers.utils import get_item, get_item_emoji, get_user_tag
+from helpers.utils import get_item, get_item_emoji, get_middle_item_price, get_user_tag
 from database.funcs import database, cache
 from database.models import MarketItemModel
 from helpers.exceptions import NoResult
+from helpers.markups import InlineMarkup
 
 
 class AddNewItemState(StatesGroup):
@@ -30,7 +31,8 @@ def name_state(call: CallbackQuery):
     user = database.users.get(id=call.from_user.id)
     user_item = database.items.get(name=item.name, owner=user._id)
     
-    bot.edit_message_text(f"<b>Продажа придмета {item.emoji}</b>\nВведи кол-во ({user_item.quantity})", call.message.chat.id, call.message.id)
+    markup = InlineMarkup.delate_state(user)
+    bot.edit_message_text(f"<b>Продажа придмета {item.emoji}</b>\nВведи кол-во ({user_item.quantity})", call.message.chat.id, call.message.id, reply_markup=markup)
     bot.set_state(call.from_user.id, AddNewItemState.quantity, call.message.chat.id)
     
     cache.setex(f"{user.id}_item_add_message", 300, call.message.id)
@@ -39,7 +41,9 @@ def name_state(call: CallbackQuery):
 
 @bot.message_handler(state=[AddNewItemState.quantity, AddNewItemState.price], is_digit=False)
 def invalid_int_input(message: Message):
-    bot.reply_to(message, "Введите число")
+    user = database.users.get(id=message.from_user.id)
+    markup = InlineMarkup.delate_state(user)
+    bot.reply_to(message, "Введите число", reply_markup=markup)
 
 
 @bot.message_handler(state=AddNewItemState.quantity, is_digit=True)
@@ -58,7 +62,9 @@ def quantity_state(message: Message):
     call_message_id = cache.get(f"{message.from_user.id}_item_add_message")
     bot.delete_message(message.chat.id, message.id)
     
-    bot.edit_message_text("Введи прайс", message.chat.id, call_message_id)
+    item = get_item(user_item.name)
+    markup = InlineMarkup.delate_state(user)
+    bot.edit_message_text(f"<b>Продажа придмета {item.emoji}</b>\nВведи прайс (+-{get_middle_item_price(item.name)}/шт)", message.chat.id, call_message_id, reply_markup=markup)
     bot.set_state(message.from_user.id, AddNewItemState.price, message.chat.id)
 
 

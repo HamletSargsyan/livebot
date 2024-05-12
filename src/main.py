@@ -19,6 +19,7 @@ def bot_commands_init():
         BotCommand("bag", "Инвентарь"),
         BotCommand("quest", "Квест"),
         BotCommand("craft", "Верстак"),
+        BotCommand("market", "Рынок"),
         BotCommand("use", "Юз придметов"),
         BotCommand("exchanger", "Обменник"),
         BotCommand("transfer", "Перекидка придметов"),
@@ -30,7 +31,6 @@ def bot_commands_init():
         BotCommand("ref", "Реферальная система"),
         BotCommand("stats", "Статистика"),
         BotCommand("help", "Помощь"),
-        BotCommand("guide", "Гайд"),
     ]
 
     if event_open:

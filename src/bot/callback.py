@@ -33,6 +33,7 @@ from base.items import items_list
 from helpers.utils import (
     get_item_count_for_rarity,
     get_item_emoji,
+    get_middle_item_price,
     get_time_difference_string,
     get_item,
     get_user_tag,
@@ -478,6 +479,7 @@ def chest_callback(call: CallbackQuery):
             mess += f"+ {quantity} {item.name} {item.emoji}\n"
             user_item = get_or_add_user_item(user, item.name)
             user_item.quantity += quantity
+            database.items.update(**user_item.to_dict())
         bot.delete_message(call.message.chat.id, call.message.id)
         if call.message.reply_to_message:
             bot.reply_to(call.message.reply_to_message, mess)
@@ -766,7 +768,24 @@ def market_item_open_callback(call: CallbackQuery):
 
     item_owner = database.users.get(_id=market_item.owner)
     mess = (f"<b>{get_item_emoji(market_item.name)} {market_item.name} | {market_item.quantity} шт.</b>\n"
-            f"Продавец: {get_user_tag(item_owner)}")
+            f"Продавец: {get_user_tag(item_owner)}\n"
+            f"Средный прайс: {get_middle_item_price(market_item.name)}/шт")
     
     markup = InlineMarkup.market_item_open(user, market_item)
     bot.edit_message_text(mess, call.message.chat.id, call.message.id, reply_markup=markup)
+
+
+@bot.callback_query_handler(lambda c: c.data.startswith("delate_state"), state="*")
+def delate_state_callback(call: CallbackQuery):
+    data = call.data.split(" ")
+
+    if data[-1] != str(call.from_user.id):
+        return
+    
+    if not bot.get_state(call.from_user.id, call.message.chat.id):
+        bot.answer_callback_query(call.id, "Что отменять собрался?", show_alert=True)
+        return
+    
+    bot.delete_state(call.from_user.id, call.message.chat.id)
+    bot.delete_message(call.message.chat.id, call.message.id)
+    bot.answer_callback_query(call.id, "Отменил")

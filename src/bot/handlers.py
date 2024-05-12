@@ -25,6 +25,7 @@ from helpers.exceptions import NoResult
 from base.items import items_list
 from helpers.markups import InlineMarkup
 from helpers.utils import (
+    get_middle_item_price,
     get_time_difference_string,
     get_item_emoji,
     get_item,
@@ -60,6 +61,7 @@ START_MARKUP.add(
         KeyboardButton("Инвентарь"),
         KeyboardButton("Квест"),
         KeyboardButton("Магазин"),
+        KeyboardButton("Рынок"),
         KeyboardButton("Верстак"),
         KeyboardButton("Рейтинг"),
         KeyboardButton("Юз"),
@@ -80,7 +82,7 @@ def start(message: Message):
 
         mess = (
             f"Здарова {message.from_user.first_name}, добро пожаловать в игру\n\n"
-            "Помошь: /help"
+            "Помощь: /help"
         )
 
         if len(message.text.split("/start ")) != 1:  # pyright: ignore
@@ -903,12 +905,13 @@ def price_cmd(message: Message):
             return
 
         item = get_item(name)
+        price = get_middle_item_price(item.name)
         if not item:
             mess = "Такого придмета не существует"
-        elif item.price:
-            mess = f"Прайс {item.name} {item.emoji} ⸻ {item.price} {get_item_emoji('бабло')}"
+        elif price:
+            mess = f"Прайс {item.name} {item.emoji} ⸻ {price} {get_item_emoji('бабло')}"
         else:
-            mess = f"У {item.emoji} нет прайса"
+            mess = f"У {item.emoji} пока нет прайса"
 
         bot.reply_to(message, mess)
 

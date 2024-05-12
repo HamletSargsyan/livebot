@@ -496,12 +496,6 @@ def street(call: CallbackQuery, user: UserModel):
 
         if quantity > 0:
             loot = True
-            if dog:
-                dog.hunger += random.randint(0, 7)
-                # dog.fatigue += random.randint(0, 10)
-                dog.xp += random.uniform(1.5, 2.5)
-                quantity += random.randint(0, 5)
-                database.dogs.update(**dog.to_dict())
 
             mess += f"+ {quantity} {item_[0]} {get_item_emoji(item_[0])}\n"
             if item_[0] == "бабло":
@@ -511,6 +505,13 @@ def street(call: CallbackQuery, user: UserModel):
                 user_item = get_or_add_user_item(user, item_[0])
                 user_item.quantity += quantity
                 database.items.update(**user_item.to_dict())
+    
+    if dog:
+        dog.hunger += random.randint(0, 5)
+        # dog.fatigue += random.randint(0, 10)
+        dog.xp += random.uniform(1.5, 2.5)
+        quantity += random.randint(0, 5)
+        database.dogs.update(**dog.to_dict())
 
     user.xp += xp
     user.state = None
