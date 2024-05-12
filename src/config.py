@@ -107,4 +107,4 @@ console_output_handler.setFormatter(formatter)
 logger.addHandler(console_output_handler)
 
 telebot.logger.addHandler(TelegramLogsHandler())
-telebot.logger.setLevel(10)
+telebot.logger.setLevel(20)
