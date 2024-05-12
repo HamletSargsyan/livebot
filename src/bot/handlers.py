@@ -969,13 +969,11 @@ def market_cmd(message: Message):
 
     print(user.id, "handler", message.from_user.id)
     mess = ("<b>Рынок</b>\n\n")
-    try:
-        market_items = database.market_items.get_all()
-        markup = InlineMarkup.market_pager(user)
-        mess += f"1 / {len(list(chunks(market_items, 6)))}"
-    except IndexError:
-        markup = None
-        mess += "<i>Рынок пуст...</i>"
+    
+    market_items = database.market_items.get_all()
+    markup = InlineMarkup.market_pager(user)
+    mess += f"1 / {len(list(chunks(market_items, 6)))}"
+
     
 
     bot.reply_to(message, mess, reply_markup=markup)

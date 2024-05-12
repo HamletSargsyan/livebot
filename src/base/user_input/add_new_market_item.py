@@ -6,6 +6,7 @@ from config import bot
 from helpers.utils import get_item, get_item_emoji, get_user_tag
 from database.funcs import database, cache
 from database.models import MarketItemModel
+from helpers.exceptions import NoResult
 
 
 class AddNewItemState(StatesGroup):
@@ -42,7 +43,15 @@ def invalid_int_input(message: Message):
 
 
 @bot.message_handler(state=AddNewItemState.quantity, is_digit=True)
-def quantity_state(message: Message):    
+def quantity_state(message: Message):
+    user = database.users.get(id=message.from_user.id)
+    with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
+        user_item = database.items.get(owner=user._id, name=data["name"])
+
+    if user_item.quantity < int(message.text):
+        bot.reply_to(message, "У тебя нет столько")
+        return
+
     with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
         data["quantity"] = int(message.text)
     
@@ -56,9 +65,18 @@ def quantity_state(message: Message):
 
 @bot.message_handler(state=AddNewItemState.price, is_digit=True)
 def price_state(message: Message):
-    
+    user = database.users.get(id=message.from_user.id)
     with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
-        user = database.users.get(id=message.from_user.id)
+        try:
+            user_item = database.items.get(owner=user._id, name=data["name"])
+        except NoResult:
+            bot.reply_to(message, "У тебя нет такого придмета")
+            return
+        
+        if user_item.quantity < data['quantity']:
+            bot.reply_to(message, "У тебя нет столько")
+            return
+
         item = MarketItemModel(
             name=data['name'].lower(),
             quantity=int(data['quantity']),
@@ -67,8 +85,10 @@ def price_state(message: Message):
         )
 
 
-    bot.delete_state(user.id, message.from_user.id)
+    bot.delete_state(user.id, message.chat.id)
     database.market_items.add(**item.to_dict())
+    user_item.quantity -= item.quantity
+    database.items.update(**user_item.to_dict())
 
     call_message_id = cache.get(f"{message.from_user.id}_item_add_message")
     

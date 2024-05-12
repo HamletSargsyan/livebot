@@ -75,13 +75,16 @@ class InlineMarkup:
         items = list(chunks(market_items, 6))
         buttons = []
 
-        for item in items[index]:
-            buttons.append(
-                InlineKeyboardButton(
-                    f"{item.quantity} {get_item_emoji(item.name)} — {item.price} {get_item_emoji('бабло')}",
-                    callback_data=f"market_item_open {item._id} {index} {user.id}",
+        try:
+            for item in items[index]:
+                buttons.append(
+                    InlineKeyboardButton(
+                        f"{item.quantity} {get_item_emoji(item.name)} — {item.price} {get_item_emoji('бабло')}",
+                        callback_data=f"market_item_open {item._id} {index} {user.id}",
+                    )
                 )
-            )
+        except IndexError:
+            pass
 
         markup = InlineKeyboardMarkup(row_width=1)
         markup.add(*buttons)
