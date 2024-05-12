@@ -33,6 +33,7 @@ from base.items import items_list
 from helpers.utils import (
     get_item_count_for_rarity,
     get_item_emoji,
+    get_middle_item_price,
     get_time_difference_string,
     get_item,
     get_user_tag,
@@ -766,7 +767,8 @@ def market_item_open_callback(call: CallbackQuery):
 
     item_owner = database.users.get(_id=market_item.owner)
     mess = (f"<b>{get_item_emoji(market_item.name)} {market_item.name} | {market_item.quantity} шт.</b>\n"
-            f"Продавец: {get_user_tag(item_owner)}")
+            f"Продавец: {get_user_tag(item_owner)}\n"
+            f"Средный прайс: {get_middle_item_price(market_item.name)}/шт")
     
     markup = InlineMarkup.market_item_open(user, market_item)
     bot.edit_message_text(mess, call.message.chat.id, call.message.id, reply_markup=markup)

@@ -3,7 +3,7 @@ from telebot.handler_backends import State, StatesGroup
 
 
 from config import bot
-from helpers.utils import get_item, get_item_emoji, get_user_tag
+from helpers.utils import get_item, get_item_emoji, get_middle_item_price, get_user_tag
 from database.funcs import database, cache
 from database.models import MarketItemModel
 from helpers.exceptions import NoResult
@@ -58,7 +58,8 @@ def quantity_state(message: Message):
     call_message_id = cache.get(f"{message.from_user.id}_item_add_message")
     bot.delete_message(message.chat.id, message.id)
     
-    bot.edit_message_text("Введи прайс", message.chat.id, call_message_id)
+    item = get_item(user_item.name)
+    bot.edit_message_text(f"<b>Продажа придмета {item.emoji}</b>\nВведи прайс (+-{get_middle_item_price(item.name)}/шт)", message.chat.id, call_message_id)
     bot.set_state(message.from_user.id, AddNewItemState.price, message.chat.id)
 
 
