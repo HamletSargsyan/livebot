@@ -61,6 +61,7 @@ START_MARKUP.add(
         KeyboardButton("Инвентарь"),
         KeyboardButton("Квест"),
         KeyboardButton("Магазин"),
+        KeyboardButton("Рынок"),
         KeyboardButton("Верстак"),
         KeyboardButton("Рейтинг"),
         KeyboardButton("Юз"),
