@@ -135,5 +135,20 @@ class UserModel(BaseModel):
         self.casino_win: int = 0
         self.casino_loose: int = 0
         self.new_quest_coin_quantity: int = 2
+        self.max_items_count_in_market: int = 2
 
         super().__init__(**kwargs)
+        self.id = int(self.id) # NOTE: for fix bug: float id
+
+
+class MarketItemModel(BaseModel):
+    def __init__(self, **kwargs) -> None:
+        self._id: ObjectId
+        self.name: str
+        self.price: int = 0
+        self.quantity: int = 0
+        self.published_at: datetime = datetime.utcnow()
+        self.owner: ObjectId
+
+        super().__init__(**kwargs)
+

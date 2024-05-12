@@ -1,6 +1,7 @@
 import random
 from datetime import datetime, timedelta
 
+from bson import ObjectId
 from telebot.util import quick_markup, chunks
 from telebot.types import (
     CallbackQuery,
@@ -34,6 +35,7 @@ from helpers.utils import (
     get_item_emoji,
     get_time_difference_string,
     get_item,
+    get_user_tag,
 )
 
 from database.models import DogModel
@@ -619,3 +621,148 @@ def open_callback(call: CallbackQuery):
         bot.edit_message_text(
             mess, call.message.chat.id, call.message.id, reply_markup=markup
         )
+    elif data[1] == "market-profile":
+        mess = "Твой ларек"
+        markup = InlineMarkup.market_profile(user)
+
+        bot.edit_message_text(mess, call.message.chat.id, call.message.id, reply_markup=markup)
+
+
+@bot.callback_query_handler(lambda c: c.data.split(" ")[0] == "market")
+def market_callback(call: CallbackQuery):
+    data = call.data.split(" ")
+
+    if data[-1] != str(call.from_user.id):
+        return
+
+    user = database.users.get(id=call.from_user.id)
+
+    if data[1] == "add":
+        from base.user_input.add_new_market_item import AddNewItemState
+        
+        user_items = sorted(database.items.get_all(owner=user._id), key=lambda i: i.quantity, reverse=True)
+
+        buttons = []
+        for item in user_items:
+            if item.quantity <= 0:
+                continue
+            
+            buttons.append(
+                InlineKeyboardButton(f"{get_item_emoji(item.name)} {item.quantity}", callback_data=f"sell {get_item(item.name).translit()} {user.id}")
+            )
+
+        markup = InlineKeyboardMarkup(row_width=3)
+        if len(buttons) == 0:
+            bot.edit_message_text("У тебя нет придметов для продажы", call.message.chat.id, call.message.id)
+            return    
+
+        markup.add(*buttons)
+
+        bot.edit_message_text("<b>Продажа придмета</b>\nВыбери придмет", call.message.chat.id, call.message.id, reply_markup=markup)
+
+        bot.set_state(user.id, AddNewItemState.name, call.message.chat.id)
+    elif data[1] == "buy":
+        try:
+            market_item = database.market_items.get(_id=ObjectId(data[2]))
+        except NoResult:
+            bot.answer_callback_query(call.id, "Этот придмет либо уже купили либо владелец убрал с продажы", show_alert=True)
+            return
+
+        item_owner = database.users.get(_id=market_item.owner)
+
+        if item_owner.id == user.id:
+            bot.answer_callback_query(call.id, "Сам у себя будешь покупать?", show_alert=True)
+            return
+
+        if market_item.price > user.coin:
+            bot.answer_callback_query(call.id, "Тебе не хватает бабла", show_alert=True)
+            return
+        
+        
+        item_owner.coin += market_item.price
+        user.coin -= market_item.price
+
+        user_item = get_or_add_user_item(user, market_item.name)
+        user_item.quantity = market_item.quantity
+        
+        database.items.update(**user_item.to_dict())
+        database.users.update(**user.to_dict())
+        database.users.update(**item_owner.to_dict())
+
+        mess = f"{get_user_tag(user)} купил {market_item.quantity} {get_item_emoji(market_item.name)}"
+        bot.send_message(call.message.chat.id, mess)
+
+        bot.send_message(item_owner.id, f"{get_user_tag(user)} купил у тебя {market_item.quantity} {get_item_emoji(market_item.name)}")
+
+        database.market_items.delete(**market_item.to_dict())
+
+        mess = "<b>Рынок</b>\n\n"
+        market_items = database.market_items.get_all()
+        markup = InlineMarkup.market_pager(user)
+        mess += f"1 / {len(list(chunks(market_items, 6)))}"
+        bot.edit_message_text(mess, call.message.chat.id, call.message.id, reply_markup=markup)
+    elif data[1] == "view-my-items":
+        markup = InlineMarkup.market_view_my_items(user)
+        
+        mess = "<b>Твои товары</b>"
+        bot.edit_message_text(mess, call.message.chat.id, call.message.id, reply_markup=markup)
+    elif data[1] == "delete":
+        market_item = database.market_items.get(_id=ObjectId(data[2]))
+        user_item = get_or_add_user_item(user, market_item.name)
+        user_item.quantity += market_item.quantity
+        database.items.update(**user_item.to_dict())
+        database.market_items.delete(**market_item.to_dict())
+        bot.answer_callback_query(call.id, "Придмет удален успешно", show_alert=True)
+        markup = InlineMarkup.market_view_my_items(user)
+        
+        bot.edit_message_reply_markup(call.message.chat.id, call.message.id, reply_markup=markup)
+
+    else:
+        try:
+            action = call.data.split(" ")[1]
+            pos = int(call.data.split(" ")[2])
+            
+            market_items = database.market_items.get_all()
+            max_pos = len(list(chunks(market_items, 6))) - 1
+
+            if action == "next":
+                pos += 1
+            elif action == "back":
+                pos -= 1
+            elif action == "start":
+                pos = 0
+            elif action == "end":
+                pos = max_pos
+
+            if pos < 0:
+                raise IndexError
+
+            mess = f"<b>Рынок</b>\n\n{pos + 1} / {max_pos + 1}"
+            markup = InlineMarkup.market_pager(user=user, index=pos)
+
+            bot.edit_message_text(
+                mess, call.message.chat.id, call.message.id, reply_markup=markup
+            )
+        except (IndexError, ApiTelegramException):
+            bot.answer_callback_query(call.id, "Дальше ничо нету", show_alert=True)
+
+
+
+@bot.callback_query_handler(lambda c: c.data.startswith("market_item_open"))
+def market_item_open_callback(call: CallbackQuery):
+    data = call.data.split(" ")
+
+    if data[-1] != str(call.from_user.id):
+        return
+
+    user = database.users.get(id=call.from_user.id)
+    item_id = ObjectId(data[1])
+
+    market_item = database.market_items.get(_id=item_id)
+
+    item_owner = database.users.get(_id=market_item.owner)
+    mess = (f"<b>{get_item_emoji(market_item.name)} {market_item.name} | {market_item.quantity} шт.</b>\n"
+            f"Продавец: {get_user_tag(item_owner)}")
+    
+    markup = InlineMarkup.market_item_open(user, market_item)
+    bot.edit_message_text(mess, call.message.chat.id, call.message.id, reply_markup=markup)

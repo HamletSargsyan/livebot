@@ -41,6 +41,8 @@ from base.player import (
 )
 from base.weather import get_weather
 
+import base.user_input # noqa
+
 from database.funcs import database
 from database.models import ItemModel, PromoModel
 
@@ -961,12 +963,14 @@ def guide_cmd(message: Message):
 def market_cmd(message: Message):
     user = database.users.get(id=message.from_user.id)
 
-    if user.level < 10:
-        bot.reply_to(message, "Нужно иметь 10+ лвл")
-        return
+    mess = ("<b>Рынок</b>\n\n")
+    
+    market_items = database.market_items.get_all()
+    markup = InlineMarkup.market_pager(user)
+    mess += f"1 / {len(list(chunks(market_items, 6)))}"
+   
 
-    database.markets.get_all()
-    database.markets.get(owner=user._id)
+    bot.reply_to(message, mess, reply_markup=markup)
 
 
 # ---------------------------------------------------------------------------- #
@@ -1044,3 +1048,5 @@ def text_message_handler(message: Message):
         guide_cmd(message)
     elif text == "дом":
         home_cmd(message)
+    elif text == "рынок":
+        market_cmd(message)

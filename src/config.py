@@ -1,11 +1,16 @@
 from datetime import datetime
 import os
 import sys
+import json
 import logging
 from typing import Final
 
 from dotenv import load_dotenv
+from redis import Redis
+
 import telebot
+from telebot.storage import StateRedisStorage
+from telebot.custom_filters import StateFilter, IsDigitFilter
 
 
 load_dotenv()
@@ -14,6 +19,7 @@ DEBUG = False
 
 TOKEN = os.getenv("BOT_TOKEN", "")
 DB_URL = os.getenv("DB_URL", "")
+REDIS_URL = os.getenv("REDIS_URL", "")
 DB_NAME = os.getenv("DB_NAME", "")
 OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API")
 
@@ -26,6 +32,15 @@ elif not DB_NAME:
 elif not OPENWEATHER_API_KEY:
     raise ValueError
 
+class RedisStorage(StateRedisStorage):
+    def set_record(self, key, value):
+        connection = Redis(connection_pool=self.redis)
+        
+        connection.setex(self.prefix+str(key), 120, json.dumps(value))
+        connection.close()
+        return True
+
+state_storage = StateRedisStorage(redis_url=REDIS_URL)
 
 bot = telebot.TeleBot(
     TOKEN,
@@ -34,8 +49,12 @@ bot = telebot.TeleBot(
     num_threads=10,
     disable_web_page_preview=True,
     use_class_middlewares=True,
+    state_storage=state_storage
 )
 
+
+bot.add_custom_filter(StateFilter(bot))
+bot.add_custom_filter(IsDigitFilter())
 
 TELEGRAM_ID: Final = 777000
 
@@ -68,6 +87,8 @@ class TelegramLogsHandler(logging.Handler):
         super().__init__()
 
     def emit(self, record):
+        if record.levelno == 10:
+            return
         from helpers.utils import log
 
         log_entry = self.format(record)
@@ -86,4 +107,4 @@ console_output_handler.setFormatter(formatter)
 logger.addHandler(console_output_handler)
 
 telebot.logger.addHandler(TelegramLogsHandler())
-telebot.logger.setLevel(20)
+telebot.logger.setLevel(10)

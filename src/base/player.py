@@ -345,9 +345,7 @@ def get_or_add_user_item(user: UserModel, name: str) -> Union[ItemModel, NoRetur
         item = database.items.get(**{"owner": user._id, "name": name})
     except NoResult:
         item = ItemModel(owner=user._id, name=name)
-        item_add = database.items.add(**item.to_dict())
-        item._id = item_add.inserted_id
-        database.items.update(**item.to_dict())
+        database.items.add(**item.to_dict())
 
     return item
 
@@ -666,3 +664,4 @@ def game(call: CallbackQuery, user: UserModel):
     mess = "Как же хорошо было играть 😊"
     bot.edit_message_text(mess, call.message.chat.id, call.message.id)
     check_user_stats(user, call.message.chat.id)
+

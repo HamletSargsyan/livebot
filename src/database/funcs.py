@@ -1,11 +1,15 @@
 from typing import Generic, Type, TypeVar
+
 from bson import ObjectId
 from pymongo import MongoClient
 from pymongo.collection import Collection
 
+import redis
+
 from helpers.exceptions import NoResult
-from config import DB_NAME, DB_URL
+from config import DB_NAME, DB_URL, REDIS_URL
 from database.models import (
+    MarketItemModel,
     NotificationModel,
     UserModel,
     ItemModel,
@@ -33,6 +37,7 @@ quests = db.get_collection("quests")
 exchangers = db.get_collection("exchangers")
 dogs = db.get_collection("dogs")
 notifications = db.get_collection("notifications")
+market_items = db.get_collection("market_items")
 
 
 T = TypeVar(
@@ -44,6 +49,7 @@ T = TypeVar(
     ExchangerModel,
     DogModel,
     NotificationModel,
+    MarketItemModel
 )
 
 
@@ -89,6 +95,8 @@ class DataBase:
         self.exchangers = BaseDB(exchangers, ExchangerModel)
         self.dogs = BaseDB(dogs, DogModel)
         self.notifications = BaseDB(notifications, NotificationModel)
+        self.market_items = BaseDB(market_items, MarketItemModel)
 
 
 database = DataBase()
+cache = redis.from_url(REDIS_URL)
