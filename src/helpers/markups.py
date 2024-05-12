@@ -71,7 +71,7 @@ class InlineMarkup:
 
     @classmethod
     def market_pager(cls, user: UserModel, index: int = 0) -> InlineKeyboardMarkup:
-        market_items = database.market_items.get_all()
+        market_items = sorted(database.market_items.get_all(), key=lambda i: i.published_at, reverse=True)
         items = list(chunks(market_items, 6))
         buttons = []
 
