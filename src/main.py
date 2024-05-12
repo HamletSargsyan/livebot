@@ -22,7 +22,7 @@ def bot_commands_init():
         BotCommand("use", "Юз придметов"),
         BotCommand("exchanger", "Обменник"),
         BotCommand("transfer", "Перекидка придметов"),
-        BotCommand("shop", "Рынок"),
+        BotCommand("market", "Рынок"),
         BotCommand("shop", "Магазин"),
         BotCommand("weather", "Погода"),
         BotCommand("items", "Информация о всех придметах"),
