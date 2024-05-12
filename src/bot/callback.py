@@ -772,3 +772,19 @@ def market_item_open_callback(call: CallbackQuery):
     
     markup = InlineMarkup.market_item_open(user, market_item)
     bot.edit_message_text(mess, call.message.chat.id, call.message.id, reply_markup=markup)
+
+
+@bot.callback_query_handler(lambda c: c.data.startswith("delate_state"), state="*")
+def delate_state_callback(call: CallbackQuery):
+    data = call.data.split(" ")
+
+    if data[-1] != str(call.from_user.id):
+        return
+    
+    if not bot.get_state(call.from_user.id, call.message.chat.id):
+        bot.answer_callback_query(call.id, "Что отменять собрался?", show_alert=True)
+        return
+    
+    bot.delete_state(call.from_user.id, call.message.chat.id)
+    bot.delete_message(call.message.chat.id, call.message.id)
+    bot.answer_callback_query(call.id, "Отменил")

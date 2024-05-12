@@ -132,3 +132,9 @@ class InlineMarkup:
         markup.add(*buttons)
         markup.row(InlineKeyboardButton("◀️", callback_data=f"market start 0 {user.id}"))
         return markup
+
+    @classmethod
+    def delate_state(cls, user: UserModel) -> InlineKeyboardMarkup:
+        return quick_markup({
+            "Отмена": {"callback_data": f"delate_state {user.id}"}
+        })
