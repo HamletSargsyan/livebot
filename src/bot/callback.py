@@ -479,6 +479,7 @@ def chest_callback(call: CallbackQuery):
             mess += f"+ {quantity} {item.name} {item.emoji}\n"
             user_item = get_or_add_user_item(user, item.name)
             user_item.quantity += quantity
+            database.items.update(**user_item.to_dict())
         bot.delete_message(call.message.chat.id, call.message.id)
         if call.message.reply_to_message:
             bot.reply_to(call.message.reply_to_message, mess)
