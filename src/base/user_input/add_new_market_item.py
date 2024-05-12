@@ -42,11 +42,13 @@ def invalid_int_input(message: Message):
 
 
 @bot.message_handler(state=AddNewItemState.quantity, is_digit=True)
-def quantity_state(message: Message):
+def quantity_state(message: Message):    
     with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
         data["quantity"] = int(message.text)
     
     call_message_id = cache.get(f"{message.from_user.id}_item_add_message")
+    bot.delete_message(message.chat.id, message.id)
+    
     bot.edit_message_text("Введи прайс", message.chat.id, call_message_id)
     bot.set_state(message.from_user.id, AddNewItemState.price, message.chat.id)
 
@@ -54,6 +56,7 @@ def quantity_state(message: Message):
 
 @bot.message_handler(state=AddNewItemState.price, is_digit=True)
 def price_state(message: Message):
+    
     with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
         user = database.users.get(id=message.from_user.id)
         item = MarketItemModel(
@@ -64,10 +67,15 @@ def price_state(message: Message):
         )
 
 
-    call_message_id = cache.get(f"{message.from_user.id}_item_add_message")
-    bot.delete_state(user.id, call_message_id)
+    bot.delete_state(user.id, message.from_user.id)
     database.market_items.add(**item.to_dict())
 
+    call_message_id = cache.get(f"{message.from_user.id}_item_add_message")
+    
+    bot.delete_message(message.chat.id, call_message_id)
+    bot.delete_message(message.chat.id, message.id)
+
+    cache.delete(f"{message.from_user.id}_item_add_message")
     mess = f"{get_user_tag(user)} выстовил на продажу {item.quantity} {get_item_emoji(item.name)} за {item.price}/шт {get_item_emoji('бабло')}"
     bot.send_message(message.chat.id, mess)
 
