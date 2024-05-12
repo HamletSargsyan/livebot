@@ -81,7 +81,7 @@ def start(message: Message):
 
         mess = (
             f"Здарова {message.from_user.first_name}, добро пожаловать в игру\n\n"
-            "Помошь: /help"
+            "Помощь: /help"
         )
 
         if len(message.text.split("/start ")) != 1:  # pyright: ignore
