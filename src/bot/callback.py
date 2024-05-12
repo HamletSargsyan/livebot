@@ -683,7 +683,7 @@ def market_callback(call: CallbackQuery):
         user.coin -= market_item.price
 
         user_item = get_or_add_user_item(user, market_item.name)
-        user_item.quantity = market_item.quantity
+        user_item.quantity += market_item.quantity
         
         database.items.update(**user_item.to_dict())
         database.users.update(**user.to_dict())
