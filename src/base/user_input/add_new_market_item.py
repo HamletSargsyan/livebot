@@ -96,6 +96,6 @@ def price_state(message: Message):
     bot.delete_message(message.chat.id, message.id)
 
     cache.delete(f"{message.from_user.id}_item_add_message")
-    mess = f"{get_user_tag(user)} выстовил на продажу {item.quantity} {get_item_emoji(item.name)} за {item.price}/шт {get_item_emoji('бабло')}"
+    mess = f"{get_user_tag(user)} выстовил на продажу {item.quantity} {get_item_emoji(item.name)} за {item.price} {get_item_emoji('бабло')}"
     bot.send_message(message.chat.id, mess)
 

@@ -963,18 +963,12 @@ def guide_cmd(message: Message):
 def market_cmd(message: Message):
     user = database.users.get(id=message.from_user.id)
 
-    if user.level < 10:
-        bot.reply_to(message, "Нужно иметь 10+ лвл")
-        return
-
-    print(user.id, "handler", message.from_user.id)
     mess = ("<b>Рынок</b>\n\n")
     
     market_items = database.market_items.get_all()
     markup = InlineMarkup.market_pager(user)
     mess += f"1 / {len(list(chunks(market_items, 6)))}"
-
-    
+   
 
     bot.reply_to(message, mess, reply_markup=markup)
 
