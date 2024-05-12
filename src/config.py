@@ -40,7 +40,7 @@ class RedisStorage(StateRedisStorage):
         connection.close()
         return True
 
-state_storage = StateRedisStorage(redis_url=REDIS_URL)
+state_storage = RedisStorage(redis_url=REDIS_URL)
 
 bot = telebot.TeleBot(
     TOKEN,
