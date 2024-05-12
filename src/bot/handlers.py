@@ -1048,3 +1048,5 @@ def text_message_handler(message: Message):
         guide_cmd(message)
     elif text == "дом":
         home_cmd(message)
+    elif text == "рынок":
+        market_cmd(message)
