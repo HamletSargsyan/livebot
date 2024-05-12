@@ -638,6 +638,10 @@ def market_callback(call: CallbackQuery):
     user = database.users.get(id=call.from_user.id)
 
     if data[1] == "add":
+        user_market_items_len = len(database.market_items.get_all(owner=user._id))
+        if user_market_items_len >= user.max_items_count_in_market:
+            bot.answer_callback_query(call.id, "Ты привисел лимит", show_alert=True)
+            return
         from base.user_input.add_new_market_item import AddNewItemState
         
         user_items = sorted(database.items.get_all(owner=user._id), key=lambda i: i.quantity, reverse=True)
