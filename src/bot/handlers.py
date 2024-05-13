@@ -9,7 +9,7 @@ from telebot.types import (
     InlineKeyboardMarkup,
     ReplyKeyboardMarkup,
     KeyboardButton,
-    WebAppInfo
+    WebAppInfo,
 )
 from telebot.util import (
     extract_arguments,
@@ -42,7 +42,7 @@ from base.player import (
 )
 from base.weather import get_weather
 
-import base.user_input # noqa
+import base.user_input  # noqa
 
 from database.funcs import database
 from database.models import ItemModel, PromoModel
@@ -786,7 +786,6 @@ def exchanger_cmd(message: Message):
         if exchanger.expires <= datetime.utcnow():
             exchanger = generate_exchanger(user)
             database.exchangers.update(**exchanger.to_dict())
-        
 
         mess = (
             "<b>Обменник 🔄</b>\n\n"
@@ -952,29 +951,30 @@ def guide_cmd(message: Message):
 
     #     bot.send_message(message.chat.id, mess, reply_markup=markup)
 
-
     mess = "Гайд по LiveBot 🍃"
     markup = InlineKeyboardMarkup()
     if message.chat.type == "private":
         markup.add(
-            InlineKeyboardButton("Читать", web_app=WebAppInfo("https://hamletsargsyan.github.io/livebot/guide/"))
+            InlineKeyboardButton(
+                "Читать",
+                web_app=WebAppInfo("https://hamletsargsyan.github.io/livebot/guide/"),
+            )
         )
     else:
         mess += "\n\nhttps://hamletsargsyan.github.io/livebot/"
 
-
     bot.send_message(message.chat.id, mess, reply_markup=markup)
+
 
 @bot.message_handler(commands=["market"])
 def market_cmd(message: Message):
     user = database.users.get(id=message.from_user.id)
 
-    mess = ("<b>Рынок</b>\n\n")
-    
+    mess = "<b>Рынок</b>\n\n"
+
     market_items = database.market_items.get_all()
     markup = InlineMarkup.market_pager(user)
     mess += f"1 / {len(list(chunks(market_items, 6)))}"
-   
 
     bot.reply_to(message, mess, reply_markup=markup)
 

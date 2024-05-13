@@ -32,13 +32,15 @@ elif not DB_NAME:
 elif not OPENWEATHER_API_KEY:
     raise ValueError
 
+
 class RedisStorage(StateRedisStorage):
     def set_record(self, key, value):
         connection = Redis(connection_pool=self.redis)
-        
-        connection.setex(self.prefix+str(key), 120, json.dumps(value))
+
+        connection.setex(self.prefix + str(key), 120, json.dumps(value))
         connection.close()
         return True
+
 
 state_storage = RedisStorage(redis_url=REDIS_URL)
 
@@ -49,7 +51,7 @@ bot = telebot.TeleBot(
     num_threads=10,
     disable_web_page_preview=True,
     use_class_middlewares=True,
-    state_storage=state_storage
+    state_storage=state_storage,
 )
 
 

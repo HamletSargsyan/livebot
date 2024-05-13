@@ -2,7 +2,12 @@ import random
 from typing import NoReturn, Union, List
 from datetime import datetime, timedelta
 
-from telebot.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
+from telebot.types import (
+    Message,
+    CallbackQuery,
+    InlineKeyboardMarkup,
+    InlineKeyboardButton,
+)
 
 from .items import items_list, ItemRarity
 
@@ -526,7 +531,7 @@ def street(call: CallbackQuery, user: UserModel):
                 user_item = get_or_add_user_item(user, item_[0])
                 user_item.quantity += quantity
                 database.items.update(**user_item.to_dict())
-    
+
     if dog:
         dog.hunger += random.randint(0, 5)
         # dog.fatigue += random.randint(0, 10)
@@ -692,4 +697,3 @@ def game(call: CallbackQuery, user: UserModel):
     mess = "Как же хорошо было играть 😊"
     bot.edit_message_text(mess, call.message.chat.id, call.message.id)
     check_user_stats(user, call.message.chat.id)
-

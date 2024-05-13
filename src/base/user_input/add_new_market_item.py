@@ -16,30 +16,37 @@ class AddNewItemState(StatesGroup):
     price = State()
 
 
-@bot.callback_query_handler(state=AddNewItemState.name, func=lambda c: c.data.startswith("sell"))
+@bot.callback_query_handler(
+    state=AddNewItemState.name, func=lambda c: c.data.startswith("sell")
+)
 def name_state(call: CallbackQuery):
     data = call.data.split(" ")
 
     if data[-1] != str(call.from_user.id):
         return
-    
-    
+
     item = get_item(data[1])
     with bot.retrieve_data(call.from_user.id, call.message.chat.id) as data:
         data["name"] = item.name
-    
+
     user = database.users.get(id=call.from_user.id)
     user_item = database.items.get(name=item.name, owner=user._id)
-    
+
     markup = InlineMarkup.delate_state(user)
-    bot.edit_message_text(f"<b>Продажа придмета {item.emoji}</b>\nВведи кол-во ({user_item.quantity})", call.message.chat.id, call.message.id, reply_markup=markup)
+    bot.edit_message_text(
+        f"<b>Продажа придмета {item.emoji}</b>\nВведи кол-во ({user_item.quantity})",
+        call.message.chat.id,
+        call.message.id,
+        reply_markup=markup,
+    )
     bot.set_state(call.from_user.id, AddNewItemState.quantity, call.message.chat.id)
-    
+
     cache.setex(f"{user.id}_item_add_message", 300, call.message.id)
 
 
-
-@bot.message_handler(state=[AddNewItemState.quantity, AddNewItemState.price], is_digit=False)
+@bot.message_handler(
+    state=[AddNewItemState.quantity, AddNewItemState.price], is_digit=False
+)
 def invalid_int_input(message: Message):
     user = database.users.get(id=message.from_user.id)
     markup = InlineMarkup.delate_state(user)
@@ -58,15 +65,19 @@ def quantity_state(message: Message):
 
     with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
         data["quantity"] = int(message.text)
-    
+
     call_message_id = cache.get(f"{message.from_user.id}_item_add_message")
     bot.delete_message(message.chat.id, message.id)
-    
+
     item = get_item(user_item.name)
     markup = InlineMarkup.delate_state(user)
-    bot.edit_message_text(f"<b>Продажа придмета {item.emoji}</b>\nВведи прайс (+-{get_middle_item_price(item.name)}/шт)", message.chat.id, call_message_id, reply_markup=markup)
+    bot.edit_message_text(
+        f"<b>Продажа придмета {item.emoji}</b>\nВведи прайс (+-{get_middle_item_price(item.name)}/шт)",
+        message.chat.id,
+        call_message_id,
+        reply_markup=markup,
+    )
     bot.set_state(message.from_user.id, AddNewItemState.price, message.chat.id)
-
 
 
 @bot.message_handler(state=AddNewItemState.price, is_digit=True)
@@ -78,18 +89,17 @@ def price_state(message: Message):
         except NoResult:
             bot.reply_to(message, "У тебя нет такого придмета")
             return
-        
-        if user_item.quantity < data['quantity']:
+
+        if user_item.quantity < data["quantity"]:
             bot.reply_to(message, "У тебя нет столько")
             return
 
         item = MarketItemModel(
-            name=data['name'].lower(),
-            quantity=int(data['quantity']),
+            name=data["name"].lower(),
+            quantity=int(data["quantity"]),
             price=int(message.text),
-            owner=user._id
+            owner=user._id,
         )
-
 
     bot.delete_state(user.id, message.chat.id)
     database.market_items.add(**item.to_dict())
@@ -97,11 +107,10 @@ def price_state(message: Message):
     database.items.update(**user_item.to_dict())
 
     call_message_id = cache.get(f"{message.from_user.id}_item_add_message")
-    
+
     bot.delete_message(message.chat.id, call_message_id)
     bot.delete_message(message.chat.id, message.id)
 
     cache.delete(f"{message.from_user.id}_item_add_message")
     mess = f"{get_user_tag(user)} выстовил на продажу {item.quantity} {get_item_emoji(item.name)} за {item.price} {get_item_emoji('бабло')}"
     bot.send_message(message.chat.id, mess)
-

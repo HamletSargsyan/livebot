@@ -8,6 +8,7 @@ from config import bot, DEBUG, logger, event_open
 
 if "--debug" in sys.argv:
     from config import telebot
+
     telebot.logger.setLevel(10)
     DEBUG = True
 

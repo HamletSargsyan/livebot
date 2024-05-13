@@ -139,7 +139,7 @@ class UserModel(BaseModel):
         self.luck = 1
 
         super().__init__(**kwargs)
-        self.id = int(self.id) # BUG: for fix bug: float id
+        self.id = int(self.id)  # BUG: for fix bug: float id
 
 
 class MarketItemModel(BaseModel):
@@ -152,4 +152,3 @@ class MarketItemModel(BaseModel):
         self.owner: ObjectId
 
         super().__init__(**kwargs)
-
