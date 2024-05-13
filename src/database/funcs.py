@@ -49,7 +49,7 @@ T = TypeVar(
     ExchangerModel,
     DogModel,
     NotificationModel,
-    MarketItemModel
+    MarketItemModel,
 )
 
 

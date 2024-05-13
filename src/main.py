@@ -1,7 +1,16 @@
+import sys
+
 from threading import Thread
 
 from telebot.types import BotCommand
 
+from config import bot, DEBUG, logger, event_open
+
+if "--debug" in sys.argv:
+    from config import telebot
+
+    telebot.logger.setLevel(10)
+    DEBUG = True
 
 from middlewares.register import RegisterMiddleware
 
@@ -9,7 +18,6 @@ from threads.check import check  # noqa
 from threads.notification import notification
 
 import bot as _  # noqa
-from config import bot, DEBUG, logger, event_open
 
 
 def bot_commands_init():
