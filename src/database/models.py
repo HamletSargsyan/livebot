@@ -136,9 +136,10 @@ class UserModel(BaseModel):
         self.casino_loose: int = 0
         self.new_quest_coin_quantity: int = 2
         self.max_items_count_in_market: int = 4
+        self.luck = 1
 
         super().__init__(**kwargs)
-        self.id = int(self.id) # NOTE: for fix bug: float id
+        self.id = int(self.id) # BUG: for fix bug: float id
 
 
 class MarketItemModel(BaseModel):

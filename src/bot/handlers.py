@@ -376,6 +376,9 @@ def workbench_cmd(message: Message):
 
         item.quantity += count
         xp = random.uniform(5.0, 10.0) * count
+        if random.randint(1, 100) < user.luck:
+            xp += random.uniform(2.3, 6.7)
+
         user.xp += xp
 
         database.items.update(**item.to_dict())

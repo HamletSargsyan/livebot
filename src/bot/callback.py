@@ -789,3 +789,22 @@ def delate_state_callback(call: CallbackQuery):
     bot.delete_state(call.from_user.id, call.message.chat.id)
     bot.delete_message(call.message.chat.id, call.message.id)
     bot.answer_callback_query(call.id, "Отменил")
+
+
+@bot.callback_query_handler(lambda c: c.data.startswith("levelup"))
+def levelup_callback(call: CallbackQuery):
+    data = call.data.split(" ")
+
+    if data[-1] != str(call.from_user.id):
+        return
+    
+    user = database.users.get(id=call.from_user.id)
+
+    if data[1] == "luck":
+        user.luck += 1
+    elif data[1] == "market":
+        user.max_items_count_in_market += 1
+    
+    database.users.update(**user.to_dict())
+    bot.answer_callback_query(call.id, "Поздравляю 🎉🎉", show_alert=True)
+    bot.edit_message_reply_markup(call.message.chat.id, call.message.id, reply_markup=None)

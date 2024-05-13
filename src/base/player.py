@@ -2,7 +2,7 @@ import random
 from typing import NoReturn, Union, List
 from datetime import datetime, timedelta
 
-from telebot.types import Message, CallbackQuery
+from telebot.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 
 from .items import items_list, ItemRarity
 
@@ -16,6 +16,7 @@ from helpers.utils import (
     get_item,
     get_time_difference_string,
     get_item_emoji,
+    get_user_tag,
 )
 
 from database.funcs import database
@@ -27,7 +28,7 @@ from config import bot
 
 
 def level_up(user: UserModel, chat_id: Union[str, int, None] = None):
-    mess = f"{user.name} повисел свой уровень🏵\n"
+    mess = f"{get_user_tag(user)} повисел свой уровень🏵"
     if not chat_id:
         chat_id = user.id
 
@@ -42,7 +43,25 @@ def level_up(user: UserModel, chat_id: Union[str, int, None] = None):
         chat_id,
         "CAACAgIAAxkBAAEpjItl0i05sChI02Gz_uGnAtLyPBcJwgACXhIAAuyZKUl879mlR_dkOzQE",
     )
-    bot.send_message(chat_id, mess)
+
+    markup = InlineKeyboardMarkup(row_width=1)
+    buttons = []
+    btn_data = []
+    if user.max_items_count_in_market <= 10:
+        btn_data.append(("+1 место в ларке", "market"))
+    if user.level >= 10 and user.luck <= 15:
+        btn_data.append(("+1 удача", "luck"))
+
+    for data in btn_data:
+        buttons.append(
+            InlineKeyboardButton(data[0], callback_data=f"levelup {data[1]} {user.id}")
+        )
+
+    markup.add(*buttons)
+    if len(buttons) != 0:
+        mess += "\n\nВыбери что хочешь улучшить"
+
+    bot.send_message(chat_id, mess, reply_markup=markup)
 
 
 def check_user_stats(user: UserModel, chat_id: Union[str, int, None] = None):
@@ -496,6 +515,8 @@ def street(call: CallbackQuery, user: UserModel):
 
         if quantity > 0:
             loot = True
+            if random.randint(1, 100) < user.luck:
+                quantity += random.randint(10, 20)
 
             mess += f"+ {quantity} {item_[0]} {get_item_emoji(item_[0])}\n"
             if item_[0] == "бабло":
@@ -571,10 +592,14 @@ def work(call: CallbackQuery, user: UserModel):
 
     xp = random.uniform(5.0, 20.0)
     coin = random.randint(100, 200) * user.level
+    if random.randint(1, 100) < user.luck:
+        coin *= 2
+        xp += random.uniform(5.0, 7.5)
 
     mess = f"Закончил работу\n\n" f"+ {coin} бабло {get_item_emoji('бабло')}"
 
     user.coin += coin
+
     user.xp += xp
     user.state = None
     user.action_time = datetime.utcnow()
@@ -658,6 +683,8 @@ def game(call: CallbackQuery, user: UserModel):
     user.fatigue += random.randint(0, 10)
     user.xp += random.uniform(3.5, 5.7)
     user.mood += random.randint(5, 10)
+    if random.randint(1, 100) < user.luck:
+        user.mood *= 2
     user.state = None
     user.action_time = datetime.utcnow()
     database.users.update(**user.to_dict())
