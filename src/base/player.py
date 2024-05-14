@@ -44,6 +44,7 @@ def level_up(user: UserModel, chat_id: Union[str, int, None] = None):
 
     box.quantity += 1
 
+    database.items.update(**box.to_dict())
     bot.send_sticker(
         chat_id,
         "CAACAgIAAxkBAAEpjItl0i05sChI02Gz_uGnAtLyPBcJwgACXhIAAuyZKUl879mlR_dkOzQE",
