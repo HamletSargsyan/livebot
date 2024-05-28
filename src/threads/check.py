@@ -21,14 +21,7 @@ def check():
                     case 2:
                         user.mood -= 1
 
-                database.users.update(
-                    user._id,
-                    **{
-                        "hunger": user.hunger,
-                        "mood": user.mood,
-                        "fatigue": user.fatigue,
-                    },
-                )
+                database.users.update(**user.to_dict())
                 check_user_stats(user)
             time.sleep(3600)  # 1h
         except Exception:

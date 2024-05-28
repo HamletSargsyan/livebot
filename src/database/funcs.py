@@ -23,7 +23,7 @@ from database.models import (
 client = MongoClient(DB_URL)
 
 if DB_NAME == "test":
-    choice = input(f"Drop database `{DB_NAME}`? [N/y]")
+    choice = input(f"Drop database `{DB_NAME}`? [N/y] ")
     if choice == "y":
         client.drop_database(DB_NAME)
         del choice
