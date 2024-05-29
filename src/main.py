@@ -68,7 +68,7 @@ def main():
     bot_commands_init()
     init_middlewars()
     init_threads()
-   
+
     bot.infinity_polling(timeout=500, skip_pending=True)
 
 
