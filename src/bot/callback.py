@@ -42,7 +42,7 @@ from helpers.utils import (
 from database.models import DogModel
 from database.funcs import database
 
-from config import GUIDE_FILE_PATH, bot
+from config import DEBUG, GUIDE_FILE_PATH, bot, logger
 
 
 @bot.callback_query_handler(lambda c: c.data.startswith("dog"))
@@ -845,3 +845,9 @@ def levelup_callback(call: CallbackQuery):
     bot.edit_message_reply_markup(
         call.message.chat.id, call.message.id, reply_markup=None
     )
+
+
+if DEBUG:
+    @bot.callback_query_handler(func=lambda call: True)
+    def echo_calback(call: CallbackQuery):
+        logger.debug(call.data)
