@@ -354,6 +354,10 @@ def use_item(message: Message, name: str):
                 f"{item.emoji} юзнул велик и сократил время прогулки на {minutes} минут",
             )
             user_item.quantity -= 1
+        elif name == "клевер-удачы":
+            user.luck += item.effect
+            user_item.quantity -= 1
+            bot.reply_to(message, f"{item.emoji} Увеличел удачу на 1")
 
         database.users.update(**user.to_dict())
         database.items.update(**user_item.to_dict())

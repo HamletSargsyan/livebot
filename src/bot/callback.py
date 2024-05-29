@@ -845,3 +845,4 @@ def levelup_callback(call: CallbackQuery):
     bot.edit_message_reply_markup(
         call.message.chat.id, call.message.id, reply_markup=None
     )
+
