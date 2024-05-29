@@ -850,4 +850,4 @@ def levelup_callback(call: CallbackQuery):
 if DEBUG:
     @bot.callback_query_handler(func=lambda call: True)
     def echo_calback(call: CallbackQuery):
-        logger.debug(call.data)
+        print(call.data)
