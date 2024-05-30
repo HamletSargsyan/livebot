@@ -32,6 +32,7 @@ class ItemModel(BaseModel):
         self._id: ObjectId
         self.name: str
         self.quantity: int = 0
+        self.is_equiped: bool = False
         self.owner: ObjectId
 
         super().__init__(**kwargs)
@@ -44,7 +45,7 @@ class PromoModel(BaseModel):
         self.is_used: bool = False
         self.usage_count: int = 1
         self.description: Union[str, None] = None
-        self.items: dict
+        self.items: dict = {}
         self.users: list[int] = []
         self.created_at: datetime = datetime.utcnow()
 

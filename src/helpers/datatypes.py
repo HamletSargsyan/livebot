@@ -106,6 +106,7 @@ class Item:
         exchange_price: Union[Tuple[int, int], None] = None,
         strength: Union[float, None] = None,
         strength_reduction: Union[tuple[float, float], None] = None,
+        can_equip: bool = False,
     ):
         self.name = name
         self.emoji = emoji
@@ -122,6 +123,7 @@ class Item:
         self.exchange_price = exchange_price
         self.strength = strength
         self.strength_reduction = strength_reduction
+        self.can_equip = can_equip
 
     def __repr__(self) -> str:
         return f"<Item {self.name}>"
