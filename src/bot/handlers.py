@@ -48,6 +48,7 @@ from database.funcs import database
 from database.models import ItemModel, PromoModel
 
 from config import bot, event_end_time, event_open, channel_id, chat_id, logger
+from helpers.messages import Messages
 
 
 START_MARKUP = ReplyKeyboardMarkup(resize_keyboard=True)
@@ -144,16 +145,7 @@ def profile_cmd(message: Message):
 
         check_user_stats(user, message.chat.id)
 
-        mess = (
-            f"<b>Профиль {user.name}</b>\n\n"
-            f"❤️ Здоровье: {user.health}\n"
-            f"🎭 Настроение: {user.mood}\n"
-            f"💤 Усталость: {user.fatigue}\n"
-            f"🍞 Голод: {user.hunger}\n"
-            f"🪙 Бабло: {user.coin}\n"
-            f"🏵 Уровень: {user.level}\n"
-            f"🎗 Опыт {int(user.xp)}/{int(user.max_xp)}\n"
-        )
+        mess = Messages.profile(user)
 
         markup = InlineMarkup.profile(user)
         bot.reply_to(message, mess, reply_markup=markup)

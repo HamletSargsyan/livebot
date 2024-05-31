@@ -43,6 +43,7 @@ from database.models import DogModel
 from database.funcs import database
 
 from config import GUIDE_FILE_PATH, bot
+from helpers.messages import Messages
 
 
 @bot.callback_query_handler(lambda c: c.data.startswith("dog"))
@@ -636,6 +637,12 @@ def open_callback(call: CallbackQuery):
 
         bot.edit_message_text(
             text, call.message.chat.id, call.message.id, reply_markup=markup
+        )
+    elif data[1] == "profile":
+        mess = Messages.profile(user)
+        markup = InlineMarkup.profile(user)
+        bot.edit_message_text(
+            mess, call.message.chat.id, call.message.id, reply_markup=markup
         )
 
 
