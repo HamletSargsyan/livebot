@@ -160,9 +160,11 @@ class InlineMarkup:
     def bag(cls, user: UserModel) -> InlineKeyboardMarkup:
         markup = InlineKeyboardMarkup(row_width=3)
 
-        items = filter(lambda i: i.quantity > 0, database.items.get_all(owner=user.id))
+        items = database.items.get_all(owner=user.id)
 
         for item in items:
+            if item.quantity <= 0:
+                continue
             markup.add(
                 InlineKeyboardButton(
                     f"{get_item_emoji(item.name)} {item.quantity}",
