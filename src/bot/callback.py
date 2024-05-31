@@ -1,3 +1,4 @@
+import logging
 import random
 from datetime import datetime, timedelta
 
@@ -614,6 +615,8 @@ def open_callback(call: CallbackQuery):
 
     if data[-1] != str(call.from_user.id):
         return
+
+    logging.debug(data)
 
     user = database.users.get(id=call.from_user.id)
 

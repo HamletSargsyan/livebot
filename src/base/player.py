@@ -355,7 +355,7 @@ def use_item(message: Message, name: str):
             )
             user_item.quantity -= 1
         elif name == "клевер-удачы":
-            user.luck += item.effect
+            user.luck += item.effect  # pyright: ignore
             user_item.quantity -= 1
             bot.reply_to(message, f"{item.emoji} Увеличел удачу на 1")
 
