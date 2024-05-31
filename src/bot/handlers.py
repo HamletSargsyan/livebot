@@ -611,7 +611,21 @@ def add_promo(message: Message):
         bot.reply_to(message, mess)
 
 
+def debug(func):
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except TypeError as e:
+            import traceback
+
+            print(traceback.format_exc())
+            raise TypeError from e
+
+    return wrapper
+
+
 @bot.message_handler(commands=["promo"])
+@debug
 def promo(message: Message) -> None:
     with Loading(message):
         user = database.users.get(id=message.from_user.id)
