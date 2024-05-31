@@ -154,7 +154,9 @@ def profile_cmd(message: Message):
             f"🏵 Уровень: {user.level}\n"
             f"🎗 Опыт {int(user.xp)}/{int(user.max_xp)}\n"
         )
-        bot.reply_to(message, mess)
+
+        markup = InlineMarkup.profile(user)
+        bot.reply_to(message, mess, reply_markup=markup)
 
 
 @bot.message_handler(commands=["bag"])
@@ -163,20 +165,9 @@ def bag_cmd(message: Message):
         user = database.users.get(id=message.from_user.id)
 
         mess = "<b>Рюкзак</b>\n\n"
-        inventory = database.items.get_all(**{"owner": user._id})
-        if not inventory:
-            mess += "<i>Пусто...</i>"
-        else:
-            sorted_items = sorted(
-                inventory, key=lambda item: item.quantity, reverse=True
-            )
+        markup = InlineMarkup.bag(user)
 
-            for item in sorted_items:
-                if item.quantity <= 0:
-                    continue
-                mess += f"{get_item_emoji(item.name)} {item.name} - {item.quantity}\n"
-
-        bot.reply_to(message, mess)
+        bot.reply_to(message, mess, reply_markup=markup)
 
 
 @bot.message_handler(commands=["items"])
@@ -400,7 +391,7 @@ def transfer_cmd(message: Message):
         user = database.users.get(id=message.from_user.id)
         reply_user = database.users.get(id=message.reply_to_message.from_user.id)
 
-        args = message.text.split(" ")
+        args = message.text.split(" ")  # pyright: ignore
 
         err_mess = (
             "Что-то не так написал, надо так:\n" "<code>/transfer буханка 10</code>"
@@ -620,7 +611,21 @@ def add_promo(message: Message):
         bot.reply_to(message, mess)
 
 
+def debug(func):
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except TypeError as e:
+            import traceback
+
+            print(traceback.format_exc())
+            raise TypeError from e
+
+    return wrapper
+
+
 @bot.message_handler(commands=["promo"])
+@debug
 def promo(message: Message) -> None:
     with Loading(message):
         user = database.users.get(id=message.from_user.id)

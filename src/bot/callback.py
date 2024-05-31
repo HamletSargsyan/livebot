@@ -630,6 +630,13 @@ def open_callback(call: CallbackQuery):
         bot.edit_message_text(
             mess, call.message.chat.id, call.message.id, reply_markup=markup
         )
+    elif data[1] == "bag":
+        markup = InlineMarkup.bag(user)
+        text = "Инвентарь"
+
+        bot.edit_message_text(
+            text, call.message.chat.id, call.message.id, reply_markup=markup
+        )
 
 
 @bot.callback_query_handler(lambda c: c.data.split(" ")[0] == "market")
@@ -822,7 +829,8 @@ def delate_state_callback(call: CallbackQuery):
         return
 
     bot.delete_state(call.from_user.id, call.message.chat.id)
-    bot.delete_message(call.message.chat.id, call.message.id)
+    if call.message.id:
+        bot.delete_message(call.message.chat.id, call.message.id)
     bot.answer_callback_query(call.id, "Отменил")
 
 

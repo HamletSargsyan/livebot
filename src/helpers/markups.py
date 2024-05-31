@@ -6,6 +6,8 @@ from helpers.utils import get_item_emoji, get_pager_controllers
 from database.models import MarketItemModel, UserModel
 from database.funcs import database
 
+from config import logger
+
 
 class InlineMarkup:
     @classmethod
@@ -145,3 +147,34 @@ class InlineMarkup:
     @classmethod
     def delate_state(cls, user: UserModel) -> InlineKeyboardMarkup:
         return quick_markup({"Отмена": {"callback_data": f"delate_state {user.id}"}})
+
+    @classmethod
+    def profile(cls, user: UserModel) -> InlineKeyboardMarkup:
+        markup = InlineKeyboardMarkup(row_width=2)
+
+        markup.add(
+            InlineKeyboardButton("🗄️", callback_data=f"open bag {user.id}"),
+            InlineKeyboardButton("🎒", callback_data=f"open equiped_items {user.id}"),
+        )
+        return markup
+
+    @classmethod
+    def bag(cls, user: UserModel) -> InlineKeyboardMarkup:
+        markup = InlineKeyboardMarkup(row_width=3)
+
+        items = database.items.get_all(owner=user._id)
+        buttons = []
+        for item in items:
+            if item.quantity <= 0:
+                continue
+            buttons.append(
+                InlineKeyboardButton(
+                    f"{get_item_emoji(item.name)} {item.quantity}",
+                    callback_data=f"nothing {user.id}",
+                )
+            )
+
+        markup.add(*buttons)
+        logger.debug(f"{len(buttons) = }")
+
+        return markup
