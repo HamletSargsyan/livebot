@@ -674,6 +674,7 @@ def promo(message: Message) -> None:
                     else:
                         user_item = get_or_add_user_item(user, item)
                         user_item.quantity += code.items[item]
+                        print(user_item.to_dict)
                         database.items.update(**user_item.to_dict())
                     mess += f"+ {code.items[item]} {item} {get_item_emoji(item)}\n"
                     promo_users.append(user.id)
