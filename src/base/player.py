@@ -374,7 +374,8 @@ def get_or_add_user_item(user: UserModel, name: str) -> Union[ItemModel, NoRetur
         item = database.items.get(**{"owner": user._id, "name": name})
     except NoResult:
         item = ItemModel(owner=user._id, name=name)
-        database.items.add(**item.to_dict())
+        id = database.items.add(**item.to_dict()).inserted_id
+        item.id = id
 
     return item
 
