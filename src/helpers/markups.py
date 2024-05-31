@@ -175,5 +175,10 @@ class InlineMarkup:
             )
 
         markup.add(*buttons)
+        markup.row(
+            InlineKeyboardButton(
+                "Назад в профиль", callback_data=f"open profile {user.id}"
+            )
+        )
 
         return markup
