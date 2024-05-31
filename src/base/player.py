@@ -365,19 +365,21 @@ def use_item(message: Message, name: str):
 
 
 def get_or_add_user_item(user: UserModel, name: str) -> Union[ItemModel, NoReturn]:
-    get_item(name)
+    item = get_item(name)
 
-    if name == "бабло":
+    if item.name == "бабло":
         raise ItemIsCoin
 
     try:
-        item = database.items.get(**{"owner": user._id, "name": name})
-    except NoResult:
-        item = ItemModel(owner=user._id, name=name)
-        id = database.items.add(**item.to_dict()).inserted_id
-        item._id = id
+        if item.can_equip:
+            raise Exception
+        user_item = database.items.get(**{"owner": user._id, "name": name})
+    except (NoResult, Exception):
+        user_item = ItemModel(owner=user._id, name=name)
+        id = database.items.add(**user_item.to_dict()).inserted_id
+        user_item._id = id
 
-    return item
+    return user_item
 
 
 def coin_top(max_index: int = 20):

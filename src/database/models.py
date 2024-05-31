@@ -33,6 +33,7 @@ class ItemModel(BaseModel):
         self.name: str
         self.quantity: int = 0
         self.is_equiped: bool = False
+        self.usage: float = 100.0
         self.owner: ObjectId
 
         super().__init__(**kwargs)
