@@ -6,6 +6,8 @@ from helpers.utils import get_item_emoji, get_pager_controllers
 from database.models import MarketItemModel, UserModel
 from database.funcs import database
 
+from config import logger
+
 
 class InlineMarkup:
     @classmethod
@@ -161,15 +163,18 @@ class InlineMarkup:
         markup = InlineKeyboardMarkup(row_width=3)
 
         items = database.items.get_all(owner=user.id)
-
+        buttons = []
         for item in items:
             if item.quantity <= 0:
                 continue
-            markup.add(
+            buttons.append(
                 InlineKeyboardButton(
                     f"{get_item_emoji(item.name)} {item.quantity}",
                     callback_data=f"nothing {user.id}",
                 )
             )
+
+        markup.add(*buttons)
+        logger.debug(f"{len(buttons) = }")
 
         return markup
