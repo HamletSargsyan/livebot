@@ -359,4 +359,12 @@ items_list = [
         can_exchange=True,
         exchange_price=(2000, 3000),
     ),
+    Item(
+        name="клевер-удачы",
+        emoji="🍀",
+        desc="Увеличивает удачу на 1",
+        rarity=ItemRarity.LEGENDARY,
+        is_usable=True,
+        effect=1,
+    ),
 ]

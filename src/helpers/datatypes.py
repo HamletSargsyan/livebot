@@ -91,6 +91,7 @@ class WeatherData:
 class Item:
     def __init__(
         self,
+        /,
         name: str,
         emoji: str,
         desc: str,
