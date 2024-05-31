@@ -145,3 +145,29 @@ class InlineMarkup:
     @classmethod
     def delate_state(cls, user: UserModel) -> InlineKeyboardMarkup:
         return quick_markup({"Отмена": {"callback_data": f"delate_state {user.id}"}})
+
+    @classmethod
+    def profile(cls, user: UserModel) -> InlineKeyboardMarkup:
+        markup = InlineKeyboardMarkup(row_width=2)
+
+        markup.add(
+            InlineKeyboardButton("🗄️", callback_data=f"open bag {user.id}"),
+            InlineKeyboardButton("🎒", callback_data=f"open equiped_items {user.id}"),
+        )
+        return markup
+
+    @classmethod
+    def bag(cls, user: UserModel) -> InlineKeyboardMarkup:
+        markup = InlineKeyboardMarkup(row_width=3)
+
+        items = filter(lambda i: i.quantity > 0, database.items.get_all(owner=user.id))
+
+        for item in items:
+            markup.add(
+                InlineKeyboardButton(
+                    f"{get_item_emoji(item.name)} {item.quantity}",
+                    callback_data=f"nothing {user.id}",
+                )
+            )
+
+        return markup

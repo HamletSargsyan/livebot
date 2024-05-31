@@ -154,7 +154,9 @@ def profile_cmd(message: Message):
             f"🏵 Уровень: {user.level}\n"
             f"🎗 Опыт {int(user.xp)}/{int(user.max_xp)}\n"
         )
-        bot.reply_to(message, mess)
+
+        markup = InlineMarkup.profile()
+        bot.reply_to(message, mess, reply_markup=markup)
 
 
 @bot.message_handler(commands=["bag"])
