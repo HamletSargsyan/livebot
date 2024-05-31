@@ -489,13 +489,6 @@ def chest_callback(call: CallbackQuery):
         bot.delete_message(call.message.chat.id, call.message.id)
         if call.message.reply_to_message:
             bot.reply_to(call.message.reply_to_message, "*Ушел от сундука*")
-    elif data[1] == "bag":
-        markup = InlineMarkup.bag(user)
-        text = "Инвентарь"
-
-        bot.edit_message_text(
-            text, call.message.chat.id, call.message.id, reply_markup=markup
-        )
 
 
 @bot.callback_query_handler(lambda c: c.data.startswith("guide"))
@@ -636,6 +629,13 @@ def open_callback(call: CallbackQuery):
 
         bot.edit_message_text(
             mess, call.message.chat.id, call.message.id, reply_markup=markup
+        )
+    elif data[1] == "bag":
+        markup = InlineMarkup.bag(user)
+        text = "Инвентарь"
+
+        bot.edit_message_text(
+            text, call.message.chat.id, call.message.id, reply_markup=markup
         )
 
 
