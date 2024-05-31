@@ -155,7 +155,7 @@ def profile_cmd(message: Message):
             f"🎗 Опыт {int(user.xp)}/{int(user.max_xp)}\n"
         )
 
-        markup = InlineMarkup.profile()
+        markup = InlineMarkup.profile(user)
         bot.reply_to(message, mess, reply_markup=markup)
 
 
