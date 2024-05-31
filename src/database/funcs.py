@@ -65,7 +65,6 @@ class BaseDB(Generic[T]):
         return self.collection.delete_one(data)
 
     def update(self, _id: ObjectId, **data):
-        print(_id, **data)
         return self.collection.update_one({"_id": _id}, {"$set": data})
 
     def get(self, **data):
