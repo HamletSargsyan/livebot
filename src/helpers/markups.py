@@ -151,8 +151,8 @@ class InlineMarkup:
         markup = InlineKeyboardMarkup(row_width=2)
 
         markup.add(
-            InlineKeyboardButton("🗄️", callback_data=f"open bag {user.id}"),
-            InlineKeyboardButton("🎒", callback_data=f"open equiped_items {user.id}"),
+            InlineKeyboardButton("🎒", callback_data=f"open bag {user.id}"),
+            InlineKeyboardButton("🧰", callback_data=f"open equiped_items {user.id}"),
         )
         return markup
 
@@ -161,14 +161,15 @@ class InlineMarkup:
         markup = InlineKeyboardMarkup(row_width=3)
 
         items = filter(lambda i: i.quantity > 0, database.items.get_all(owner=user._id))
-        items = sorted(items, key=lambda i: i.quantity)
+        items = sorted(items, key=lambda i: i.quantity, reverse=True)
         buttons = []
-        for item in items:
-            if item.quantity <= 0:
+        for user_item in items:
+            if user_item.quantity <= 0:
                 continue
+
             buttons.append(
                 InlineKeyboardButton(
-                    f"{get_item_emoji(item.name)} {item.quantity}",
+                    f"{get_item_emoji(user_item.name)} {user_item.quantity}",
                     callback_data=f"nothing {user.id}",
                 )
             )
