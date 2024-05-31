@@ -162,7 +162,7 @@ class InlineMarkup:
     def bag(cls, user: UserModel) -> InlineKeyboardMarkup:
         markup = InlineKeyboardMarkup(row_width=3)
 
-        items = database.items.get_all(owner=user.id)
+        items = database.items.get_all(owner=user._id)
         buttons = []
         for item in items:
             if item.quantity <= 0:
