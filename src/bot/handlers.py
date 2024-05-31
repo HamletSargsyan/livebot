@@ -165,20 +165,9 @@ def bag_cmd(message: Message):
         user = database.users.get(id=message.from_user.id)
 
         mess = "<b>Рюкзак</b>\n\n"
-        inventory = database.items.get_all(**{"owner": user._id})
-        if not inventory:
-            mess += "<i>Пусто...</i>"
-        else:
-            sorted_items = sorted(
-                inventory, key=lambda item: item.quantity, reverse=True
-            )
+        markup = InlineMarkup.bag(user)
 
-            for item in sorted_items:
-                if item.quantity <= 0:
-                    continue
-                mess += f"{get_item_emoji(item.name)} {item.name} - {item.quantity}\n"
-
-        bot.reply_to(message, mess)
+        bot.reply_to(message, mess, reply_markup=markup)
 
 
 @bot.message_handler(commands=["items"])
