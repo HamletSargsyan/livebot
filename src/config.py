@@ -20,8 +20,8 @@ DEBUG = False
 TOKEN = os.getenv("BOT_TOKEN", "")
 DB_URL = os.getenv("DB_URL", "")
 REDIS_URL = os.getenv("REDIS_URL", "")
-DB_NAME = os.getenv("DB_NAME", "")
-OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API")
+DB_NAME = os.getenv("DB_NAME", "livebot")
+OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API", "")
 
 if not TOKEN:
     raise ValueError
