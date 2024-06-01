@@ -69,7 +69,7 @@ weather_region: Final = "Сыктывкар"
 timezone: Final = datetime.utcnow().tzinfo
 
 event_end_time: Final = datetime(2024, 6, 1, 0, 0, 0, tzinfo=timezone)
-event_open: Final = True
+event_open: Final = False
 
 channel_id: Final = "-1002081230318"
 chat_id: Final = "-1001869913117"
@@ -77,7 +77,6 @@ chat_id: Final = "-1001869913117"
 GUIDE_FILE_PATH: Final = "guide.toml"
 
 
-timezone = datetime.utcnow().tzinfo
 
 bot_owners = [5161392463]  # type: list[int]
 
