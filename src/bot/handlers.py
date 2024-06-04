@@ -750,19 +750,12 @@ def weather_cmd(message: Message):
         weather = get_weather()
 
         mess = (
-            f"<b>Прогноз погоды</b>\n\n"
+            f"<b>{weather.weather.emoji} Прогноз погоды</b>\n\n"
             f"{weather.main.temp} °C\n"
             f"{weather.weather.ru_name}"
         )
 
-        try:
-            bot.send_photo(
-                message.chat.id,
-                f"http://openweathermap.org/img/wn/{weather.weather.icon}@2x.png",
-                caption=mess,
-            )
-        except Exception:
-            bot.reply_to(message, mess)
+        bot.reply_to(message, mess)
 
 
 @bot.message_handler(commands=["exchanger"])

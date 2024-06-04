@@ -3,8 +3,12 @@
 
 ## [3.2.5] - 04.06.2024
 
+### Добавлено
+- Эмодзи для типов погоды в команде `/weather` [#7](https://github.com/HamletSargsyan/livebot/issues/7)
+
 ### Удалено
 - Все что связанно с старым гайдом [#10](https://github.com/HamletSargsyan/livebot/issues/10)
+- Иконки в команде `/weather`
 
 ## [3.2.4] - 01.06.2024
 

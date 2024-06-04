@@ -3,8 +3,27 @@ from typing import Dict, List, Tuple, Union
 import transliterate
 from helpers.enums import ItemRarity, WeatherType
 
-
 # ---------------------------------- Weather --------------------------------- #
+
+weather_types = {
+    "1": WeatherType.THUNDERSTORM,
+    "3": WeatherType.DRIZZLE,
+    "5": WeatherType.RAIN,
+    "6": WeatherType.SNOW,
+    "7": WeatherType.FOG,
+    "800": WeatherType.CLEAR,
+    "80": WeatherType.CLOUDS,
+}
+
+weather_emojis = {
+    "1": "🌩️",
+    "3": "🌦️",
+    "5": "🌧️",
+    "6": "❄️",
+    "7": "🌫️",
+    "800": "☀️",
+    "80": "☁️",
+}
 
 
 class Coordinates:
@@ -22,19 +41,14 @@ class Weather:
 
     @property
     def ru_name(self):
-        weather_types = {
-            "1": WeatherType.THUNDERSTORM,
-            "3": WeatherType.DRIZZLE,
-            "5": WeatherType.RAIN,
-            "6": WeatherType.SNOW,
-            "7": WeatherType.FOG,
-            "800": WeatherType.CLEAR,
-            "80": WeatherType.CLOUDS,
-        }
         for _id, _weather_type in weather_types.items():
             if str(self.id).startswith(_id):
                 return _weather_type.value
         return ""
+
+    @property
+    def emoji(self):
+        return weather_emojis.get(str(self.id), "❓")
 
 
 class MainInfo:
