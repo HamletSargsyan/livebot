@@ -10,7 +10,6 @@ from telebot.types import (
     Message,
 )
 from telebot.apihelper import ApiTelegramException
-import toml
 
 from helpers.enums import ItemRarity
 from helpers.exceptions import NoResult
@@ -42,7 +41,7 @@ from helpers.utils import (
 from database.models import DogModel
 from database.funcs import database
 
-from config import GUIDE_FILE_PATH, bot
+from config import bot
 
 
 @bot.callback_query_handler(lambda c: c.data.startswith("dog"))
@@ -489,90 +488,6 @@ def chest_callback(call: CallbackQuery):
         bot.delete_message(call.message.chat.id, call.message.id)
         if call.message.reply_to_message:
             bot.reply_to(call.message.reply_to_message, "*Ушел от сундука*")
-
-
-@bot.callback_query_handler(lambda c: c.data.startswith("guide"))
-def guide_callback(call: CallbackQuery):
-    data = call.data.split(" ")
-
-    if data[-1] != str(call.from_user.id):
-        return
-
-    main_markup = quick_markup(
-        {
-            "Для новичков ✨": {"callback_data": f"guide beginner {call.from_user.id}"},
-            "Для продвинутых 🔫": {
-                "callback_data": f"guide advanced {call.from_user.id}"
-            },
-            "Остальное 🧩": {"callback_data": f"guide other {call.from_user.id}"},
-        },
-        row_width=1,
-    )
-    main_mess = "Гайд по LiveBot 🍃"
-
-    markup = InlineKeyboardMarkup(row_width=2)
-    if data[1] in ["beginner", "advanced", "other"]:
-        guide = toml.load(GUIDE_FILE_PATH)
-
-        buttons = []
-
-        for topic in guide[data[1]]:
-            buttons.append(
-                InlineKeyboardButton(
-                    topic,
-                    callback_data=f"guide {data[1]}_{topic.replace(' ', '-')} {call.from_user.id}",
-                )
-            )
-
-        markup.add(*buttons)
-        markup.row(
-            InlineKeyboardButton(
-                "Назад", callback_data=f"guide back {call.from_user.id}"
-            )
-        )
-        bot.edit_message_text(
-            chat_id=call.message.chat.id,
-            message_id=call.message.message_id,
-            text=main_mess,
-            reply_markup=markup,
-        )
-    elif "_" in data[1]:
-        category, topic = data[1].split("_", 1)
-        guide = toml.load(GUIDE_FILE_PATH)
-
-        topic = topic.replace("-", " ")
-
-        if category == "beginner":
-            ru_category = "Для новичков"
-        elif category == "advanced":
-            ru_category = "Для продвинутых"
-        elif category == "other":
-            ru_category = "Остальное"
-
-        text = (
-            f"<code>{ru_category}</code> >> <code>{topic}</code>\n\n"
-            f"<b>{topic.upper()}</b>\n\n"
-            f"<i>{guide[category][topic]}</i>"
-        )
-
-        markup.row(
-            InlineKeyboardButton(
-                text="Назад", callback_data=f"guide {category} {call.from_user.id}"
-            )
-        )
-        bot.edit_message_text(
-            chat_id=call.message.chat.id,
-            message_id=call.message.message_id,
-            text=text,
-            reply_markup=markup,
-        )
-    elif data[1] == "back":
-        bot.edit_message_text(
-            chat_id=call.message.chat.id,
-            message_id=call.message.message_id,
-            text=main_mess,
-            reply_markup=main_markup,
-        )
 
 
 @bot.callback_query_handler(lambda c: c.data.startswith("actions"))

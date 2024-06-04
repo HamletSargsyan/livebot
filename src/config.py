@@ -77,7 +77,6 @@ chat_id: Final = "-1001869913117"
 GUIDE_FILE_PATH: Final = "guide.toml"
 
 
-
 bot_owners = [5161392463]  # type: list[int]
 
 logger = logging.Logger("Bot")

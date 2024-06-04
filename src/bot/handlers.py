@@ -931,26 +931,6 @@ def home_cmd(message: Message):
 
 @bot.message_handler(commands=["guide"])
 def guide_cmd(message: Message):
-    # with Loading(message):
-    #     mess = "Гайд по LiveBot 🍃"
-
-    #     markup = quick_markup(
-    #         {
-    #             "Для новичков ✨": {
-    #                 "callback_data": f"guide beginner {message.from_user.id}"
-    #             },
-    #             "Для продвинутых 🔫": {
-    #                 "callback_data": f"guide advanced {message.from_user.id}"
-    #             },
-    #             "Остальное 🧩": {
-    #                 "callback_data": f"guide other {message.from_user.id}"
-    #             },
-    #         },
-    #         row_width=1,
-    #     )
-
-    #     bot.send_message(message.chat.id, mess, reply_markup=markup)
-
     mess = "Гайд по LiveBot 🍃"
     markup = InlineKeyboardMarkup()
     if message.chat.type == "private":
