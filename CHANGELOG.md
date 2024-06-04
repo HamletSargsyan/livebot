@@ -1,7 +1,7 @@
 # CHANGELOG
 
 
-## [3.2.5] - 04.06.2024
+## [3.2.5] - 05.06.2024
 
 ### Добавлено
 - Эмодзи для типов погоды в команде `/weather` [#7](https://github.com/HamletSargsyan/livebot/issues/7)
