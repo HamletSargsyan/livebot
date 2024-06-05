@@ -671,8 +671,8 @@ def promo(message: Message) -> None:
                         user_item.quantity += code.items[item]
                         database.items.update(**user_item.to_dict())
                     mess += f"+ {code.items[item]} {item} {get_item_emoji(item)}\n"
-                    promo_users.append(user.id)
-                    code.users = promo_users
+                promo_users.append(user.id)
+                code.users = promo_users
 
                 database.promos.update(**code.to_dict())
                 bot.send_sticker(
