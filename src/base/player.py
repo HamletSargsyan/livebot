@@ -391,6 +391,8 @@ def get_top(
 
     for index, obj in enumerate(objects, start=1):
         mess += f"{index}. {key(obj)} - {value(obj)}\n"
+        if index == max_index:
+            break
     return mess
 
 
