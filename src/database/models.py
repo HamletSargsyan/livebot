@@ -31,24 +31,20 @@ class Field(Generic[T]):
         self._default = default
         self._required = required
         self._nullable = nullable
-
-    def __get__(self, instance: Any, owner: Type) -> T:
-        if instance is None:
-            return self  # Возвращаем дескриптор при доступе через класс
-        return instance.__dict__.get(self._name, self._default)
+        self._name = None
 
     def __set__(self, instance: Any, value: T) -> None:
         if not self._nullable and value is None:
-            raise ValueError("Field cannot be None")
+            raise ValueError(f"{self._name} cannot be None")
         if value is not None and not isinstance(value, self._type):
-            raise ValueError(f"Invalid type. Expected {self._type}, got {type(value)}")
+            raise ValueError(f"Invalid type. Expected {self._type}, got {type(value)} for field {self._name}")
         instance.__dict__[self._name] = value
 
     def __set_name__(self, owner: Type, name: str) -> None:
         self._name = name
 
     def __str__(self) -> str:
-        return f"<Field type={self._type}, default={self._default}, required={self._required}, nullable={self._nullable}>"
+        return f"<Field name={self._name}, type={self._type}, default={self._default}, required={self._required}, nullable={self._nullable}>"
 
 
 class BaseModel(DictSerializable):
