@@ -63,7 +63,7 @@ START_MARKUP.add(
         KeyboardButton("Магазин"),
         KeyboardButton("Рынок"),
         KeyboardButton("Верстак"),
-        KeyboardButton("Рейтинг"),
+        KeyboardButton("Топ"),
         KeyboardButton("Юз"),
         KeyboardButton("Статы"),
         KeyboardButton("Погода"),
@@ -761,9 +761,12 @@ def weather_cmd(message: Message):
 
 @bot.message_handler(commands=["exchanger"])
 def exchanger_cmd(message: Message):
-    # if True:
-    #     bot.reply_to(message, "Временно не работает изза багов :(")
-    #     return
+    if True:
+        bot.reply_to(
+            message,
+            "Временно не работает изза <a href='https://github.com/HamletSargsyan/livebot/issues/18'>бага</a> :(",
+        )
+        return
     with Loading(message):
         user = database.users.get(id=message.from_user.id)
 
@@ -927,15 +930,16 @@ def home_cmd(message: Message):
 def guide_cmd(message: Message):
     mess = "Гайд по LiveBot 🍃"
     markup = InlineKeyboardMarkup()
+    guide_url = "https://hamletsargsyan.github.io/livebot/guide"
     if message.chat.type == "private":
         markup.add(
             InlineKeyboardButton(
                 "Читать",
-                web_app=WebAppInfo("https://hamletsargsyan.github.io/livebot/guide/"),
+                web_app=WebAppInfo(guide_url),
             )
         )
     else:
-        mess += "\n\nhttps://hamletsargsyan.github.io/livebot/"
+        mess += f"\n\n{guide_url}"
 
     bot.send_message(message.chat.id, mess, reply_markup=markup)
 

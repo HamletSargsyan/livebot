@@ -1,7 +1,7 @@
 import requests
 
 from helpers.datatypes import WeatherData
-from config import OPENWEATHER_API_KEY
+from config import OPENWEATHER_API_KEY, weather_region
 
 
 def get_weather() -> WeatherData:
@@ -9,7 +9,7 @@ def get_weather() -> WeatherData:
 
     params = {
         "lang": "RU",
-        "q": "Сыктывкар",
+        "q": weather_region,
         "appid": OPENWEATHER_API_KEY,
         "units": "metric",
     }
