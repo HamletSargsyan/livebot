@@ -118,7 +118,7 @@ class UserModel(BaseModel):
         self.registered_at: datetime = datetime.utcnow()
         self.level: int = 1
         self.xp: float = 0.0
-        self.max_xp: float = 50.0
+        self.max_xp: int = 155
         self.is_admin: bool = False
         self.is_banned: bool = False
         self.met_mob: bool = False

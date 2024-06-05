@@ -347,7 +347,7 @@ items_list = [
         emoji="🗝️",
         desc="Нужен чтобы открыть сундук",
         price=5691,
-        rarity=ItemRarity.UNCOMMON,
+        rarity=ItemRarity.RARE,
         can_exchange=True,
         exchange_price=(4000, 5800),
     ),

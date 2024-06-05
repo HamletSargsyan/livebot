@@ -189,3 +189,7 @@ def get_middle_item_price(name: str) -> int:
     except statistics.StatisticsError:
         pass
     return int(price)
+
+
+def calc_xp_for_level(level: int) -> int:
+    return 5 * level + 50 * level + 100

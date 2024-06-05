@@ -18,6 +18,7 @@ from helpers.exceptions import ItemIsCoin, NoResult
 from helpers.markups import InlineMarkup
 from helpers.utils import (
     Loading,
+    calc_xp_for_level,
     get_item,
     get_time_difference_string,
     get_item_emoji,
@@ -33,7 +34,16 @@ from config import bot
 
 
 def level_up(user: UserModel, chat_id: Union[str, int, None] = None):
+    if user.xp > user.max_xp:
+        user.xp = user.xp - user.max_xp
+    else:
+        user.xp = 0
+
+    user.level += 1
+    user.max_xp = calc_xp_for_level(user.level)
+
     mess = f"{get_user_tag(user)} повисел свой уровень🏵"
+
     if not chat_id:
         chat_id = user.id
 
@@ -74,12 +84,6 @@ def check_user_stats(user: UserModel, chat_id: Union[str, int, None] = None):
     if not chat_id:
         chat_id = user.id
     if user.xp >= user.max_xp:
-        if user.xp > user.max_xp:
-            user.xp = user.xp - user.max_xp
-        else:
-            user.xp = 0
-        user.max_xp *= 2
-        user.level += 1
         level_up(user, chat_id)
 
     if user.health < 0:
@@ -526,7 +530,7 @@ def street(call: CallbackQuery, user: UserModel):
 
         if quantity > 0:
             loot = True
-            if random.randint(1, 100) < user.luck:
+            if random.randint(1, user.luck) + 50 < user.luck:
                 quantity += random.randint(10, 20)
 
             mess += f"+ {quantity} {item_[0]} {get_item_emoji(item_[0])}\n"
@@ -555,9 +559,12 @@ def street(call: CallbackQuery, user: UserModel):
     user.met_mob = False
     database.users.update(**user.to_dict())
 
-    user_notification = database.notifications.get(**{"owner": user._id})
-    user_notification.walk = False
-    database.notifications.update(**user_notification.to_dict())
+    try:
+        user_notification = database.notifications.get(**{"owner": user._id})
+        user_notification.walk = False
+        database.notifications.update(**user_notification.to_dict())
+    except NoResult:
+        pass
 
     if not loot:
         bot.edit_message_text(mess, call.message.chat.id, call.message.id)
@@ -620,9 +627,12 @@ def work(call: CallbackQuery, user: UserModel):
 
     database.users.update(**user.to_dict())
 
-    user_notification = database.notifications.get(**{"owner": user._id})
-    user_notification.work = False
-    database.notifications.update(**user_notification.to_dict())
+    try:
+        user_notification = database.notifications.get(**{"owner": user._id})
+        user_notification.work = False
+        database.notifications.update(**user_notification.to_dict())
+    except NoResult:
+        pass
     bot.edit_message_text(mess, call.message.chat.id, call.message.id)
     check_user_stats(user, call.message.chat.id)
 
