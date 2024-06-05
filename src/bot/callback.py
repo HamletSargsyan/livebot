@@ -416,7 +416,6 @@ def trader_callback(call: CallbackQuery):
 @bot.callback_query_handler(lambda c: c.data.startswith("top"))
 def top_callback(call: CallbackQuery):
     data = call.data.split(" ")
-    print(data)
     if data[-1] != str(call.from_user.id):
         return
 
