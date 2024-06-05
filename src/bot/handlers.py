@@ -151,6 +151,7 @@ def profile_cmd(message: Message):
             f"💤 Усталость: {user.fatigue}\n"
             f"🍞 Голод: {user.hunger}\n"
             f"🪙 Бабло: {user.coin}\n"
+            f"🍀 Удача: {user.luck}\n"
             f"🏵 Уровень: {user.level}\n"
             f"🎗 Опыт {int(user.xp)}/{int(user.max_xp)}\n"
         )
