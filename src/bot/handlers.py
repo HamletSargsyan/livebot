@@ -401,7 +401,7 @@ def transfer_cmd(message: Message):
         user = database.users.get(id=message.from_user.id)
         reply_user = database.users.get(id=message.reply_to_message.from_user.id)
 
-        args = message.text.split(" ")
+        args = message.text.split(" ")  # pyright: ignore
 
         err_mess = (
             "Что-то не так написал, надо так:\n" "<code>/transfer буханка 10</code>"
