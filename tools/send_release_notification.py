@@ -1,11 +1,12 @@
 import os
+from typing import Any, NoReturn, Union
 import requests
 
 from telebot import TeleBot
 from telebot.util import quick_markup
 
 
-def get_github_release_info(version):
+def get_github_release_info(version) -> Union[dict[Any, Any], NoReturn]:  # pyright: ignore
     url = (
         f"  https://api.github.com/repos/HamletSargsyan/livebot/releases/tags/{version}"
     )
@@ -13,14 +14,20 @@ def get_github_release_info(version):
     if response.status_code == 200:
         release_info = response.json()  # type: dict
         return release_info
+
     response.raise_for_status()
 
 
 def send_release_notification():
     bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
     chat_id = os.getenv("CHAT_ID")
+    release_version = os.getenv("GITHUB_REF")
 
-    release_version = os.getenv("GITHUB_REF").split("/")[-1]
+    if not bot_token or not chat_id or not release_version:
+        raise ValueError
+
+    release_version = release_version.split("/")[-1]
+
     release = get_github_release_info(release_version)  # type: dict
 
     message = (

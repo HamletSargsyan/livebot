@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## [Unreleased]
+## [3.3.0] - 05.06.2024
 
 ### Изменено
 - Изменена редкость предмета "ключ" с `ItemRarity.UNCOMMON` на `ItemRarity.RARE`
