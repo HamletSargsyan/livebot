@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## [3.2.6] - 05.06.2024
+
+### Исправлено
+- Баг [#17](https://github.com/HamletSargsyan/livebot/issues/17)
 
 ## [3.2.5] - 05.06.2024
 

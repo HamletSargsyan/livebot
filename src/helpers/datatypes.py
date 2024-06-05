@@ -16,13 +16,21 @@ weather_types = {
 }
 
 weather_emojis = {
-    "1": "🌩️",
-    "3": "🌦️",
-    "5": "🌧️",
-    "6": "❄️",
-    "7": "🌫️",
-    "800": "☀️",
-    "80": "☁️",
+    "Clear": "☀️",
+    "Clouds": "☁️",
+    "Drizzle": "🌦️",
+    "Rain": "🌧️",
+    "Thunderstorm": "⛈️",
+    "Snow": "❄️",
+    "Mist": "🌫️",
+    "Smoke": "🌫️",
+    "Haze": "🌫️",
+    "Dust": "🌫️",
+    "Fog": "🌫️",
+    "Sand": "🌫️",
+    "Ash": "🌫️",
+    "Squall": "🌫️",
+    "Tornado": "🌪️",
 }
 
 
@@ -48,7 +56,7 @@ class Weather:
 
     @property
     def emoji(self):
-        return weather_emojis.get(str(self.id), "❓")
+        return weather_emojis.get(str(self.main), "❓")
 
 
 class MainInfo:
