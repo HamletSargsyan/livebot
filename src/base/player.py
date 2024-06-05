@@ -390,7 +390,7 @@ def get_top(
     objects = filter(filter_, objects)
 
     for index, obj in enumerate(objects, start=1):
-        mess += f"{index}. {key(obj)} - {value(obj)}\n"
+        mess += f"{index}. {key(obj)[:20]} - {value(obj)}\n"
         if index == max_index:
             break
     return mess
