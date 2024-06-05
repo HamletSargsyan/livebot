@@ -1,5 +1,5 @@
 import random
-from typing import NoReturn, Union, List
+from typing import Any, Callable, NoReturn, Union, List
 from datetime import datetime, timedelta
 
 from telebot.types import (
@@ -9,7 +9,7 @@ from telebot.types import (
     InlineKeyboardButton,
 )
 
-from .items import items_list, ItemRarity
+from .items import items_list
 
 from base.mobs import generate_mob
 from base.weather import get_weather
@@ -20,12 +20,13 @@ from helpers.utils import (
     Loading,
     calc_xp_for_level,
     get_item,
+    get_item_count_for_rarity,
     get_time_difference_string,
     get_item_emoji,
     get_user_tag,
 )
 
-from database.funcs import database
+from database.funcs import BaseDB, database, T as ModelsType
 from database.models import UserModel, ItemModel, QuestModel, ExchangerModel
 
 from helpers.datatypes import Item
@@ -300,17 +301,7 @@ def use_item(message: Message, name: str):
                 k=num_items_to_get,
             )
             for item_ in items_to_get:
-                quantity = 0
-                if item_.rarity == ItemRarity.COMMON:
-                    quantity = random.randint(5, 20)
-                elif item_.rarity == ItemRarity.UNCOMMON:
-                    quantity = random.randint(3, 5)
-                elif item_.rarity == ItemRarity.RARE:
-                    quantity = random.randint(1, 2)
-                elif item_.rarity == ItemRarity.EPIC:
-                    quantity = random.randint(0, 2)
-                else:
-                    quantity = random.randint(0, 1)
+                quantity = get_item_count_for_rarity(item_.rarity)
 
                 if quantity == 0:
                     continue
@@ -384,51 +375,59 @@ def get_or_add_user_item(user: UserModel, name: str) -> Union[ItemModel, NoRetur
     return item
 
 
-def coin_top(max_index: int = 20):
-    users = database.users.get_all()
-    sorted_users = sorted(users, key=lambda user: user.coin, reverse=True)
-    mess = f"<b>Топ {max_index} - бабло</b>\n\n"
+def get_top(
+    name: str,
+    collection: BaseDB[ModelsType],
+    filter_: Callable[[ModelsType], bool],
+    sort_key: Callable[[ModelsType], Any],
+    key: Callable[[ModelsType], str],
+    value: Callable[[ModelsType], int],
+    max_index: int = 20,
+) -> str:
+    objects = collection.get_all()
+    objects.sort(key=sort_key, reverse=True)
+    mess = f"<b>Топ {max_index} - {name}</b>\n\n"
+    objects = filter(filter_, objects)
 
-    for index, user in enumerate(sorted_users, start=1):
-        if user.coin > 0:
-            mess += (
-                f"{index}. {user.name or '<i>неопознаный персонаж</i>'} - {user.coin}\n"
-            )
-
-        if index == max_index:
-            break
+    for index, obj in enumerate(objects, start=1):
+        mess += f"{index}. {key(obj)} - {value(obj)}\n"
     return mess
+
+
+def coin_top(max_index: int = 20):
+    return get_top(
+        "бабло",
+        database.users,
+        lambda o: o.coin > 0,
+        lambda o: o.coin,
+        lambda o: o.name,
+        lambda o: o.coin,
+        max_index,
+    )
 
 
 def level_top(max_index: int = 20):
-    users = database.users.get_all()
-    sorted_users = sorted(users, key=lambda user: user.level, reverse=True)
-    mess = f"<b>Топ {max_index} - уровень</b>\n\n"
-
-    for index, user in enumerate(sorted_users, start=1):
-        if user.level > 0:
-            mess += f"{index}. {user.name or '<i>неопознаный персонаж</i>'} - {user.level}\n"
-
-        if index == max_index:
-            break
-    return mess
+    return get_top(
+        "уровень",
+        database.users,
+        lambda o: o.level > 0,
+        lambda o: o.level,
+        lambda o: o.name,
+        lambda o: o.level,
+        max_index,
+    )
 
 
 def dog_level_top(max_index: int = 20):
-    dogs = database.dogs.get_all()
-
-    sorted_dogs = sorted(
-        [dog for dog in dogs if dog.level > 0], key=lambda dog: dog.level, reverse=True
+    return get_top(
+        "уровень собак",
+        database.dogs,
+        lambda o: o.level > 0,
+        lambda o: o.level,
+        lambda o: o.name,
+        lambda o: o.level,
+        max_index,
     )
-    mess = f"<b>Топ {max_index} - уровень собак</b>\n\n"
-
-    for index, dog in enumerate(sorted_dogs, start=1):
-        if dog and dog.level > 0:
-            mess += f"{index}. {dog.name or f'Собачка-{dog.name}'} - {dog.level}\n"
-
-        if index == max_index:
-            break
-    return mess
 
 
 def street(call: CallbackQuery, user: UserModel):
