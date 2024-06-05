@@ -312,6 +312,7 @@ def use_item(message: Message, name: str):
                     _item = get_or_add_user_item(user, item_.name)
 
                     _item.quantity += quantity
+                    database.items.update(**_item.to_dict())
 
             user_item.quantity -= 1
 
