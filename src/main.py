@@ -1,21 +1,24 @@
 import sys
-
 from threading import Thread
 
 from telebot.types import BotCommand
 
 from config import bot, DEBUG, logger, event_open
 
+
+without_threads = False
 if "--debug" in sys.argv:
     from config import telebot
 
     telebot.logger.setLevel(10)
     DEBUG = True
+if "--without-threads" in sys.argv:
+    without_threads = True
 
-from middlewares.register import RegisterMiddleware
+from middlewares.register import RegisterMiddleware  # noqa: E402
 
 from threads.check import check  # noqa
-from threads.notification import notification
+from threads.notification import notification  # noqa: E402
 
 import bot as _  # noqa
 
@@ -66,8 +69,10 @@ def main():
         logger.warning("Бот работает в режиме DEBUG")
 
     bot_commands_init()
-    init_middlewars()
-    init_threads()
+
+    if not without_threads:
+        init_middlewars()
+        init_threads()
 
     bot.infinity_polling(timeout=500, skip_pending=True)
 

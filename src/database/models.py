@@ -61,6 +61,18 @@ class BaseModel(DictSerializable):
             elif k in ["_id", "owner"]:
                 setattr(self, k, ObjectId(v))
             else:
+                field = getattr(self.__class__, k, None)
+                if field and isinstance(field, Field):
+                    expected_type = field._type
+                    if not isinstance(v, expected_type) and not (
+                        field._nullable and v is None
+                    ):
+                        try:
+                            v = expected_type(v)
+                        except (ValueError, TypeError):
+                            raise ValueError(
+                                f"Invalid type. Expected {expected_type}, got {type(v)} for field {k}"
+                            )
                 setattr(self, k, v)
 
 
