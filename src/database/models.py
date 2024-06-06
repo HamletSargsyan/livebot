@@ -34,7 +34,7 @@ class Field(Generic[T]):
 
     def __get__(self, instance: Any, owner: Type) -> T:
         if instance is None:
-            return self
+            return self  # type: ignore
         return instance.__dict__.get(self._name, self._default)
 
     def __set__(self, instance: Any, value: T) -> None:
