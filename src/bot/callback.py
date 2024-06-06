@@ -767,3 +767,31 @@ def levelup_callback(call: CallbackQuery):
     bot.edit_message_reply_markup(
         call.message.chat.id, call.message.id, reply_markup=None
     )
+
+
+@bot.callback_query_handler(lambda c: c.data.startswith("daily_gift"))
+def daily_gift_callback(call: CallbackQuery):
+    data = call.data.split(" ")
+
+    if data[-1] != str(call.from_user.id):
+        return
+
+    user = database.users.get(id=call.from_user.id)
+
+    if data[1] == "claim":
+        now = datetime.utcnow()
+
+        daily_gift = database.daily_gifts.get(owner=user._id)
+        if daily_gift.is_claimed:
+            time_difference = datetime.utcnow() - daily_gift.next_claimable_at
+            bot.answer_callback_query(call.id, f"Ты сегодня уже получил подарок. Жди {get_time_difference_string(time_difference)}")
+            return
+
+        if daily_gift.last_claimed_at.date() == (now - timedelta(days=1)).date():
+            daily_gift.streak += 1
+        else:
+            daily_gift.streak = 1
+
+        daily_gift.last_claimed_at = datetime.utcnow()
+        daily_gift.next_claimable_at = datetime.utcnow() + timedelta(days=1)
+        daily_gift.is_claimed = True

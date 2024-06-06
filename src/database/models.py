@@ -209,6 +209,7 @@ class DailyGiftModel(BaseModel):
     owner = Field(ObjectId)
     last_claimed_at = Field(datetime, nullable=True)
     next_claimable_at = Field(datetime)
+    is_claimed = Field(bool, default=False)
     items = Field(list, nullable=False)
     streak = Field(int, default=0)
 

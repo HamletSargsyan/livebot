@@ -1,6 +1,6 @@
 import random
 import string
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List
 
 from telebot.types import (
@@ -960,7 +960,15 @@ def market_cmd(message: Message):
 @bot.message_handler(commands=["daily_gift"])
 def daily_gift_cmd(message: Message):
     user = database.users.get(id=message.from_user.id)
-    database.daily_gifts.get(owner=user._id)
+    daily_gift = database.daily_gifts.get(owner=user._id)
+
+    mess = "<b>Ежедневный подарок</b>"
+    
+    time_difference = datetime.utcnow() - daily_gift.next_claimable_at
+    if time_difference < timedelta(days=1):
+        ...
+
+    bot.reply_to(message, mess)
 
 
 # ---------------------------------------------------------------------------- #

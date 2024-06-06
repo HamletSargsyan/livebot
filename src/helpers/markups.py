@@ -3,7 +3,7 @@ from telebot.util import quick_markup, chunks
 
 from base.items import items_list
 from helpers.utils import get_item_emoji, get_pager_controllers
-from database.models import MarketItemModel, UserModel
+from database.models import DailyGiftModel, MarketItemModel, UserModel
 from database.funcs import database
 
 from config import logger
@@ -178,3 +178,11 @@ class InlineMarkup:
         logger.debug(f"{len(buttons) = }")
 
         return markup
+
+    @classmethod
+    def daily_gift(cls, user: UserModel, daily_gift: DailyGiftModel) -> InlineKeyboardMarkup:
+        def check():
+            return "✅" if daily_gift.is_claimed else "🔹"
+        return quick_markup({
+            f"{check()} Получить": {"callback_data": f"daily_gift claim {user.id}"}
+        })
