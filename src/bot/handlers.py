@@ -957,6 +957,12 @@ def market_cmd(message: Message):
     bot.reply_to(message, mess, reply_markup=markup)
 
 
+@bot.message_handler(commands=["daily_gift"])
+def daily_gift_cmd(message: Message):
+    user = database.users.get(id=message.from_user.id)
+    database.daily_gifts.get(owner=user._id)
+
+
 # ---------------------------------------------------------------------------- #
 
 

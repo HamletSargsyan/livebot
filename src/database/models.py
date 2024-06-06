@@ -42,7 +42,8 @@ class Field(Generic[T]):
             raise ValueError(f"{self._name} cannot be None")
         if value is not None and not isinstance(value, self._type):
             raise ValueError(
-                f"Invalid type. Expected {self._type}, got {type(value)} for field {self._name}"
+                f"Invalid type. Expected {self._type}, got {
+                    type(value)} for field {self._name}"
             )
         instance.__dict__[self._name] = value
 
@@ -71,7 +72,8 @@ class BaseModel(DictSerializable):
                             v = expected_type(v)
                         except (ValueError, TypeError):
                             raise ValueError(
-                                f"Invalid type. Expected {expected_type}, got {type(v)} for field {k}"
+                                f"Invalid type. Expected {expected_type}, got {type(v)} for field {
+                                    k}"
                             )
                 setattr(self, k, v)
 
@@ -197,6 +199,18 @@ class MarketItemModel(BaseModel):
     quantity = Field(int, default=0)
     published_at = Field(datetime, default=datetime.utcnow())
     owner = Field(ObjectId)
+
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
+
+
+class DailyGiftModel(BaseModel):
+    _id = Field(ObjectId)
+    owner = Field(ObjectId)
+    last_claimed_at = Field(datetime, nullable=True)
+    next_claimable_at = Field(datetime)
+    items = Field(list, nullable=False)
+    streak = Field(int, default=0)
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
