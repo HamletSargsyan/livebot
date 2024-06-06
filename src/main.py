@@ -1,29 +1,16 @@
-import sys
 from threading import Thread
+import argparse
 
 from telebot.types import BotCommand
 
-from config import bot, DEBUG, logger, event_open
+import bot as _  # noqa: F401
+from threads.check import check
+from config import DEBUG, bot, event_open, logger
+from threads.notification import notification
+from middlewares.register import RegisterMiddleware
 
 
-without_threads = False
-if "--debug" in sys.argv:
-    from config import telebot
-
-    telebot.logger.setLevel(10)
-    DEBUG = True
-if "--without-threads" in sys.argv:
-    without_threads = True
-
-from middlewares.register import RegisterMiddleware  # noqa: E402
-
-from threads.check import check  # noqa
-from threads.notification import notification  # noqa: E402
-
-import bot as _  # noqa
-
-
-def bot_commands_init():
+def configure_bot_commands():
     commands = [
         BotCommand("profile", "Профиль"),
         BotCommand("home", "Дом"),
@@ -50,32 +37,44 @@ def bot_commands_init():
     bot.set_my_commands(commands)
 
 
-def init_middlewars():
+def init_middlewares():
     bot.setup_middleware(RegisterMiddleware())
 
 
-def init_threads():
-    check_thread = Thread(target=check, daemon=True)
-    check_thread.start()
+def start_threads():
+    threads = [
+        Thread(target=check, daemon=True),
+        Thread(target=notification, daemon=True),
+    ]
+    for thread in threads:
+        thread.start()
 
-    notification_thread = Thread(target=notification, daemon=True)
-    notification_thread.start()
 
-
-def main():
+def main(args):
     logger.info("Бот включен")
 
-    if DEBUG:
+    if args.debug:
         logger.warning("Бот работает в режиме DEBUG")
 
-    bot_commands_init()
+    configure_bot_commands()
 
-    if not without_threads:
-        init_middlewars()
-        init_threads()
+    if not args.without_threads:
+        init_middlewares()
+        start_threads()
 
     bot.infinity_polling(timeout=500, skip_pending=True)
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Запуск телеграм-бота.")
+    parser.add_argument("--debug", action="store_true", help="Запуск в режиме отладки")
+    parser.add_argument(
+        "--without-threads", action="store_true", help="Запуск без потоков"
+    )
+
+    args = parser.parse_args()
+
+    if args.debug:
+        DEBUG = True
+
+    main(args)
