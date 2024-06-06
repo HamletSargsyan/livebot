@@ -18,6 +18,7 @@ from base.player import (
     check_user_stats,
     coin_top,
     dog_level_top,
+    generate_daily_gift,
     generate_quest,
     get_or_add_user_item,
     level_top,
@@ -795,3 +796,15 @@ def daily_gift_callback(call: CallbackQuery):
         daily_gift.last_claimed_at = datetime.utcnow()
         daily_gift.next_claimable_at = datetime.utcnow() + timedelta(days=1)
         daily_gift.is_claimed = True
+
+        mess = "<b>Ежедневный подарок</b>\n\n"
+        for item_name in daily_gift.items:
+            item = get_item(item_name)
+            user_item = get_or_add_user_item(user, item.name)
+            quantity = get_item_count_for_rarity(item.rarity)
+            user_item.quantity += quantity
+            mess += f"+{quantity} {item.name} {item.emoji}\n"
+            database.items.update(**user_item.to_dict())
+
+        database.daily_gifts.update(**daily_gift.to_dict())
+        generate_daily_gift(user)

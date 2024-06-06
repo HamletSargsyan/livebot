@@ -9,6 +9,8 @@ from telebot.types import (
     InlineKeyboardButton,
 )
 
+from helpers.enums import ItemRarity
+
 from .items import items_list
 
 from base.mobs import generate_mob
@@ -27,7 +29,7 @@ from helpers.utils import (
 )
 
 from database.funcs import BaseDB, database, T as ModelsType
-from database.models import UserModel, ItemModel, QuestModel, ExchangerModel
+from database.models import DailyGiftModel, UserModel, ItemModel, QuestModel, ExchangerModel
 
 from helpers.datatypes import Item
 
@@ -715,3 +717,19 @@ def game(call: CallbackQuery, user: UserModel):
     mess = "Как же хорошо было играть 😊"
     bot.edit_message_text(mess, call.message.chat.id, call.message.id)
     check_user_stats(user, call.message.chat.id)
+
+def generate_daily_gift(user: UserModel):
+    try:
+        daily_gift = database.daily_gifts.get(owner=user._id)
+    except NoResult:
+        daily_gift = DailyGiftModel(
+            owner=user._id
+        )
+        id = database.daily_gifts.add(**daily_gift.to_dict()).inserted_id
+        daily_gift._id = id
+
+    items = list(filter(lambda i: i.rarity == ItemRarity.COMMON, items_list))
+    items = random.choices(items, k=random.randint(1, 3))
+    daily_gift.items = [item.name for item in items]
+    database.daily_gifts.update(**daily_gift.to_dict())
+    
