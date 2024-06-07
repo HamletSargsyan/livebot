@@ -210,7 +210,7 @@ class DailyGiftModel(BaseModel):
     last_claimed_at = Field(datetime, nullable=True)
     next_claimable_at = Field(datetime, default=datetime.utcnow() + timedelta(days=1))
     is_claimed = Field(bool, default=False)
-    items = Field(list, nullable=False)
+    items = Field(list)
     streak = Field(int, default=0)
 
     def __init__(self, **kwargs) -> None:

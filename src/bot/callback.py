@@ -790,6 +790,9 @@ def daily_gift_callback(call: CallbackQuery):
             )
             return
 
+        if not daily_gift.last_claimed_at:
+            daily_gift.last_claimed_at = datetime.utcnow()
+
         if daily_gift.last_claimed_at.date() == (now - timedelta(days=1)).date():
             daily_gift.streak += 1
         else:
