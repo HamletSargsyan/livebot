@@ -783,10 +783,11 @@ def daily_gift_callback(call: CallbackQuery):
 
         daily_gift = database.daily_gifts.get(owner=user._id)
         if daily_gift.is_claimed:
-            time_difference = datetime.utcnow() - daily_gift.next_claimable_at
+            time_difference = daily_gift.next_claimable_at - datetime.utcnow()
             bot.answer_callback_query(
                 call.id,
                 f"Ты сегодня уже получил подарок. Жди {get_time_difference_string(time_difference)}",
+                show_alert=True,
             )
             return
 

@@ -42,8 +42,7 @@ class Field(Generic[T]):
             raise ValueError(f"{self._name} cannot be None")
         if value is not None and not isinstance(value, self._type):
             raise ValueError(
-                f"Invalid type. Expected {self._type}, got {
-                    type(value)} for field {self._name}"
+                f"Invalid type. Expected {self._type}, got {type(value)} for field {self._name}"
             )
         instance.__dict__[self._name] = value
 
