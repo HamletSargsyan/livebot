@@ -961,7 +961,10 @@ def market_cmd(message: Message):
 @bot.message_handler(commands=["daily_gift"])
 def daily_gift_cmd(message: Message):
     user = database.users.get(id=message.from_user.id)
-    daily_gift = database.daily_gifts.get(owner=user._id)
+    try:
+        daily_gift = database.daily_gifts.get(owner=user._id)
+    except NoResult:
+        daily_gift = generate_daily_gift(user)
 
     mess = "<b>Ежедневный подарок</b>"
 
