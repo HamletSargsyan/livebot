@@ -968,7 +968,7 @@ def daily_gift_cmd(message: Message):
 
     mess = "<b>Ежедневный подарок</b>"
 
-    time_difference = datetime.utcnow() - daily_gift.next_claimable_at
+    time_difference = daily_gift.next_claimable_at - datetime.utcnow()
     if time_difference < timedelta(days=1):
         daily_gift = generate_daily_gift(user)
 
