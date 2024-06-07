@@ -4,6 +4,7 @@ from telebot.apihelper import ApiTelegramException
 from telebot.util import antiflood, quick_markup
 
 from database.funcs import database
+from database.models import NotificationModel
 from helpers.exceptions import NoResult
 from config import bot
 
@@ -15,11 +16,15 @@ def notification():
 
             for user in users:
                 try:
-                    user_notification = database.notifications.get(
-                        **{"owner": user._id}
-                    )
+                    user_notification = database.notifications.get(owner=user._id)
                 except NoResult:
-                    continue
+                    user_notification = NotificationModel(
+                        owner=user._id
+                    )
+                    id = database.notifications.add(**user_notification.to_dict()).inserted_id
+                    user_notification._id = id
+                
+                    
                 user = database.users.get(_id=user._id)
                 try:
                     current_time = datetime.utcnow()
@@ -40,6 +45,7 @@ def notification():
                             {"Дом": {"callback_data": f"open home {user.id}"}}
                         )
                         antiflood(bot.send_message, user.id, mess, reply_markup=markup)
+                    
                 except ApiTelegramException:
                     continue
 

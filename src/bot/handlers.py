@@ -25,11 +25,13 @@ from helpers.exceptions import NoResult
 from base.items import items_list
 from helpers.markups import InlineMarkup
 from helpers.utils import (
+    check_user_subscription,
     get_middle_item_price,
     get_time_difference_string,
     get_item_emoji,
     get_item,
     Loading,
+    send_channel_subscribe_message,
 )
 from base.player import (
     check_user_stats,
@@ -961,6 +963,11 @@ def market_cmd(message: Message):
 @bot.message_handler(commands=["daily_gift"])
 def daily_gift_cmd(message: Message):
     user = database.users.get(id=message.from_user.id)
+
+    if not check_user_subscription(user):
+        send_channel_subscribe_message(message)
+        return
+
     try:
         daily_gift = database.daily_gifts.get(owner=user._id)
     except NoResult:
@@ -1011,7 +1018,7 @@ def handle_channel_post(message: Message):
 def text_message_handler(message: Message):
     user = database.users.get(id=message.from_user.id)
 
-    text = str(message.text).lower()
+    text = str(message.text).lower().strip()
 
     if text == "профиль":
         profile_cmd(message)

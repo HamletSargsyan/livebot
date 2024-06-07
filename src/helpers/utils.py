@@ -5,9 +5,9 @@ import statistics
 from typing import NoReturn, Union
 
 from telebot.types import Message, ReplyParameters, InlineKeyboardButton
-from telebot.util import antiflood, escape, split_string
+from telebot.util import antiflood, escape, split_string, quick_markup
 
-from config import bot, logger, timezone, log_chat_id, log_thread_id
+from config import bot, channel_id, logger, timezone, log_chat_id, log_thread_id
 from database.models import UserModel
 from helpers.datatypes import Item
 from helpers.exceptions import ItemNotFoundError
@@ -193,3 +193,17 @@ def get_middle_item_price(name: str) -> int:
 
 def calc_xp_for_level(level: int) -> int:
     return 5 * level + 50 * level + 100
+
+
+def check_user_subscription(user: UserModel) -> bool:
+    tg_user = bot.get_chat_member(channel_id, user.id)
+    if tg_user.status in ["member", "administrator", "creator"]:
+        return True
+    return False
+
+
+def send_channel_subscribe_message(message: Message):
+    chat_info = bot.get_chat(channel_id)
+    markup = quick_markup({"Подписатся": {"url": f"t.me/{chat_info.username}"}})
+    mess = "Чтобы использовать эту функцию нужно подписатся на новостной канал"
+    bot.reply_to(message, mess, reply_markup=markup)

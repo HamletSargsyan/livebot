@@ -30,6 +30,7 @@ from base.player import (
 )
 from base.items import items_list
 from helpers.utils import (
+    check_user_subscription,
     get_item_count_for_rarity,
     get_item_emoji,
     get_middle_item_price,
@@ -779,6 +780,13 @@ def daily_gift_callback(call: CallbackQuery):
     user = database.users.get(id=call.from_user.id)
 
     if data[1] == "claim":
+        if not check_user_subscription(user):
+            bot.answer_callback_query(
+                call.id,
+                "Чтобы использовать эту функцию нужно подписатся на новостной канал",
+                show_alert=True,
+            )
+            return
         now = datetime.utcnow()
 
         daily_gift = database.daily_gifts.get(owner=user._id)

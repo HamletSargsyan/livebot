@@ -6,7 +6,7 @@ from telebot.types import BotCommand
 
 import bot as _  # noqa: F401
 from threads.check import check
-from config import DEBUG, bot, event_open, logger
+from config import bot, event_open, logger
 from threads.notification import notification
 from middlewares.register import RegisterMiddleware
 
@@ -14,6 +14,7 @@ from middlewares.register import RegisterMiddleware
 def configure_bot_commands():
     commands = [
         BotCommand("profile", "Профиль"),
+        BotCommand("daily_gift", "Ежедневный подарок"),
         BotCommand("home", "Дом"),
         BotCommand("bag", "Инвентарь"),
         BotCommand("quest", "Квест"),
