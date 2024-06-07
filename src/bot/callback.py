@@ -797,6 +797,10 @@ def daily_gift_callback(call: CallbackQuery):
                 f"Ты сегодня уже получил подарок. Жди {get_time_difference_string(time_difference)}",
                 show_alert=True,
             )
+            markup = InlineMarkup.daily_gift(user, daily_gift)
+            bot.edit_message_reply_markup(
+                call.message.chat.id, call.message.id, reply_markup=markup
+            )
             return
 
         if not daily_gift.last_claimed_at:
@@ -818,10 +822,10 @@ def daily_gift_callback(call: CallbackQuery):
             try:
                 user_item = get_or_add_user_item(user, item.name)
                 user_item.quantity += quantity
+                database.items.update(**user_item.to_dict())
             except ItemIsCoin:
                 user.coin += quantity
             mess += f"+{quantity} {item.name} {item.emoji}\n"
-            database.items.update(**user_item.to_dict())
 
         database.daily_gifts.update(**daily_gift.to_dict())
         markup = InlineMarkup.daily_gift(user, daily_gift)
