@@ -184,7 +184,7 @@ class InlineMarkup:
         cls, user: UserModel, daily_gift: DailyGiftModel
     ) -> InlineKeyboardMarkup:
         def check():
-            return "✅" if daily_gift.is_claimed else "🔹"
+            return "" if daily_gift.is_claimed else "🔹"
 
         return quick_markup(
             {f"{check()} Получить": {"callback_data": f"daily_gift claim {user.id}"}}
