@@ -41,7 +41,7 @@ from helpers.utils import (
 from database.models import DogModel
 from database.funcs import database
 
-from config import bot, logger
+from config import bot
 
 
 @bot.callback_query_handler(lambda c: c.data.startswith("dog"))
