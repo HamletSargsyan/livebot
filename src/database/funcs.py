@@ -17,6 +17,7 @@ from database.models import (
     QuestModel,
     ExchangerModel,
     DogModel,
+    DailyGiftModel,
 )
 
 
@@ -38,6 +39,7 @@ exchangers = db.get_collection("exchangers")
 dogs = db.get_collection("dogs")
 notifications = db.get_collection("notifications")
 market_items = db.get_collection("market_items")
+daily_gifts = db.get_collection("daily_gifts")
 
 
 T = TypeVar(
@@ -50,6 +52,7 @@ T = TypeVar(
     DogModel,
     NotificationModel,
     MarketItemModel,
+    DailyGiftModel,
 )
 
 
@@ -96,6 +99,7 @@ class DataBase:
         self.dogs = BaseDB(dogs, DogModel)
         self.notifications = BaseDB(notifications, NotificationModel)
         self.market_items = BaseDB(market_items, MarketItemModel)
+        self.daily_gifts = BaseDB(daily_gifts, DailyGiftModel)
 
 
 database = DataBase()

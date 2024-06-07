@@ -12,7 +12,7 @@ from telebot.types import (
 from telebot.apihelper import ApiTelegramException
 
 from helpers.enums import ItemRarity
-from helpers.exceptions import NoResult
+from helpers.exceptions import ItemIsCoin, NoResult
 from helpers.markups import InlineMarkup
 from base.player import (
     check_user_stats,
@@ -767,3 +767,57 @@ def levelup_callback(call: CallbackQuery):
     bot.edit_message_reply_markup(
         call.message.chat.id, call.message.id, reply_markup=None
     )
+
+
+@bot.callback_query_handler(lambda c: c.data.startswith("daily_gift"))
+def daily_gift_callback(call: CallbackQuery):
+    data = call.data.split(" ")
+
+    if data[-1] != str(call.from_user.id):
+        return
+
+    user = database.users.get(id=call.from_user.id)
+
+    if data[1] == "claim":
+        now = datetime.utcnow()
+
+        daily_gift = database.daily_gifts.get(owner=user._id)
+        if daily_gift.is_claimed:
+            time_difference = daily_gift.next_claimable_at - now
+            bot.answer_callback_query(
+                call.id,
+                f"Ты сегодня уже получил подарок. Жди {get_time_difference_string(time_difference)}",
+                show_alert=True,
+            )
+            return
+
+        if not daily_gift.last_claimed_at:
+            daily_gift.last_claimed_at = now
+
+        if daily_gift.last_claimed_at.date() == (now - timedelta(days=1)).date():
+            daily_gift.streak += 1
+        else:
+            daily_gift.streak = 1
+
+        daily_gift.last_claimed_at = now
+        daily_gift.next_claimable_at = now + timedelta(days=1)
+        daily_gift.is_claimed = True
+
+        mess = f"<b>{get_user_tag(user)} получил ежедневный подарок</b>\n\n"
+        for item_name in daily_gift.items:
+            item = get_item(item_name)
+            quantity = get_item_count_for_rarity(item.rarity)
+            try:
+                user_item = get_or_add_user_item(user, item.name)
+                user_item.quantity += quantity
+            except ItemIsCoin:
+                user.coin += quantity
+            mess += f"+{quantity} {item.name} {item.emoji}\n"
+            database.items.update(**user_item.to_dict())
+
+        database.daily_gifts.update(**daily_gift.to_dict())
+        markup = InlineMarkup.daily_gift(user, daily_gift)
+        bot.edit_message_reply_markup(
+            call.message.chat.id, call.message.id, reply_markup=markup
+        )
+        bot.send_message(call.message.chat.id, mess)

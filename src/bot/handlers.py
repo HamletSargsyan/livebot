@@ -1,6 +1,6 @@
 import random
 import string
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List
 
 from telebot.types import (
@@ -34,6 +34,7 @@ from helpers.utils import (
 from base.player import (
     check_user_stats,
     coin_top,
+    generate_daily_gift,
     get_available_crafts,
     generate_quest,
     generate_exchanger,
@@ -954,6 +955,23 @@ def market_cmd(message: Message):
     markup = InlineMarkup.market_pager(user)
     mess += f"1 / {len(list(chunks(market_items, 6)))}"
 
+    bot.reply_to(message, mess, reply_markup=markup)
+
+
+@bot.message_handler(commands=["daily_gift"])
+def daily_gift_cmd(message: Message):
+    user = database.users.get(id=message.from_user.id)
+    try:
+        daily_gift = database.daily_gifts.get(owner=user._id)
+    except NoResult:
+        daily_gift = generate_daily_gift(user)
+
+    mess = "<b>Ежедневный подарок</b>"
+
+    if daily_gift.next_claimable_at > datetime.utcnow() + timedelta(days=1):
+        daily_gift = generate_daily_gift(user)
+
+    markup = InlineMarkup.daily_gift(user, daily_gift)
     bot.reply_to(message, mess, reply_markup=markup)
 
 

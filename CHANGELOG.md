@@ -4,6 +4,7 @@
 
 ### Добавлено
 - Добавлена новая библиотека: `argparse`
+- Добавлена команда `/daily_gift` ([#20](https://github.com/HamletSargsyan/livebot/issues/20))
 
 ### Изменено
 - Рефакторинг главного файла (`main.py`)
