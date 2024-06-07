@@ -802,7 +802,7 @@ def daily_gift_callback(call: CallbackQuery):
         daily_gift.next_claimable_at = datetime.utcnow() + timedelta(days=1)
         daily_gift.is_claimed = True
 
-        mess = "<b>Ежедневный подарок</b>\n\n"
+        mess = f"<b>{get_user_tag(user)} получил ежедневный подарок</b>\n\n"
         for item_name in daily_gift.items:
             item = get_item(item_name)
             user_item = get_or_add_user_item(user, item.name)
@@ -812,3 +812,8 @@ def daily_gift_callback(call: CallbackQuery):
             database.items.update(**user_item.to_dict())
 
         database.daily_gifts.update(**daily_gift.to_dict())
+        markup = InlineMarkup.daily_gift(user, daily_gift)
+        bot.edit_message_reply_markup(
+            call.message.chat.id, call.message.id, reply_markup=markup
+        )
+        bot.send_message(call.message.chat.id, mess)
