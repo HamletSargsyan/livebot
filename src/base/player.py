@@ -736,5 +736,6 @@ def generate_daily_gift(user: UserModel):
     items = list(filter(lambda i: i.rarity == ItemRarity.COMMON, items_list))
     items = random.choices(items, k=random.randint(1, 3))
     daily_gift.items = [item.name for item in items]
+    daily_gift.is_claimed = False
     database.daily_gifts.update(**daily_gift.to_dict())
     return daily_gift
