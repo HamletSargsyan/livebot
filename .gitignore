@@ -6,4 +6,5 @@ __pycache__/
 .venv/
 nohup.out
 .ruff_cache/
+.mypy_cache/
 site/
