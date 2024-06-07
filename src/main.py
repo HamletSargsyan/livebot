@@ -73,7 +73,7 @@ def main(args):
 
         config.DEBUG = True
         config.telebot.logger.setLevel(10)
-        logger.setLevel(10)
+        config.logger.setLevel(10)
         reload_modules()
         logger.warning("Бот работает в режиме DEBUG")
 

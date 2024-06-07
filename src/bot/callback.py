@@ -41,7 +41,7 @@ from helpers.utils import (
 from database.models import DogModel
 from database.funcs import database
 
-from config import bot
+from config import bot, logger
 
 
 @bot.callback_query_handler(lambda c: c.data.startswith("dog"))
@@ -783,7 +783,7 @@ def daily_gift_callback(call: CallbackQuery):
 
         daily_gift = database.daily_gifts.get(owner=user._id)
         if daily_gift.is_claimed:
-            time_difference = daily_gift.next_claimable_at - datetime.utcnow()
+            time_difference = daily_gift.next_claimable_at - now
             bot.answer_callback_query(
                 call.id,
                 f"Ты сегодня уже получил подарок. Жди {get_time_difference_string(time_difference)}",
@@ -792,15 +792,15 @@ def daily_gift_callback(call: CallbackQuery):
             return
 
         if not daily_gift.last_claimed_at:
-            daily_gift.last_claimed_at = datetime.utcnow()
+            daily_gift.last_claimed_at = now
 
         if daily_gift.last_claimed_at.date() == (now - timedelta(days=1)).date():
             daily_gift.streak += 1
         else:
             daily_gift.streak = 1
 
-        daily_gift.last_claimed_at = datetime.utcnow()
-        daily_gift.next_claimable_at = datetime.utcnow() + timedelta(days=1)
+        daily_gift.last_claimed_at = now
+        daily_gift.next_claimable_at = now + timedelta(days=1)
         daily_gift.is_claimed = True
 
         mess = f"<b>{get_user_tag(user)} получил ежедневный подарок</b>\n\n"

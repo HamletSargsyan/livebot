@@ -71,8 +71,7 @@ class BaseModel(DictSerializable):
                             v = expected_type(v)
                         except (ValueError, TypeError):
                             raise ValueError(
-                                f"Invalid type. Expected {expected_type}, got {type(v)} for field {
-                                    k}"
+                                f"Invalid type. Expected {expected_type}, got {type(v)} for field {k}"
                             )
                 setattr(self, k, v)
 

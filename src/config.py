@@ -87,7 +87,7 @@ class TelegramLogsHandler(logging.Handler):
         super().__init__()
 
     def emit(self, record):
-        if record.levelno == 10:
+        if record.levelno == 10 and record.name == "TeleBot":
             return
         from helpers.utils import log
 
