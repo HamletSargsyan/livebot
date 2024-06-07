@@ -1,8 +1,13 @@
+from datetime import datetime
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from telebot.util import quick_markup, chunks
 
 from base.items import items_list
-from helpers.utils import get_item_emoji, get_pager_controllers
+from helpers.utils import (
+    get_item_emoji,
+    get_pager_controllers,
+    get_time_difference_string,
+)
 from database.models import DailyGiftModel, MarketItemModel, UserModel
 from database.funcs import database
 
@@ -183,9 +188,11 @@ class InlineMarkup:
     def daily_gift(
         cls, user: UserModel, daily_gift: DailyGiftModel
     ) -> InlineKeyboardMarkup:
-        def check():
-            return "" if daily_gift.is_claimed else "🔹"
+        def get_text():
+            if daily_gift.is_claimed:
+                return f"🕐 {get_time_difference_string(daily_gift.next_claimable_at - datetime.utcnow())}"
+            return "🔹  Получить"
 
         return quick_markup(
-            {f"{check()} Получить": {"callback_data": f"daily_gift claim {user.id}"}}
+            {f"{get_text()}": {"callback_data": f"daily_gift claim {user.id}"}}
         )

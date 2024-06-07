@@ -810,10 +810,10 @@ def daily_gift_callback(call: CallbackQuery):
             try:
                 user_item = get_or_add_user_item(user, item.name)
                 user_item.quantity += quantity
+                database.items.update(**user_item.to_dict())
             except ItemIsCoin:
                 user.coin += quantity
             mess += f"+{quantity} {item.name} {item.emoji}\n"
-            database.items.update(**user_item.to_dict())
 
         database.daily_gifts.update(**daily_gift.to_dict())
         markup = InlineMarkup.daily_gift(user, daily_gift)
