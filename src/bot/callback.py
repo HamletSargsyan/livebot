@@ -18,7 +18,6 @@ from base.player import (
     check_user_stats,
     coin_top,
     dog_level_top,
-    generate_daily_gift,
     generate_quest,
     get_or_add_user_item,
     level_top,
@@ -785,7 +784,10 @@ def daily_gift_callback(call: CallbackQuery):
         daily_gift = database.daily_gifts.get(owner=user._id)
         if daily_gift.is_claimed:
             time_difference = datetime.utcnow() - daily_gift.next_claimable_at
-            bot.answer_callback_query(call.id, f"Ты сегодня уже получил подарок. Жди {get_time_difference_string(time_difference)}")
+            bot.answer_callback_query(
+                call.id,
+                f"Ты сегодня уже получил подарок. Жди {get_time_difference_string(time_difference)}",
+            )
             return
 
         if daily_gift.last_claimed_at.date() == (now - timedelta(days=1)).date():
@@ -807,4 +809,3 @@ def daily_gift_callback(call: CallbackQuery):
             database.items.update(**user_item.to_dict())
 
         database.daily_gifts.update(**daily_gift.to_dict())
-        generate_daily_gift(user)

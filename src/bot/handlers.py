@@ -34,6 +34,7 @@ from helpers.utils import (
 from base.player import (
     check_user_stats,
     coin_top,
+    generate_daily_gift,
     get_available_crafts,
     generate_quest,
     generate_exchanger,
@@ -963,12 +964,13 @@ def daily_gift_cmd(message: Message):
     daily_gift = database.daily_gifts.get(owner=user._id)
 
     mess = "<b>Ежедневный подарок</b>"
-    
+
     time_difference = datetime.utcnow() - daily_gift.next_claimable_at
     if time_difference < timedelta(days=1):
-        ...
+        daily_gift = generate_daily_gift(user)
 
-    bot.reply_to(message, mess)
+    markup = InlineMarkup.daily_gift(user, daily_gift)
+    bot.reply_to(message, mess, reply_markup=markup)
 
 
 # ---------------------------------------------------------------------------- #
