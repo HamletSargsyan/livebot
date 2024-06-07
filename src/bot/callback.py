@@ -789,6 +789,10 @@ def daily_gift_callback(call: CallbackQuery):
                 f"Ты сегодня уже получил подарок. Жди {get_time_difference_string(time_difference)}",
                 show_alert=True,
             )
+            markup = InlineMarkup.daily_gift(user, daily_gift)
+            bot.edit_message_reply_markup(
+                call.message.chat.id, call.message.id, reply_markup=markup
+            )
             return
 
         if not daily_gift.last_claimed_at:
