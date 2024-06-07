@@ -12,7 +12,7 @@ from telebot.types import (
 from telebot.apihelper import ApiTelegramException
 
 from helpers.enums import ItemRarity
-from helpers.exceptions import NoResult
+from helpers.exceptions import ItemIsCoin, NoResult
 from helpers.markups import InlineMarkup
 from base.player import (
     check_user_stats,
@@ -806,9 +806,12 @@ def daily_gift_callback(call: CallbackQuery):
         mess = f"<b>{get_user_tag(user)} получил ежедневный подарок</b>\n\n"
         for item_name in daily_gift.items:
             item = get_item(item_name)
-            user_item = get_or_add_user_item(user, item.name)
             quantity = get_item_count_for_rarity(item.rarity)
-            user_item.quantity += quantity
+            try:
+                user_item = get_or_add_user_item(user, item.name)
+                user_item.quantity += quantity
+            except ItemIsCoin:
+                user.coin += quantity
             mess += f"+{quantity} {item.name} {item.emoji}\n"
             database.items.update(**user_item.to_dict())
 
