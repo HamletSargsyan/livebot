@@ -764,12 +764,12 @@ def weather_cmd(message: Message):
 
 @bot.message_handler(commands=["exchanger"])
 def exchanger_cmd(message: Message):
-    if True:
-        bot.reply_to(
-            message,
-            "Временно не работает изза <a href='https://github.com/HamletSargsyan/livebot/issues/18'>бага</a> :(",
-        )
-        return
+    # if True:
+    #     bot.reply_to(
+    #         message,
+    #         "Временно не работает изза <a href='https://github.com/HamletSargsyan/livebot/issues/18'>бага</a> :(",
+    #     )
+    #     return
     with Loading(message):
         user = database.users.get(id=message.from_user.id)
 
@@ -781,9 +781,8 @@ def exchanger_cmd(message: Message):
             exchanger = database.exchangers.get(**{"owner": user._id})
         except NoResult:
             exchanger = generate_exchanger(user)
-            database.exchangers.update(**exchanger.to_dict())
 
-        if exchanger.expires <= datetime.utcnow():
+        if exchanger.expires > datetime.utcnow() + timedelta(days=1):
             exchanger = generate_exchanger(user)
             database.exchangers.update(**exchanger.to_dict())
 
