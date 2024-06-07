@@ -8,7 +8,7 @@ import bot as _  # noqa: F401
 from threads.check import check
 from config import bot, event_open, logger
 from threads.notification import notification
-from middlewares.register import RegisterMiddleware
+from middlewares import middlewares
 
 
 def configure_bot_commands():
@@ -40,7 +40,8 @@ def configure_bot_commands():
 
 
 def init_middlewares():
-    bot.setup_middleware(RegisterMiddleware())
+    for middleware in middlewares:
+        bot.setup_middleware(middleware())
 
 
 def start_threads():

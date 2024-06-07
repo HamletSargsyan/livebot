@@ -5,6 +5,7 @@
 ### Добавлено
 - Добавлена новая библиотека: `argparse`
 - Добавлена команда `/daily_gift` ([#20](https://github.com/HamletSargsyan/livebot/issues/20))
+- Добавлена интеграция с сервисом GramAds ([#23](https://github.com/HamletSargsyan/livebot/issues/23))
 
 ### Изменено
 - Рефакторинг главного файла (`main.py`)

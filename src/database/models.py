@@ -185,6 +185,8 @@ class UserModel(BaseModel):
     new_quest_coin_quantity = Field(int, default=2)
     max_items_count_in_market = Field(int, default=4)
     luck = Field(int, default=1)
+    last_advert_time = Field(datetime, nullable=True)
+    adverts_count = Field(int, default=0)
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
