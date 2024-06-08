@@ -18,13 +18,12 @@ def notification():
                 try:
                     user_notification = database.notifications.get(owner=user._id)
                 except NoResult:
-                    user_notification = NotificationModel(
-                        owner=user._id
-                    )
-                    id = database.notifications.add(**user_notification.to_dict()).inserted_id
+                    user_notification = NotificationModel(owner=user._id)
+                    id = database.notifications.add(
+                        **user_notification.to_dict()
+                    ).inserted_id
                     user_notification._id = id
-                
-                    
+
                 user = database.users.get(_id=user._id)
                 try:
                     current_time = datetime.utcnow()
@@ -45,7 +44,7 @@ def notification():
                             {"Дом": {"callback_data": f"open home {user.id}"}}
                         )
                         antiflood(bot.send_message, user.id, mess, reply_markup=markup)
-                    
+
                 except ApiTelegramException:
                     continue
 

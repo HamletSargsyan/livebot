@@ -134,8 +134,8 @@ def check_user_stats(user: UserModel, chat_id: Union[str, int, None] = None):
                 dog.xp = dog.xp - dog.max_xp
             else:
                 dog.xp = 0
-            dog.max_xp *= 2
             dog.level += 1
+            dog.max_xp = calc_xp_for_level(dog.level)
             bot.send_sticker(
                 chat_id,
                 "CAACAgIAAxkBAAEpv_Bl24Fgxvez1weA12y4uARuP6JyFgACLQEAAjDUnREQhgS5L57E0TQE",

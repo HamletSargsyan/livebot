@@ -629,16 +629,9 @@ def promo(message: Message) -> None:
     with Loading(message):
         user = database.users.get(id=message.from_user.id)
 
-        tg_user = bot.get_chat_member(channel_id, message.from_user.id)
-        chat_info = bot.get_chat(channel_id)
         bot.delete_message(message.chat.id, message.id)
-        if tg_user.status not in ["member", "administrator", "creator"]:
-            markup = quick_markup({"Подписатся": {"url": f"t.me/{chat_info.username}"}})
-            bot.send_message(
-                message.chat.id,
-                "Чтобы активировать промо нужно подписатся на новостной канал",
-                reply_markup=markup,
-            )
+        if not check_user_subscription(user):
+            send_channel_subscribe_message(message)
             return
 
         text = str(message.text).split(" ")
@@ -834,7 +827,6 @@ def dog_cmd(message: Message):
 
         try:
             dog = database.dogs.get(**{"owner": user._id})
-            print(dog.to_dict())
         except NoResult:
             dog = None
 
