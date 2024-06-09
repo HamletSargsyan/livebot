@@ -31,11 +31,11 @@ def show_advert(user: UserModel):
     }
     json = {"SendToChatId": user.id}
 
+    logger.debug(f"Send advert to user `{user.id}`")
     response = requests.post(
         "https://api.gramads.net/ad/SendPost", headers=headers, json=json
     )
 
-    logger.debug(f"Send advert to user `{user.id}`")
     logger.debug(response.text)
 
     if response.status_code == 200 and response.json()["SendPostResult"] == 1:
