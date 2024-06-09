@@ -36,13 +36,17 @@ def show_advert(user: UserModel):
     )
 
     logger.debug(f"Send advert to user `{user.id}`")
+    logger.debug(response.text)
 
-    if response.json()["SendPostResult"] == 1:
+    if response.status_code == 200 and response.json()["SendPostResult"] == 1:
         user.last_advert_time = datetime.utcnow()
         user.adverts_count += 1
         database.users.update(**user.to_dict())
     else:
-        logger.error(response.json())
+        try:
+            logger.error(response.json())
+        except Exception:
+            logger.error(response.text)
 
 
 def send_advert(message: Message, user: Union[UserModel, None] = None):
