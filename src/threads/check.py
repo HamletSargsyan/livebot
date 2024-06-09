@@ -12,7 +12,7 @@ def check():
 
             for user in users:
                 user = database.users.get(_id=user._id)
-                choice = random.randint(0, 2)
+                choice = random.randint(0, 5)
                 match choice:
                     case 0:
                         user.hunger += 1
@@ -20,6 +20,8 @@ def check():
                         user.fatigue += 1
                     case 2:
                         user.mood -= 1
+                    case _:
+                        continue
 
                 database.users.update(**user.to_dict())
                 check_user_stats(user)
