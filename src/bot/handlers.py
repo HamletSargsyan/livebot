@@ -966,7 +966,11 @@ def daily_gift_cmd(message: Message):
 
     mess = "<b>Ежедневный подарок</b>"
 
-    if daily_gift.next_claimable_at > datetime.utcnow() + timedelta(days=1):
+    print(datetime.utcnow())
+    print(daily_gift.next_claimable_at)
+    print(daily_gift.next_claimable_at <= datetime.utcnow())
+
+    if daily_gift.next_claimable_at <= datetime.utcnow():
         daily_gift = generate_daily_gift(user)
 
     markup = InlineMarkup.daily_gift(user, daily_gift)

@@ -814,6 +814,7 @@ def daily_gift_callback(call: CallbackQuery):
         daily_gift.last_claimed_at = now
         daily_gift.next_claimable_at = now + timedelta(days=1)
         daily_gift.is_claimed = True
+        database.daily_gifts.update(**daily_gift.to_dict())
 
         mess = f"<b>{get_user_tag(user)} получил ежедневный подарок</b>\n\n"
         for item_name in daily_gift.items:
@@ -827,7 +828,6 @@ def daily_gift_callback(call: CallbackQuery):
                 user.coin += quantity
             mess += f"+{quantity} {item.name} {item.emoji}\n"
 
-        database.daily_gifts.update(**daily_gift.to_dict())
         markup = InlineMarkup.daily_gift(user, daily_gift)
         bot.edit_message_reply_markup(
             call.message.chat.id, call.message.id, reply_markup=markup

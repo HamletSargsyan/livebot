@@ -737,5 +737,6 @@ def generate_daily_gift(user: UserModel):
     items = random.choices(items, k=random.randint(1, 3))
     daily_gift.items = [item.name for item in items]
     daily_gift.is_claimed = False
+    daily_gift.next_claimable_at = datetime.utcnow() + timedelta(days=1)
     database.daily_gifts.update(**daily_gift.to_dict())
     return daily_gift
