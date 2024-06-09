@@ -1,3 +1,4 @@
+import requests
 from telebot import BaseMiddleware, CancelUpdate
 from telebot.types import Message
 
@@ -15,4 +16,7 @@ class AdvertMiddleware(BaseMiddleware):
 
     def post_process(self, message, data, exception):
         user = database.users.get(id=message.from_user.id)
-        send_advert(message, user)
+        try:
+            send_advert(message, user)
+        except requests.exceptions.JSONDecodeError as e:
+            raise Exception(f"Cant send advert to `{user.id}`") from e
