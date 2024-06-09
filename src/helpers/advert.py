@@ -35,6 +35,8 @@ def show_advert(user: UserModel):
         "https://api.gramads.net/ad/SendPost", headers=headers, json=json
     )
 
+    logger.debug(f"Send advert to user `{user.id}`")
+
     if response.json()["SendPostResult"] == 1:
         user.last_advert_time = datetime.utcnow()
         user.adverts_count += 1
