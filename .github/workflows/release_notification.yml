@@ -17,7 +17,7 @@ jobs:
           python-version: '3.x'
 
       - name: Install dependencies
-        run: pip install pyTelegramBotAPI mkdocs mkdocs-material
+        run: pip install pyTelegramBotAPI
 
       - name: Send release notification
         run: python tools/send_release_notification.py
