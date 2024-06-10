@@ -4,6 +4,7 @@
 
 ### Добавлено
 - Новое поле к модели `UserModel`: `last_active_time`
+- Добавлен таймаут в 10 секунд на запросы для отправки рекламы
 
 ### Исправлено
 - Баг с обменником ([#18](https://github.com/HamletSargsyan/livebot/issues/18))

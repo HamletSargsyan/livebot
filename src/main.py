@@ -6,8 +6,8 @@ from telebot.types import BotCommand
 
 import bot as _  # noqa: F401
 from threads.check import check
-from config import bot, event_open, logger
 from threads.notification import notification
+from config import bot, event_open, logger
 from middlewares import middlewares
 
 
