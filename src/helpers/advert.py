@@ -42,6 +42,7 @@ def show_advert(user: UserModel):
         user.last_advert_time = datetime.utcnow()
         user.adverts_count += 1
         database.users.update(**user.to_dict())
+        logger.debug(f"Advert for user `{user.id}` send succesful")
     else:
         try:
             logger.error(response.json())

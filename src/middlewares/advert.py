@@ -14,7 +14,9 @@ class AdvertMiddleware(BaseMiddleware):
         if message.from_user.is_bot:
             return CancelUpdate()
 
-    def post_process(self, message, data, exception):
+    def post_process(self, message: Message, data, exception):
+        if str(message.text).startswith("/start"):
+            return
         user = database.users.get(id=message.from_user.id)
         try:
             send_advert(message, user)

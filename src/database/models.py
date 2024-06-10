@@ -187,6 +187,7 @@ class UserModel(BaseModel):
     luck = Field(int, default=1)
     last_advert_time = Field(datetime, nullable=True)
     adverts_count = Field(int, default=0)
+    last_active_time = Field(datetime, default=datetime.utcnow())
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)

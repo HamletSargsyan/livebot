@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## [Новое]
+
+### Добавлено
+- Новое поле к модели `UserModel`: `last_active_time`
+
+### Исправлено
+- Баг с обменником ([#18](https://github.com/HamletSargsyan/livebot/issues/18))
+
 ## [3.5.0] - 09.06.2024
 
 ### Добавлено

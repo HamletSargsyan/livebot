@@ -1,6 +1,6 @@
 import random
 import string
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import List
 
 from telebot.types import (
@@ -775,7 +775,7 @@ def exchanger_cmd(message: Message):
         except NoResult:
             exchanger = generate_exchanger(user)
 
-        if exchanger.expires > datetime.utcnow() + timedelta(days=1):
+        if exchanger.expires < datetime.utcnow():
             exchanger = generate_exchanger(user)
             database.exchangers.update(**exchanger.to_dict())
 
@@ -965,10 +965,6 @@ def daily_gift_cmd(message: Message):
         daily_gift = generate_daily_gift(user)
 
     mess = "<b>Ежедневный подарок</b>"
-
-    print(datetime.utcnow())
-    print(daily_gift.next_claimable_at)
-    print(daily_gift.next_claimable_at <= datetime.utcnow())
 
     if daily_gift.next_claimable_at <= datetime.utcnow():
         daily_gift = generate_daily_gift(user)
