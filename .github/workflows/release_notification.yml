@@ -1,4 +1,4 @@
-name: Send release notification and update docs
+name: Send release notification
 
 on:
   release:
