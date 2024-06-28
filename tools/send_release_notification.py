@@ -6,16 +6,15 @@ from telebot import TeleBot
 from telebot.util import quick_markup
 
 
-def get_github_release_info(version) -> Union[dict[Any, Any], NoReturn]:  # pyright: ignore
+def get_github_release_info(version) -> Union[dict[Any, Any], NoReturn]:
     url = (
         f"  https://api.github.com/repos/HamletSargsyan/livebot/releases/tags/{version}"
     )
     response = requests.get(url)
-    if response.status_code == 200:
-        release_info = response.json()  # type: dict
-        return release_info
 
     response.raise_for_status()
+    release_info = response.json()  # type: dict
+    return release_info
 
 
 def send_release_notification():

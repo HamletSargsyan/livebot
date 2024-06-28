@@ -3,4 +3,5 @@
     "python.analysis.extraPaths": ["src"],
     "python.analysis.typeCheckingMode": "basic",
     "ruff.enable": true,
+    "mypy.enabled": false
 }
