@@ -19,7 +19,7 @@ jobs:
       run: pip install -r requirements.txt
 
     - name: Install dev requitements
-      run: pip install ruff
+      run: make dev-install
     
-    - name: Ruff
-      run: ruff check .
+    - name: lint
+      run: make lint

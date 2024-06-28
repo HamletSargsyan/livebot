@@ -5,8 +5,14 @@ stop:
 	kill $(cat .pid)
 
 lint:
-	ruff check src
-	pyright src
+	ruff check src tools
+	pyright src tools
+
+format:
+	ruff format src tools
+
+fix:
+	ruff check --fix src tools
 
 dev-install:
 	pip install --upgrade ruff pyright pre-commit
