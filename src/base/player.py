@@ -359,7 +359,7 @@ def use_item(message: Message, name: str):
             )
             user_item.quantity -= 1
         elif name == "клевер-удачы":
-            user.luck += item.effect
+            user.luck += item.effect  # type: ignore
             user_item.quantity -= 1
             bot.reply_to(message, f"{item.emoji} Увеличел удачу на 1")
 
@@ -556,7 +556,6 @@ def street(call: CallbackQuery, user: UserModel):
         dog.hunger += random.randint(0, 5)
         # dog.fatigue += random.randint(0, 10)
         dog.xp += random.uniform(1.5, 2.5)
-        quantity += random.randint(0, 5)
         database.dogs.update(**dog.to_dict())
 
     user.xp += xp

@@ -179,7 +179,7 @@ class UserModel(BaseModel):
     fatigue = Field(int, default=0)
     location = Field(str, default=Locations.HOME.value)
     action_time = Field(datetime, default=datetime.utcnow())
-    state = Field(str, nullable=True)
+    state: str | None = Field(str, nullable=True)  # type: ignore  # TODO: сделать так чтобы `Field` мог принимать несколько типов
     casino_win = Field(int, default=0)
     casino_loose = Field(int, default=0)
     new_quest_coin_quantity = Field(int, default=2)

@@ -420,12 +420,6 @@ def transfer_cmd(message: Message):
         except (ValueError, IndexError):
             count = 1
 
-        if item != "бабло":
-            item_data = get_or_add_user_item(user, item)
-            reply_user_item_data = get_or_add_user_item(reply_user, item)
-            logger.debug(item_data.quantity)
-            logger.debug(count)
-
         if item == "бабло":
             if user.coin <= 0:
                 bot.reply_to(message, f"У тебя нет <i>{item}</i>")
@@ -436,6 +430,12 @@ def transfer_cmd(message: Message):
             user.coin -= count
             reply_user.coin += count
         else:
+            item_data = get_or_add_user_item(user, item)
+            reply_user_item_data = get_or_add_user_item(reply_user, item)
+            logger.debug(item_data.quantity)
+            logger.debug(count)
+
+
             if not get_item(item):
                 bot.reply_to(
                     message, f"{item}??\nСерёзно?\n\nТакого придмета не существует"
