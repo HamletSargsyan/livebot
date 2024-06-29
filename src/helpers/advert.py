@@ -1,6 +1,6 @@
 from typing import Union
 import requests
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from telebot.types import Message
 
@@ -57,9 +57,4 @@ def send_advert(message: Message, user: Union[UserModel, None] = None):
     if not user:
         user = database.users.get(id=message.from_user.id)
 
-    if not user.last_advert_time:
-        show_advert(user)
-        return
-
-    if user.last_advert_time > datetime.utcnow() + timedelta(minutes=5):
-        show_advert(user)
+    show_advert(user)
