@@ -37,6 +37,7 @@ from helpers.utils import (
     get_time_difference_string,
     get_item,
     get_user_tag,
+    send_message_safe,
 )
 
 from database.models import DogModel
@@ -357,8 +358,8 @@ def item_info_callback(call: CallbackQuery):
     if item.craft:
         craft = ", ".join(
             [
-                f"{get_item_emoji(name)} {name} {count}"
-                for name, count in item.craft.items()
+                f"{get_item_emoji(craft_item['name'])} {craft_item['name']} {craft_item['quantity']}"
+                for craft_item in item.craft
             ]
         )
 
@@ -833,3 +834,60 @@ def daily_gift_callback(call: CallbackQuery):
             call.message.chat.id, call.message.id, reply_markup=markup
         )
         bot.send_message(call.message.chat.id, mess)
+
+
+@bot.callback_query_handler(lambda c: c.data.startswith("craft"))
+def craft_callback(call: CallbackQuery):
+    data = call.data.split(" ")
+
+    if data[-1] != str(call.from_user.id):
+        return
+
+    user = database.users.get(id=call.from_user.id)
+
+    if data[1] == "main":
+        ...
+    elif data[1] == "select":
+        ...
+    else:
+        try:
+            item = get_item(data[1])
+        except NoResult:
+            return  # TODO: add message
+
+        craft = item.craft
+        if not craft:
+            raise Exception(f"У придмета {item.name} нет крафтов")
+
+        count = int(data[2])
+
+        for craft_item in craft:
+            user_item = get_or_add_user_item(user, craft_item["name"])
+            if (
+                (not user_item)
+                or (user_item.quantity <= 0)
+                or (user_item.quantity < craft_item["quantity"] * count)
+            ):
+                bot.answer_callback_query(call.id, "Недостатично придметов")
+                return
+
+            user_item.quantity -= craft_item["quantity"] * count
+            database.items.update(**user_item.to_dict())
+
+        user_craft_item = get_or_add_user_item(user, item.name)
+
+        user_craft_item.quantity += count
+        xp = random.uniform(5.0, 10.0) * count
+        if random.randint(1, 100) < user.luck:
+            xp += random.uniform(2.3, 6.7)
+
+        user.xp += xp
+
+        database.items.update(**user_craft_item.to_dict())
+        database.users.update(**user.to_dict())
+
+        send_message_safe(
+            f"Скрафтил {count} {item.name} {get_item_emoji(item.name)}\n+ {int(xp)} хп",
+            call.message.reply_to_message,  # type: ignore
+            user,
+        )

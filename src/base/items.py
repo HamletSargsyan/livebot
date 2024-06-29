@@ -1,5 +1,6 @@
+from typing import Final
 from helpers.enums import ItemRarity
-from helpers.datatypes import Item
+from helpers.datatypes import Item, ItemCraft
 
 rarity_weights = {
     ItemRarity.COMMON: 6,
@@ -9,7 +10,7 @@ rarity_weights = {
     ItemRarity.LEGENDARY: 1,
 }
 
-items_list = [
+items_list: Final = [
     Item(
         name="бабло",
         emoji="🪙",
@@ -20,7 +21,7 @@ items_list = [
         name="буханка",
         emoji="🍞",
         desc="-10 голода, используется в крафтах",
-        craft={"мука": 3, "вода": 5},
+        craft=[ItemCraft(name="мука", quantity=3), ItemCraft(name="вода", quantity=5)],
         effect=10,
         price=100,
         is_usable=True,
@@ -34,7 +35,11 @@ items_list = [
         name="сэндвич",
         emoji="🥪",
         desc="-30 голода",
-        craft={"буханка": 2, "помидор": 3, "сыр": 4},
+        craft=[
+            ItemCraft(name="буханка", quantity=2),
+            ItemCraft(name="помидор", quantity=3),
+            ItemCraft(name="сыр", quantity=4),
+        ],
         effect=30,
         price=250,
         is_usable=True,
@@ -49,7 +54,10 @@ items_list = [
         name="пицца",
         emoji="🍕",
         desc="-50 голода",
-        craft={"буханка": 5, "сыр": 4},
+        craft=[
+            ItemCraft(name="буханка", quantity=5),
+            ItemCraft(name="сыр", quantity=4),
+        ],
         effect=50,
         price=380,
         is_usable=True,
@@ -63,7 +71,11 @@ items_list = [
         name="тако",
         emoji="🌮",
         desc="-70 голода",
-        craft={"буханка": 1, "помидор": 8, "сыр": 6},
+        craft=[
+            ItemCraft(name="буханка", quantity=1),
+            ItemCraft(name="помидор", quantity=8),
+            ItemCraft(name="сыр", quantity=6),
+        ],
         effect=70,
         price=530,
         is_usable=True,
@@ -77,14 +89,14 @@ items_list = [
         name="суп",
         emoji="🍲",
         desc="-100 голода",
-        craft={
-            "вода": 10,
-            "помидор": 5,
-            "морковка": 4,
-            "мясо": 7,
-            "трава": 3,
-            "гриб": 2,
-        },
+        craft=[
+            ItemCraft(name="вода", quantity=10),
+            ItemCraft(name="помидор", quantity=5),
+            ItemCraft(name="морковка", quantity=4),
+            ItemCraft(name="мясо", quantity=7),
+            ItemCraft(name="трава", quantity=3),
+            ItemCraft(name="гриб", quantity=2),
+        ],
         effect=100,
         price=700,
         is_usable=True,
@@ -190,7 +202,10 @@ items_list = [
         effect=100,
         price=5000,
         is_usable=True,
-        craft={"химоза": 4, "вода": 3},
+        craft=[
+            ItemCraft(name="химоза", quantity=4),
+            ItemCraft(name="вода", quantity=3),
+        ],
         rarity=ItemRarity.UNCOMMON,
         can_exchange=True,
         exchange_price=(4000, 5000),
@@ -269,7 +284,7 @@ items_list = [
         name="снеговик",
         emoji="⛄",
         desc="Ивентовый придмет",
-        craft={"снежок": 10},
+        craft=[ItemCraft(name="снежок", quantity=10)],
         rarity=ItemRarity.UNCOMMON,
         is_task_item=False,
         task_coin=(500, 1000),
@@ -333,7 +348,10 @@ items_list = [
         emoji="🍵",
         desc="Попей чтобы уменшить усталость",
         price=90,
-        craft={"вода": 3, "чаинка": 1},
+        craft=[
+            ItemCraft(name="вода", quantity=3),
+            ItemCraft(name="чаинка", quantity=1),
+        ],
         effect=7,
         is_usable=True,
         rarity=ItemRarity.COMMON,

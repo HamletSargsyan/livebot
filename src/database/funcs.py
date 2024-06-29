@@ -104,3 +104,5 @@ class DataBase:
 
 database = DataBase()
 cache = redis.from_url(REDIS_URL)
+
+__all__ = ["database", "cache"]

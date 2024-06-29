@@ -331,7 +331,7 @@ def workbench_cmd(message: Message):
             if available_crafts:
                 mess += "<b>Доступные крафты</b>\n"
                 for craft_data in available_crafts:
-                    item_name = craft_data["item_name"]
+                    item_name = craft_data["name"]
                     resources = craft_data["resources"]
 
                     possible_crafts = min(
@@ -363,17 +363,17 @@ def workbench_cmd(message: Message):
 
         craft = item_data.craft
 
-        for craft_item in craft.items():
-            user_item = get_or_add_user_item(user, craft_item[0])
+        for craft_item in craft:
+            user_item = get_or_add_user_item(user, craft_item["name"])
             if (
                 (not user_item)
                 or (user_item.quantity <= 0)
-                or (user_item.quantity < craft_item[1] * count)
+                or (user_item.quantity < craft_item["quantity"] * count)
             ):
                 bot.reply_to(message, "Недостатично придметов")
                 return
 
-            user_item.quantity -= craft_item[1] * count
+            user_item.quantity -= craft_item["quantity"] * count
             database.items.update(**user_item.to_dict())
 
         item = get_or_add_user_item(user, name)

@@ -37,7 +37,7 @@ from database.models import (
     ExchangerModel,
 )
 
-from helpers.datatypes import Item
+from helpers.datatypes import AvailableCrafts, Item, ItemCraft, RequiredResources
 
 from config import bot
 
@@ -195,35 +195,42 @@ def generate_quest(user: UserModel):
     return quest
 
 
-def get_available_crafts(user: UserModel):
-    available_crafts = []
+def get_available_crafts(user: UserModel) -> List[AvailableCrafts]:
+    available_crafts: list[AvailableCrafts] = []
 
     for item in items_list:
         if not item.craft:
             continue
 
-        craft = item.craft
+        craft: List[ItemCraft] = item.craft
         can_craft = True
-        required_resources = []
 
-        for craft_item_name, craft_item_count in craft.items():
-            user_item = get_or_add_user_item(user, craft_item_name)
-            if (user_item.quantity <= 0) or (user_item.quantity < craft_item_count):
+        required_resources: list[RequiredResources] = []
+
+        for craft_item in craft:
+            user_item = get_or_add_user_item(user, craft_item["name"])
+            if (user_item.quantity <= 0) or (
+                user_item.quantity < craft_item["quantity"]
+            ):
                 can_craft = False
                 break
             required_resources.append(
-                (craft_item_name, craft_item_count, user_item.quantity)
+                (
+                    RequiredResources(
+                        name=craft_item["name"],
+                        quantity=craft_item["quantity"],
+                        user_item_quantity=user_item.quantity,
+                    )
+                )
             )
 
         if can_craft:
             available_crafts.append(
-                {"item_name": item.name, "resources": required_resources}
+                {"name": item.name, "resources": required_resources}
             )
 
-    available_crafts = sorted(
-        available_crafts,
-        key=lambda x: max(x["resources"], key=lambda y: y[2]),  # pyright: ignore
-        reverse=True,
+    available_crafts.sort(
+        key=lambda x: max(x["resources"], key=lambda y: y[2]), reverse=True
     )
     return available_crafts
 

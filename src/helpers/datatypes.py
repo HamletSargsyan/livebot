@@ -1,4 +1,4 @@
-from typing import Dict, List, Tuple, Union
+from typing import List, NamedTuple, Tuple, TypedDict, Union
 
 import transliterate
 from helpers.enums import ItemRarity, WeatherType
@@ -110,6 +110,11 @@ class WeatherData:
 # ----------------------------------- Item ----------------------------------- #
 
 
+class ItemCraft(TypedDict):
+    name: str
+    quantity: int
+
+
 class Item:
     def __init__(
         self,
@@ -122,7 +127,7 @@ class Item:
         can_exchange: bool = False,
         is_usable: bool = False,
         altnames: Union[List[str], None] = None,
-        craft: Union[Dict[str, int], None] = None,
+        craft: Union[list[ItemCraft], None] = None,
         effect: Union[int, None] = None,
         price: Union[int, None] = None,
         task_coin: Union[Tuple[int, int], None] = None,
@@ -156,3 +161,14 @@ class Item:
 
     def translit(self):
         return transliterate.translit(self.name, reversed=True)
+
+
+class RequiredResources(NamedTuple):
+    name: str
+    quantity: int
+    user_item_quantity: int
+
+
+class AvailableCrafts(TypedDict):
+    name: str
+    resources: list[RequiredResources]

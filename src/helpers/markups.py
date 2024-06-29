@@ -4,6 +4,7 @@ from telebot.util import quick_markup, chunks
 
 from base.items import items_list
 from helpers.utils import (
+    get_item,
     get_item_emoji,
     get_pager_controllers,
     get_time_difference_string,
@@ -196,3 +197,24 @@ class InlineMarkup:
         return quick_markup(
             {f"{get_text()}": {"callback_data": f"daily_gift claim {user.id}"}}
         )
+
+    @classmethod
+    def craft_item(cls, user: UserModel, quantity: int = 1) -> InlineKeyboardMarkup:
+        from base.player import get_available_crafts
+
+        markup = InlineKeyboardMarkup(row_width=3)
+
+        available_crafts = get_available_crafts(user)
+
+        buttons = []
+        for craft in available_crafts:
+            buttons.append(
+                InlineKeyboardButton(
+                    f"{craft['name']}",
+                    callback_data=f"craft {get_item(craft['name']).translit()} {quantity} {user.id}",
+                )
+            )
+
+        markup.add(*buttons)
+
+        return markup

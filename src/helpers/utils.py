@@ -6,6 +6,7 @@ from typing import NoReturn, Union
 
 from telebot.types import Message, ReplyParameters, InlineKeyboardButton
 from telebot.util import antiflood, escape, split_string, quick_markup
+from telebot.apihelper import ApiTelegramException
 
 from config import bot, channel_id, logger, timezone, log_chat_id, log_thread_id
 from database.models import UserModel
@@ -81,7 +82,7 @@ def get_time_difference_string(d: timedelta) -> str:
     return data
 
 
-def get_user_tag(user: UserModel):
+def get_user_tag(user: UserModel) -> str:
     return f"<a href='tg://user?id={user.id}'>{user.name}</a>"
 
 
@@ -207,3 +208,10 @@ def send_channel_subscribe_message(message: Message):
     markup = quick_markup({"Подписатся": {"url": f"t.me/{chat_info.username}"}})
     mess = "Чтобы использовать эту функцию нужно подписатся на новостной канал"
     bot.reply_to(message, mess, reply_markup=markup)
+
+
+def send_message_safe(text, message: Message, user: UserModel, **kwargs) -> Message:
+    try:
+        return bot.reply_to(message, text, **kwargs)
+    except ApiTelegramException:
+        return bot.send_message(user.id, text, **kwargs)
