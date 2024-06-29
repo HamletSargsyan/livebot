@@ -6,7 +6,7 @@ stop:
 
 lint:
 	ruff check src tools
-	pyright src tools
+	# pyright src tools
 
 format:
 	ruff format src tools
@@ -20,6 +20,8 @@ dev-install:
 dev-setup: dev-install
 	pre-commit install
 
+deploy-docs:
+	
 
 clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} +

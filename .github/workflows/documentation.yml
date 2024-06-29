@@ -1,6 +1,7 @@
 name: Documentation
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -8,7 +9,6 @@ on:
       - "docs/**.md"
       - "mkdocs.yml"
       - .github/workflows/documentation.yml
-  workflow_dispatch:
   
 jobs:
   docs:
