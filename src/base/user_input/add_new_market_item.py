@@ -61,12 +61,12 @@ def quantity_state(message: Message):
     with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
         user_item = database.items.get(owner=user._id, name=data["name"])
 
-    if user_item.quantity < int(message.text): # type: ignore
+    if user_item.quantity < int(message.text):  # type: ignore
         bot.reply_to(message, "У тебя нет столько")
         return
 
     with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
-        data["quantity"] = int(message.text) # type: ignore
+        data["quantity"] = int(message.text)  # type: ignore
 
     call_message_id = cache.get(f"{message.from_user.id}_item_add_message")
     bot.delete_message(message.chat.id, message.id)
@@ -76,7 +76,7 @@ def quantity_state(message: Message):
     bot.edit_message_text(
         f"<b>Продажа придмета {item.emoji}</b>\nВведи прайс (+-{get_middle_item_price(item.name)}/шт)",
         message.chat.id,
-        call_message_id, # type: ignore
+        call_message_id,  # type: ignore
         reply_markup=markup,
     )
     bot.set_state(message.from_user.id, AddNewItemState.price, message.chat.id)
@@ -99,7 +99,7 @@ def price_state(message: Message):
         item = MarketItemModel(
             name=data["name"].lower(),
             quantity=int(data["quantity"]),
-            price=int(message.text), # type: ignore
+            price=int(message.text),  # type: ignore
             owner=user._id,
         )
 
@@ -110,7 +110,7 @@ def price_state(message: Message):
 
     call_message_id = cache.get(f"{message.from_user.id}_item_add_message")
 
-    bot.delete_message(message.chat.id, call_message_id) # type: ignore
+    bot.delete_message(message.chat.id, call_message_id)  # type: ignore
     bot.delete_message(message.chat.id, message.id)
 
     cache.delete(f"{message.from_user.id}_item_add_message")

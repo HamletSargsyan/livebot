@@ -435,7 +435,6 @@ def transfer_cmd(message: Message):
             logger.debug(item_data.quantity)
             logger.debug(count)
 
-
             if not get_item(item):
                 bot.reply_to(
                     message, f"{item}??\nСерёзно?\n\nТакого придмета не существует"
