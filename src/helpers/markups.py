@@ -199,7 +199,7 @@ class InlineMarkup:
         )
 
     @classmethod
-    def craft_item(cls, user: UserModel, quantity: int = 1) -> InlineKeyboardMarkup:
+    def craft_pager(cls, user: UserModel, quantity: int = 1) -> InlineKeyboardMarkup:
         from base.player import get_available_crafts
 
         markup = InlineKeyboardMarkup(row_width=3)
