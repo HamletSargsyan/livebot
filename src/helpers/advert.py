@@ -1,6 +1,5 @@
+import asyncio
 from typing import Union
-import requests
-from datetime import datetime
 
 from telebot.types import Message
 
@@ -9,7 +8,10 @@ from database.models import UserModel
 from database.funcs import database
 
 
-def show_advert(user: UserModel):
+import aiohttp
+
+
+async def show_advert(user_id: int):
     """
     Undefined = 0,
     Success = 1,
@@ -25,29 +27,47 @@ def show_advert(user: UserModel):
     Banned=10,
     InReview=11
     """
-    headers = {
-        "Authorization": f"Bearer {GRAMADS_TOKEN}",
-        "Content-Type": "application/json",
-    }
-    json = {"SendToChatId": user.id}
+    logger.info(f"Send advert to user `{user_id}`")
+    async with aiohttp.ClientSession() as session:
+        async with session.post(
+            "https://api.gramads.net/ad/SendPost",
+            headers={
+                "Authorization": f"Bearer {GRAMADS_TOKEN}",
+                "Content-Type": "application/json",
+            },
+            json={"SendToChatId": user_id},
+        ) as response:
+            if response.ok:
+                logger.info(f"Advert for user `{user_id}` send succesful")
+            else:
+                try:
+                    logger.error("Gramads: %s" % str(await response.json()))
+                except Exception:
+                    logger.error("Gramads: %s" % str(response.text()))
 
-    logger.debug(f"Send advert to user `{user.id}`")
-    response = requests.post(
-        "https://api.gramads.net/ad/SendPost", headers=headers, json=json
-    )
 
-    logger.debug(response.text)
+# def show_advert(user: UserModel):
+#     headers = {
+#         "Authorization": f"Bearer {GRAMADS_TOKEN}",
+#         "Content-Type": "application/json",
+#     }
+#     json = {"SendToChatId": user.id}
 
-    if response.status_code == 200 and response.json()["SendPostResult"] == 1:
-        user.last_advert_time = datetime.utcnow()
-        user.adverts_count += 1
-        database.users.update(**user.to_dict())
-        logger.debug(f"Advert for user `{user.id}` send succesful")
-    else:
-        try:
-            logger.error(response.json())
-        except Exception:
-            logger.error(response.text)
+#     response = requests.post(
+#         "https://api.gramads.net/ad/SendPost", headers=headers, json=json
+#     )
+
+#     logger.debug(response.text)
+
+#     if response.status_code == 200 and response.json()["SendPostResult"] == 1:
+#         user.last_advert_time = datetime.utcnow()
+#         user.adverts_count += 1
+#         database.users.update(**user.to_dict())
+#     else:
+#         try:
+#             logger.error(response.json())
+#         except Exception:
+#             logger.error(response.text)
 
 
 def send_advert(message: Message, user: Union[UserModel, None] = None):
@@ -57,4 +77,4 @@ def send_advert(message: Message, user: Union[UserModel, None] = None):
     if not user:
         user = database.users.get(id=message.from_user.id)
 
-    show_advert(user)
+    asyncio.run(show_advert(user.id))
