@@ -74,7 +74,7 @@ def send_advert(message: Message, user: Union[UserModel, None] = None):
     if message.chat.type != "private":
         return
 
-    if not user:
-        user = database.users.get(id=message.from_user.id)
+    # if not user:
+    #     user = database.users.get(id=message.from_user.id)
 
-    asyncio.run(show_advert(user.id))
+    asyncio.run(show_advert(message.from_user.id))
