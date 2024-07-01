@@ -43,7 +43,7 @@ async def show_advert(user_id: int):
                 try:
                     logger.error("Gramads: %s" % str(await response.json()))
                 except Exception:
-                    logger.error("Gramads: %s" % str(response.text()))
+                    logger.error("Gramads: %s" % str(await response.text()))
 
 
 # def show_advert(user: UserModel):
