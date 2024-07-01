@@ -33,7 +33,7 @@ def show_advert(user: UserModel):
 
     logger.debug(f"Send advert to user `{user.id}`")
     response = requests.post(
-        "https://api.gramads.net/ad/SendPost", headers=headers, json=json, timeout=20
+        "https://api.gramads.net/ad/SendPost", headers=headers, json=json
     )
 
     logger.debug(response.text)
