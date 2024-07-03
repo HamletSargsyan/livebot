@@ -38,7 +38,7 @@ async def show_advert(user_id: int):
         ) as response:
             response.content
             if response.ok:
-                logger.info(f"Advert for user `{user_id}` send succesful")
+                logger.info(f"Advert for user `{user_id}` send successful")
             else:
                 try:
                     logger.error("Gramads: %s" % str(await response.json()))

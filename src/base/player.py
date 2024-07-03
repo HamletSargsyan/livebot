@@ -66,14 +66,14 @@ def level_up(user: UserModel, chat_id: Union[str, int, None] = None):
     database.items.update(**box.to_dict())
     bot.send_sticker(
         chat_id,
-        "CAACAgIAAxkBAAEpjItl0i05sChI02Gz_uGnAtLyPBcJwgACXhIAAuyZKUl879mlR_dkOzQE",
+        "CAACAgIAAxkBAAEpjItl0i05sChI02Gz_uGnAtLyPBcJwgACXhIAAuyZKUl879mlR_dkOzQE",  # cSpell:ignore CAAC
     )
 
     markup = InlineKeyboardMarkup(row_width=1)
     buttons = []
     btn_data = []
     if user.max_items_count_in_market <= 10:
-        btn_data.append(("+1 место в ларке", "market"))
+        btn_data.append(("+1 место в ларьке", "market"))
     if user.level >= 10 and user.luck <= 15:
         btn_data.append(("+1 удача", "luck"))
 
@@ -138,7 +138,7 @@ def check_user_stats(user: UserModel, chat_id: Union[str, int, None] = None):
             dog.max_xp = calc_xp_for_level(dog.level)
             bot.send_sticker(
                 chat_id,
-                "CAACAgIAAxkBAAEpv_Bl24Fgxvez1weA12y4uARuP6JyFgACLQEAAjDUnREQhgS5L57E0TQE",
+                "CAACAgIAAxkBAAEpv_Bl24Fgxvez1weA12y4uARuP6JyFgACLQEAAjDUnREQhgS5L57E0TQE",  # cSpell:ignore Fgxvez, ACLQEA
             )
             bot.send_message(chat_id, f"Собачка {dog.name} получил новый уровень")
 
@@ -271,11 +271,11 @@ def use_item(message: Message, name: str):
         item = get_item(name)
 
         if not item:
-            bot.reply_to(message, "Такого придмета не существует")
+            bot.reply_to(message, "Такого предмета не существует")
             return
 
         if not item.is_usable:
-            bot.reply_to(message, "Этот придмет нельзя юзать")
+            bot.reply_to(message, "Этот предмет нельзя юзать")
             return
 
         user_item = get_or_add_user_item(user, item.name)
@@ -361,7 +361,7 @@ def use_item(message: Message, name: str):
         elif name == "клевер-удачы":
             user.luck += item.effect  # type: ignore
             user_item.quantity -= 1
-            bot.reply_to(message, f"{item.emoji} Увеличел удачу на 1")
+            bot.reply_to(message, f"{item.emoji} Увеличил удачу на 1")
 
         database.users.update(**user.to_dict())
         database.items.update(**user_item.to_dict())
@@ -449,12 +449,12 @@ def street(call: CallbackQuery, user: UserModel):
 
     if user.hunger >= 80:
         bot.answer_callback_query(
-            call.id, "Ты слышком голодный для прогулки", show_alert=True
+            call.id, "Ты слишком голодный для прогулки", show_alert=True
         )
         return
     elif user.fatigue >= 85:
         bot.answer_callback_query(
-            call.id, "Ты слышком устал для прогулки", show_alert=True
+            call.id, "Ты слишком устал для прогулки", show_alert=True
         )
         return
 
@@ -508,7 +508,7 @@ def street(call: CallbackQuery, user: UserModel):
     weather = get_weather()
 
     snow = 2
-    wather = 2
+    water = 2
     if weather.main.temp <= -15:
         snow = 10
     elif weather.main.temp <= -5:
@@ -517,13 +517,13 @@ def street(call: CallbackQuery, user: UserModel):
     if weather.weather.main == "Snow":
         snow *= 3
     elif weather.weather.main == "Rain":
-        wather *= 3
+        water *= 3
 
     loot_table = [
         ["бабло", (1, 50)],
         ["трава", (1, 3)],
         ["гриб", (1, 3)],
-        ["вода", (2 * wather, 3 * wather)],
+        ["вода", (2 * water, 3 * water)],
         ["чаинка", (1, 3)],
         ["бабочка", (5, 10)],
     ]
@@ -586,12 +586,12 @@ def street(call: CallbackQuery, user: UserModel):
 def work(call: CallbackQuery, user: UserModel):
     if user.hunger >= 80:
         bot.answer_callback_query(
-            call.id, "Ты слышком голодный для работы", show_alert=True
+            call.id, "Ты слишком голодный для работы", show_alert=True
         )
         return
     elif user.fatigue >= 85:
         bot.answer_callback_query(
-            call.id, "Ты слышком устал для работы", show_alert=True
+            call.id, "Ты слишком устал для работы", show_alert=True
         )
         return
 

@@ -159,7 +159,7 @@ class InlineMarkup:
 
         markup.add(
             InlineKeyboardButton("🗄️", callback_data=f"open bag {user.id}"),
-            InlineKeyboardButton("🎒", callback_data=f"open equiped_items {user.id}"),
+            InlineKeyboardButton("🎒", callback_data=f"open equipped_items {user.id}"),
         )
         return markup
 

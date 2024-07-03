@@ -97,7 +97,7 @@ def dog_callback(call: CallbackQuery):
         bot.delete_message(call.message.chat.id, call.message.id)
         bot.send_sticker(
             call.message.chat.id,
-            "CAACAgIAAxkBAAEpvz9l211Kyfi280mwFR6XMKUhzMXbiwACGAEAAjDUnREiQ2-IziTqFTQE",
+            "CAACAgIAAxkBAAEpvz9l211Kyfi280mwFR6XMKUhzMXbiwACGAEAAjDUnREiQ2-IziTqFTQE",  # cspell:ignore CAAC, Epvz, Kyfi, MXbiwACGAEA, FTQE
         )
         bot.send_message(
             call.message.chat.id,
@@ -127,7 +127,7 @@ def dog_callback(call: CallbackQuery):
         dog.xp += random.uniform(0.1, 0.3)
         bot.answer_callback_query(
             call.id,
-            f"{dog.name} поел мяса и востановил {count} едениц голода",
+            f"{dog.name} поел мяса и восстановил {count} единиц голода",
             show_alert=True,
         )
         database.dogs.update(**dog.to_dict())
@@ -198,7 +198,7 @@ def new_quest_callback(call: CallbackQuery):
     if user.new_quest_coin_quantity > user.coin:
         bot.answer_callback_query(
             call.id,
-            f"У тебя недостатично бабла. Чтобы получить ноый квест надо иметь {user.new_quest_coin_quantity}",
+            f"У тебя недостаточно бабла. Чтобы получить новый квест надо иметь {user.new_quest_coin_quantity}",
             show_alert=True,
         )
         return
@@ -233,7 +233,9 @@ def finish_quest_callback(call: CallbackQuery):
     item = get_or_add_user_item(user, quest.name)
 
     if item.quantity < quest.quantity:
-        bot.answer_callback_query(call.id, "Кудааа, тебе не хватает", show_alert=True)
+        bot.answer_callback_query(
+            call.id, "Кудааа, тебе не хватает", show_alert=True
+        )  # cspell:ignore Кудааа
         return
 
     item.quantity -= quest.quantity
@@ -258,7 +260,7 @@ def finish_quest_callback(call: CallbackQuery):
     user_message = call.message.reply_to_message
     bot.send_sticker(
         call.message.chat.id,
-        "CAACAgIAAxkBAAEpslFl2JwAAaZFMa3RM-3fKaHU7RYrOSQAAoIPAAJ73EFKS4aLwGmJ_Ok0BA",
+        "CAACAgIAAxkBAAEpslFl2JwAAaZFMa3RM-3fKaHU7RYrOSQAAoIPAAJ73EFKS4aLwGmJ_Ok0BA",  # cspell:ignore Epsl, OSQA, IPAAJ, EFKS
     )
     if user_message:
         bot.reply_to(user_message, mess)
@@ -300,7 +302,7 @@ def use_callback(call: CallbackQuery):
     items = get_available_items_for_use(user)
 
     if not items:
-        mess = "Нет доступных придметов для юза"
+        mess = "Нет доступных предметов для юза"
         bot.edit_message_text(mess, call.message.chat.id, call.message.id)
 
     bot.edit_message_reply_markup(
@@ -390,7 +392,7 @@ def trader_callback(call: CallbackQuery):
             call.message.chat.id,
             "CAACAgEAAxkBAAEpxYVl3KqB7JnvbmYgXQqVAhUQYbnyXwACngIAAv9iMUeUcUiHcCrhSTQE",
         )
-        bot.send_message(call.message.chat.id, "Пф... нехочешь как хочешь")
+        bot.send_message(call.message.chat.id, "Пф... не хочешь как хочешь")
         return
     elif data[1] == "trade":
         item = get_item(data[2])
@@ -566,7 +568,7 @@ def market_callback(call: CallbackQuery):
     if data[1] == "add":
         user_market_items_len = len(database.market_items.get_all(owner=user._id))
         if user_market_items_len >= user.max_items_count_in_market:
-            bot.answer_callback_query(call.id, "Ты привисел лимит", show_alert=True)
+            bot.answer_callback_query(call.id, "Ты привесил лимит", show_alert=True)
             return
         from base.user_input.add_new_market_item import AddNewItemState
 
@@ -591,7 +593,7 @@ def market_callback(call: CallbackQuery):
         markup = InlineKeyboardMarkup(row_width=3)
         if len(buttons) == 0:
             bot.edit_message_text(
-                "У тебя нет придметов для продажы",
+                "У тебя нет предметов для продажи",
                 call.message.chat.id,
                 call.message.id,
             )
@@ -600,7 +602,7 @@ def market_callback(call: CallbackQuery):
         markup.add(*buttons)
 
         bot.edit_message_text(
-            "<b>Продажа придмета</b>\nВыбери придмет",
+            "<b>Продажа предмета</b>\nВыбери предмет",
             call.message.chat.id,
             call.message.id,
             reply_markup=markup,
@@ -613,7 +615,7 @@ def market_callback(call: CallbackQuery):
         except NoResult:
             bot.answer_callback_query(
                 call.id,
-                "Этот придмет либо уже купили либо владелец убрал с продажы",
+                "Этот предмет либо уже купили либо владелец убрал с продажи",
                 show_alert=True,
             )
             return
@@ -670,7 +672,7 @@ def market_callback(call: CallbackQuery):
         user_item.quantity += market_item.quantity
         database.items.update(**user_item.to_dict())
         database.market_items.delete(**market_item.to_dict())
-        bot.answer_callback_query(call.id, "Придмет удален успешно", show_alert=True)
+        bot.answer_callback_query(call.id, "предмет удален успешно", show_alert=True)
         markup = InlineMarkup.market_view_my_items(user)
 
         bot.edit_message_reply_markup(
@@ -723,7 +725,7 @@ def market_item_open_callback(call: CallbackQuery):
     mess = (
         f"<b>{get_item_emoji(market_item.name)} {market_item.name} | {market_item.quantity} шт.</b>\n"
         f"Продавец: {get_user_tag(item_owner)}\n"
-        f"Средный прайс: {get_middle_item_price(market_item.name)}/шт"
+        f"Средней прайс: {get_middle_item_price(market_item.name)}/шт"
     )
 
     markup = InlineMarkup.market_item_open(user, market_item)
@@ -783,7 +785,7 @@ def daily_gift_callback(call: CallbackQuery):
         if not check_user_subscription(user):
             bot.answer_callback_query(
                 call.id,
-                "Чтобы использовать эту функцию нужно подписатся на новостной канал",
+                "Чтобы использовать эту функцию нужно подписаться на новостной канал",
                 show_alert=True,
             )
             return

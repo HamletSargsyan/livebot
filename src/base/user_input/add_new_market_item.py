@@ -36,7 +36,7 @@ def name_state(call: CallbackQuery):
 
     markup = InlineMarkup.delate_state(user)
     bot.edit_message_text(
-        f"<b>Продажа придмета {item.emoji}</b>\nВведи кол-во ({user_item.quantity})",
+        f"<b>Продажа предмета {item.emoji}</b>\nВведи кол-во ({user_item.quantity})",
         call.message.chat.id,
         call.message.id,
         reply_markup=markup,
@@ -74,7 +74,7 @@ def quantity_state(message: Message):
     item = get_item(user_item.name)
     markup = InlineMarkup.delate_state(user)
     bot.edit_message_text(
-        f"<b>Продажа придмета {item.emoji}</b>\nВведи прайс (+-{get_middle_item_price(item.name)}/шт)",
+        f"<b>Продажа предмета {item.emoji}</b>\nВведи прайс (+-{get_middle_item_price(item.name)}/шт)",
         message.chat.id,
         call_message_id,  # type: ignore
         reply_markup=markup,
@@ -89,7 +89,7 @@ def price_state(message: Message):
         try:
             user_item = database.items.get(owner=user._id, name=data["name"])
         except NoResult:
-            bot.reply_to(message, "У тебя нет такого придмета")
+            bot.reply_to(message, "У тебя нет такого предмета")
             return
 
         if user_item.quantity < data["quantity"]:

@@ -81,7 +81,7 @@ class Trader(BaseMob):
             return
         mess = (
             "<b>👳‍♂️ Торговец</b>\n\n"
-            "Эй дружок, у меня для тебя есть выгодное придложение\n"
+            "Эй дружок, у меня для тебя есть выгодное предложение\n"
             f"Даю {self.quantity} {self.item.emoji} {self.item.name} за {self.price} {get_item_emoji('бабло')}"
         )
 
@@ -90,7 +90,7 @@ class Trader(BaseMob):
                 "Обменять": {
                     "callback_data": f"trader trade {self.item.translit()} {self.quantity} {self.price} {self.user.id}"
                 },
-                "Отказатся": {"callback_data": f"trader leave {self.user.id}"},
+                "Отказаться": {"callback_data": f"trader leave {self.user.id}"},
             }
         )
 

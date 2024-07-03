@@ -123,18 +123,16 @@ class Loading:
         self.message = message
 
     def __enter__(self):
-        sitcker_id = (
-            "CAACAgEAAxkBAAEpskNl2JfOUfS1vL2nDBb_rqz40YJKsAACjQQAApbcoUZgQGLo1I2DijQE"
-        )
+        sticker_id = "CAACAgEAAxkBAAEpskNl2JfOUfS1vL2nDBb_rqz40YJKsAACjQQAApbcoUZgQGLo1I2DijQE"  # cspell:ignore CAAC, Epsk, YJKs, Apbco
 
         try:
             msg = bot.send_sticker(
                 self.message.chat.id,
-                sitcker_id,
+                sticker_id,
                 reply_parameters=ReplyParameters(self.message.id),
             )
         except Exception:
-            msg = bot.send_sticker(self.message.chat.id, sitcker_id)
+            msg = bot.send_sticker(self.message.chat.id, sticker_id)
         self.loading_message = msg
 
     def __exit__(self, exc_type, exc_value, traceback):
@@ -204,6 +202,6 @@ def check_user_subscription(user: UserModel) -> bool:
 
 def send_channel_subscribe_message(message: Message):
     chat_info = bot.get_chat(channel_id)
-    markup = quick_markup({"Подписатся": {"url": f"t.me/{chat_info.username}"}})
-    mess = "Чтобы использовать эту функцию нужно подписатся на новостной канал"
+    markup = quick_markup({"Подписаться": {"url": f"t.me/{chat_info.username}"}})
+    mess = "Чтобы использовать эту функцию нужно подписаться на новостной канал"
     bot.reply_to(message, mess, reply_markup=markup)

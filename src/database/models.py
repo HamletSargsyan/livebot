@@ -80,7 +80,7 @@ class ItemModel(BaseModel):
     _id = Field(ObjectId)
     name = Field(str)
     quantity = Field(int, default=0)
-    is_equiped = Field(bool, default=False)
+    is_equipped = Field(bool, default=False)
     owner = Field(ObjectId)
 
     def __init__(self, **kwargs) -> None:

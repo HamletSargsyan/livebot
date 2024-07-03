@@ -84,7 +84,7 @@ def start(message: Message):
         user = database.users.get(id=message.from_user.id)
 
         mess = (
-            f"Здарова {message.from_user.first_name}, добро пожаловать в игру\n\n"
+            f"Здорова {message.from_user.first_name}, добро пожаловать в игру\n\n"
             "Помощь: /help"
         )
 
@@ -111,7 +111,7 @@ def start(message: Message):
                 bot.send_message(
                     ref_user.id,
                     (
-                        f"{user.name} присоеденился к игре блогодаря твой реферальной ссылке\n"
+                        f"{user.name} присоединился к игре благодаря твой реферальной ссылке\n"
                         f"Ты получил {coin} бабла {get_item_emoji('бабло')}"
                     ),
                 )
@@ -223,13 +223,13 @@ def shop_cmd(message: Message):
             count = 1
 
         if not get_item(item_name):
-            bot.reply_to(message, "Такого придмета не существует")
+            bot.reply_to(message, "Такого предмета не существует")
             return
 
         item = get_item(item_name)
 
         if not item.price:
-            bot.reply_to(message, "Этот придмет нельзя купить, у него нет цены")
+            bot.reply_to(message, "Этот предмет нельзя купить, у него нет цены")
             return
 
         price = item.price * count
@@ -321,7 +321,7 @@ def workbench_cmd(message: Message):
 
         mess = (
             "<b>🧰Верстак🧰</b>\n\n"
-            "Чтобы скрафтить чтото то напиши <code>/craft буханка 1</code>\n\n"
+            "Чтобы скрафтить что-то то напиши <code>/craft буханка 1</code>\n\n"
         )
 
         args = str(message.text).split(" ")
@@ -352,7 +352,7 @@ def workbench_cmd(message: Message):
             count = 1
 
         if not get_item(name):
-            bot.reply_to(message, "Такого придмета не существует")
+            bot.reply_to(message, "Такого предмета не существует")
             return
 
         item_data = get_item(name)
@@ -370,7 +370,7 @@ def workbench_cmd(message: Message):
                 or (user_item.quantity <= 0)
                 or (user_item.quantity < craft_item[1] * count)
             ):
-                bot.reply_to(message, "Недостатично придметов")
+                bot.reply_to(message, "Недостаточно предметов")
                 return
 
             user_item.quantity -= craft_item[1] * count
@@ -425,7 +425,7 @@ def transfer_cmd(message: Message):
                 bot.reply_to(message, f"У тебя нет <i>{item}</i>")
                 return
             elif user.coin <= count:
-                bot.reply_to(message, "У тебя недостатично бабла, иди работать")
+                bot.reply_to(message, "У тебя Недостаточно бабла, иди работать")
                 return
             user.coin -= count
             reply_user.coin += count
@@ -437,7 +437,7 @@ def transfer_cmd(message: Message):
 
             if not get_item(item):
                 bot.reply_to(
-                    message, f"{item}??\nСерёзно?\n\nТакого придмета не существует"
+                    message, f"{item}??\nСерьёзно?\n\nТакого предмета не существует"
                 )
                 return
             if (item_data.quantity < count) or (item_data.quantity <= 0):
@@ -482,22 +482,22 @@ def event_cmd(message: Message):
 
         mess = (
             "<b>Ивент 🦋</b>\n\n"
-            "Соберай 🦋 и побеждай\n\n"
+            "Собирай 🦋 и побеждай\n\n"
             "Бабочек можно получать во время прогулки, в боксе и в сундуке\n\n"
             f"<b>До окончания осталось:</b> {time_left}\n\n"
             "<b>Топ 10 по 🦋</b>\n\n"
         )
 
-        butterflys = [
+        butterflies = [
             get_or_add_user_item(user, "бабочка") for user in database.users.get_all()
         ]
-        sorted_butterflys: List[ItemModel] = sorted(
-            butterflys, key=lambda butterfly: butterfly.quantity, reverse=True
+        sorted_butterflies: List[ItemModel] = sorted(
+            butterflies, key=lambda butterfly: butterfly.quantity, reverse=True
         )
-        for index, butterfly in enumerate(sorted_butterflys, start=1):
+        for index, butterfly in enumerate(sorted_butterflies, start=1):
             if butterfly.quantity > 0:
                 owner = database.users.get(**{"_id": butterfly.owner})
-                mess += f"{index}. {owner.name or '<i>неопознаный персонаж</i>'} - {butterfly.quantity}\n"
+                mess += f"{index}. {owner.name or '<i>неопознанный персонаж</i>'} - {butterfly.quantity}\n"
             if index == 10:
                 break
 
@@ -546,9 +546,9 @@ def use_cmd(message: Message):
             markup.add(*buttons)
 
             if items:
-                mess = "<b>Доступные придметы для юза</b>\n\n"
+                mess = "<b>Доступные предметы для юза</b>\n\n"
             else:
-                mess = "Нет доступных придметов для юза"
+                mess = "Нет доступных предметов для юза"
             bot.reply_to(message, mess, reply_markup=markup)
             return
 
@@ -596,7 +596,7 @@ def add_promo(message: Message):
                     usage_count = int(line.split(" ")[-1])
                 except ValueError:
                     usage_count = 1
-                mess += f"<b>Кол-во использованый:</b> <code>{usage_count}</code>\n"
+                mess += f"<b>Кол-во использований:</b> <code>{usage_count}</code>\n"
             elif line_num == 1:
                 description = None if line in ["None", "none"] else line
                 if description:
@@ -759,7 +759,7 @@ def exchanger_cmd(message: Message):
     # if True:
     #     bot.reply_to(
     #         message,
-    #         "Временно не работает изза <a href='https://github.com/HamletSargsyan/livebot/issues/18'>бага</a> :(",
+    #         "Временно не работает из-за <a href='https://github.com/HamletSargsyan/livebot/issues/18'>бага</a> :(",
     #     )
     #     return
     with Loading(message):
@@ -782,7 +782,7 @@ def exchanger_cmd(message: Message):
             "<b>Обменник 🔄</b>\n\n"
             f"<b>Предмет:</b> {exchanger.item} {get_item_emoji(exchanger.item)}\n"
             f"<b>Цена за 1 шт:</b> {exchanger.price} {get_item_emoji('бабло')}\n\n"
-            f"Чтобы обеменять напиши <code>/exchanger кол-во</code>"
+            f"Чтобы обменять напиши <code>/exchanger кол-во</code>"
         )
 
         args = str(message.text).split(" ")
@@ -893,13 +893,13 @@ def price_cmd(message: Message):
         try:
             name = str(message.text).split(" ")[1].lower()
         except KeyError:
-            bot.reply_to(message, "По моему ты чтото забыл...")
+            bot.reply_to(message, "По моему ты что-то забыл...")
             return
 
         item = get_item(name)
         price = get_middle_item_price(item.name)
         if not item:
-            mess = "Такого придмета не существует"
+            mess = "Такого предмета не существует"
         elif price:
             mess = f"Прайс {item.name} {item.emoji} ⸻ {price} {get_item_emoji('бабло')}"
         else:
@@ -981,8 +981,8 @@ def new_chat_member(message: Message):
         return
 
     for new_member in message.new_chat_members:
-        if message.chat.id == chat_id:
-            mess = f"Привет {user_link(new_member)}, добро пожаловать в оффицеальный чат по лайвботу 💙\n\n"
+        if str(message.chat.id) == chat_id:
+            mess = f"Привет {user_link(new_member)}, добро пожаловать в официальный чат по лайвботу 💙\n\n"
             bot.send_message(message.chat.id, mess)
 
 
@@ -1024,7 +1024,7 @@ def text_message_handler(message: Message):
         event_cmd(message)
     elif text.startswith("юз"):
         use_cmd(message)
-    elif text == "придметы":
+    elif text == "предметы":
         items_cmd(message)
     elif text == "бабло":
         with Loading(message):
