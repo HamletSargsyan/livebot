@@ -5,7 +5,6 @@ from telebot.types import Message
 
 from config import GRAMADS_TOKEN, logger
 from database.models import UserModel
-from database.funcs import database
 
 
 import aiohttp
@@ -37,6 +36,7 @@ async def show_advert(user_id: int):
             },
             json={"SendToChatId": user_id},
         ) as response:
+            response.content
             if response.ok:
                 logger.info(f"Advert for user `{user_id}` send succesful")
             else:
