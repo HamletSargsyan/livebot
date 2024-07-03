@@ -5,3 +5,4 @@ transliterate==1.10.2
 redis==5.0.3
 toml==0.10.2
 argparse==1.4.0
+aiohttp
