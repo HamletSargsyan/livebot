@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## [Unreleased]
+
+### Удалено
+- Функция `reload_modules()` из файла `main.py`
+- Переменная `GUIDE_FILE_PATH` из файла `config.py`
+
+### Добавлено
+- Переменная `version` в файле `config.py`
+
 ## [3.5.1] - 2024-07-03
 
 ### Добавлено

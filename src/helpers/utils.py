@@ -50,9 +50,6 @@ def log(log_text: str, log_level: str, record: logging.LogRecord) -> None:
 
 
 def remove_not_allowed_symbols(text: str) -> str:
-    if not isinstance(text, str):
-        raise TypeError(f"Input text must be a string, not {type(text)}.")
-
     not_allowed_symbols = ["#", "<", ">", "{", "}", '"', "'", "$", "(", ")", "@"]
     cleaned_text = "".join(char for char in text if char not in not_allowed_symbols)
 

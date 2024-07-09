@@ -1,5 +1,4 @@
 from threading import Thread
-import importlib
 
 import argparse
 from telebot.types import BotCommand
@@ -53,20 +52,6 @@ def start_threads():
         thread.start()
 
 
-def reload_modules():
-    import base
-    import bot
-    import database
-    import helpers
-    import middlewares
-    import threads
-
-    modules = [base, bot, database, helpers, middlewares, threads]
-
-    for module in modules:
-        importlib.reload(module)
-
-
 def main(args):
     logger.info("Бот включен")
 
@@ -76,7 +61,6 @@ def main(args):
         config.DEBUG = True
         config.telebot.logger.setLevel(10)
         config.logger.setLevel(10)
-        reload_modules()
         logger.warning("Бот работает в режиме DEBUG")
 
     configure_bot_commands()

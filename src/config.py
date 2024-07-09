@@ -79,8 +79,6 @@ event_open: Final = False
 channel_id: Final = "-1002081230318"
 chat_id: Final = "-1001869913117"
 
-GUIDE_FILE_PATH: Final = "guide.toml"
-
 
 bot_owners = [5161392463]  # type: list[int]
 
