@@ -8,12 +8,16 @@ from typing import Final
 from dotenv import load_dotenv
 from redis import Redis
 
+from semver import Version
 import telebot
 from telebot.storage import StateRedisStorage
 from telebot.custom_filters import StateFilter, IsDigitFilter
 
 
 load_dotenv()
+
+with open("version") as f:
+    version = Version.parse(f.read())
 
 DEBUG = False
 

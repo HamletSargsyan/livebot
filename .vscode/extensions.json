@@ -6,6 +6,7 @@
         "streetsidesoftware.code-spell-checker-russian",
         "Gruntfuggly.todo-tree",
         "charliermarsh.ruff",
-        "streetsidesoftware.code-spell-checker"
+        "streetsidesoftware.code-spell-checker",
+        "editorconfig.editorconfig"
     ]
 }
