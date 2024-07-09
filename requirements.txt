@@ -1,4 +1,4 @@
-pyTelegramBotAPI>=4.20.0
+pyTelegramBotAPI==4.20.0
 python-dotenv>=1.0.0
 pymongo>=4.6.3
 transliterate>=1.10.2
