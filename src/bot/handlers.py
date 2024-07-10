@@ -26,6 +26,7 @@ from base.items import items_list
 from helpers.markups import InlineMarkup
 from helpers.utils import (
     check_user_subscription,
+    check_version,
     get_middle_item_price,
     get_time_difference_string,
     get_item_emoji,
@@ -50,7 +51,7 @@ import base.user_input  # noqa
 from database.funcs import database
 from database.models import ItemModel, PromoModel
 
-from config import bot, event_end_time, event_open, channel_id, chat_id, logger
+from config import bot, event_end_time, event_open, channel_id, chat_id, logger, version
 
 
 START_MARKUP = ReplyKeyboardMarkup(resize_keyboard=True)
@@ -132,6 +133,7 @@ def help(message: Message):
         "<b>Канал:</b> @LiveBotOfficial\n"
         "<b>Чат</b>: @LiveBotOfficialChat\n"
         "<b>Гайд</b>: https://hamletsargsyan.github.io/livebot/guide\n"
+        f"<b>Версия бота</b>: {version} | <i>{check_version()}</i>\n"
     )
 
     bot.reply_to(message, mess)

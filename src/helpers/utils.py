@@ -4,10 +4,20 @@ import random
 import statistics
 from typing import NoReturn, Union
 
+import requests
+from semver import Version
 from telebot.types import Message, ReplyParameters, InlineKeyboardButton
 from telebot.util import antiflood, escape, split_string, quick_markup
 
-from config import bot, channel_id, logger, timezone, log_chat_id, log_thread_id
+from config import (
+    bot,
+    channel_id,
+    logger,
+    timezone,
+    log_chat_id,
+    log_thread_id,
+    version,
+)
 from database.models import UserModel
 from helpers.datatypes import Item
 from helpers.exceptions import ItemNotFoundError
@@ -163,24 +173,12 @@ def get_middle_item_price(name: str) -> int:
     market_items = database.market_items.get_all(name=item.name)
 
     price = 0
+    items = [market_item.price / market_item.quantity for market_item in market_items]
     try:
         if item.price:
-            price += statistics.median(
-                [
-                    item.price,
-                    *[
-                        market_item.price / market_item.quantity
-                        for market_item in market_items
-                    ],
-                ]
-            )
+            price += statistics.median([item.price, *items])
         else:
-            price += statistics.median(
-                [
-                    market_item.price / market_item.quantity
-                    for market_item in market_items
-                ]
-            )
+            price += statistics.median(items)
     except statistics.StatisticsError:
         pass
     return int(price)
@@ -202,3 +200,24 @@ def send_channel_subscribe_message(message: Message):
     markup = quick_markup({"Подписаться": {"url": f"t.me/{chat_info.username}"}})
     mess = "Чтобы использовать эту функцию нужно подписаться на новостной канал"
     bot.reply_to(message, mess, reply_markup=markup)
+
+
+def check_version() -> str:  # type: ignore
+    url = "https://api.github.com/repos/HamletSargsyan/livebot/releases/latest"
+    response = requests.get(url)
+
+    if not response.ok:
+        logger.error(response.text)
+        response.raise_for_status()
+
+    latest_release = response.json()
+
+    latest_version = Version.parse(latest_release["tag_name"].replace("v", ""))
+
+    match version.compare(latest_version):
+        case -1:
+            return "требуется обновление"
+        case 0:
+            return "актуальная версия"
+        case 1:
+            return "текущая версия бота больше чем в репозитории"

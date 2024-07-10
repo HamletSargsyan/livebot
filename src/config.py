@@ -17,7 +17,7 @@ from telebot.custom_filters import StateFilter, IsDigitFilter
 load_dotenv()
 
 with open("version") as f:
-    version = Version.parse(f.read())
+    version: Final = Version.parse(f.read())
 
 DEBUG = False
 
