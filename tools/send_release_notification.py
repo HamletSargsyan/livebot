@@ -32,7 +32,7 @@ def send_release_notification():
 
     for line in body.splitlines():
         if line.startswith("###"):
-            new_line = f"**{line}**"
+            new_line = f"*{line}*"
             body = body.replace(line, new_line)
 
     message = (
@@ -42,7 +42,7 @@ def send_release_notification():
 
     markup = quick_markup({"Релиз": {"url": release.get("html_url")}})
 
-    bot = TeleBot(bot_token, parse_mode="MarkdownV2", disable_web_page_preview=True)
+    bot = TeleBot(bot_token, parse_mode="markdown", disable_web_page_preview=True)
     bot.send_message(chat_id, message, reply_markup=markup)
 
 
