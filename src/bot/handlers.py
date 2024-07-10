@@ -15,11 +15,8 @@ from telebot.util import (
     extract_arguments,
     user_link,
     quick_markup,
-    content_type_media,
-    antiflood,
     chunks,
 )
-from telebot.apihelper import ApiTelegramException
 
 from helpers.exceptions import NoResult
 from base.items import items_list
@@ -51,7 +48,7 @@ import base.user_input  # noqa
 from database.funcs import database
 from database.models import ItemModel, PromoModel
 
-from config import bot, event_end_time, event_open, channel_id, chat_id, logger, version
+from config import bot, event_end_time, event_open, chat_id, logger, version
 
 
 START_MARKUP = ReplyKeyboardMarkup(resize_keyboard=True)
@@ -986,24 +983,6 @@ def new_chat_member(message: Message):
         if str(message.chat.id) == chat_id:
             mess = f"Привет {user_link(new_member)}, добро пожаловать в официальный чат по лайвботу 💙\n\n"
             bot.send_message(message.chat.id, mess)
-
-
-@bot.channel_post_handler(content_types=content_type_media)
-def handle_channel_post(message: Message):
-    if str(message.chat.id) != channel_id:
-        return
-
-    for user in database.users.get_all():
-        try:
-            antiflood(bot.forward_message, user.id, message.chat.id, message.id)
-            antiflood(
-                bot.send_message,
-                user.id,
-                "Клавиатура обновлена",
-                reply_markup=START_MARKUP,
-            )
-        except ApiTelegramException:
-            continue
 
 
 @bot.message_handler(content_types=["text"])

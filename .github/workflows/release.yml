@@ -13,6 +13,12 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
+      
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - run: python tools/get_release_body.py > release_body.md
 
     - name: Create GitHub Release
       id: create_release
@@ -22,12 +28,10 @@ jobs:
       with:
         tag_name: ${{ github.ref }}
         release_name: ${{ github.ref }}
+        body_path: "release_body.md"
         draft: false
         prerelease: false
 
-    - uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
 
     - run: pip install -r requirements.txt
 
