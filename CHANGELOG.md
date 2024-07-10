@@ -7,7 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.6.1] - 2024-07-10
+
 ### Исправлено
+
 - Баг с отправкой уведомлений релизов в канал
 
 ## [3.6.0] - 2024-07-10
