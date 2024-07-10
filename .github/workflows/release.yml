@@ -25,4 +25,8 @@ jobs:
         draft: false
         prerelease: false
 
-
+    - name: Send release notification
+      run: python tools/send_release_notification.py
+      env:
+        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
