@@ -18,6 +18,7 @@ jobs:
       with:
         python-version: '3.11'
 
+    - run: pip install -r requirements.txt
     - run: python tools/get_release_body.py > release_body.md
 
     - name: Create GitHub Release
@@ -33,7 +34,6 @@ jobs:
         prerelease: false
 
 
-    - run: pip install -r requirements.txt
 
     - name: Send release notification
       run: python tools/send_release_notification.py
