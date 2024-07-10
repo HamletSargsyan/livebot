@@ -28,10 +28,16 @@ def send_release_notification():
     release_version = release_version.split("/")[-1]
 
     release = get_github_release_info(release_version)  # type: dict
+    body: str = release["body"]
+
+    for line in body.splitlines():
+        if line.startswith("##"):
+            new_line = f"**{line}**"
+            body = body.replace(line, new_line)
 
     message = (
         f"*{'Пре-р' if release.get('prerelease') else 'Р'}елиз — {release.get('name')}* ✨\n\n"
-        f"{release.get('body')}"
+        f"{body}"
     )
 
     markup = quick_markup({"Релиз": {"url": release.get("html_url")}})
