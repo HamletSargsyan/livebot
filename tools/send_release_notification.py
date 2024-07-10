@@ -31,7 +31,7 @@ def send_release_notification():
     body: str = release["body"]
 
     for line in body.splitlines():
-        if line.startswith("##"):
+        if line.startswith("###"):
             new_line = f"**{line}**"
             body = body.replace(line, new_line)
 
