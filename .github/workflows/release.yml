@@ -25,6 +25,10 @@ jobs:
         draft: false
         prerelease: false
 
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
     - run: pip install -r requirements.txt
 
     - name: Send release notification
