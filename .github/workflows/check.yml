@@ -23,6 +23,7 @@ jobs:
         pip install -r requirements.txt
         pip install git+https://github.com/HamletSargsyan/changelog-parser.git#egg=changelog-parser
 
+
     - name: test
       run: |
         python -c "import changelog; print(changelog.__version__)"
