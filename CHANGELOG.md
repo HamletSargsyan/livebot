@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.6.0] - 2024-07-10
 
+## [3.6.0] - 2024-07-10
+
 ### Удалено
 
 - Функция `reload_modules()` из файла `main.py`

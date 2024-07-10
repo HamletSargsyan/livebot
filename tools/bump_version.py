@@ -34,9 +34,6 @@ match sys.argv[1].lower():
 with open("version", "w") as f:
     f.write(str(version))
 
-os.system(f"git tag v{version}")
-print(f"New tag created: v{version}")
-
 
 with open("CHANGELOG.md", "r") as f:
     changes = changelog.loads(f.read())
@@ -56,3 +53,7 @@ for change in changes:
 
 with open("CHANGELOG.md", "w") as f:
     f.write(changelog.dumps(changes))
+
+
+os.system(f"git tag v{version}")
+print(f"New tag created: v{version}")
