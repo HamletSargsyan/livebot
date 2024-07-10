@@ -1,5 +1,9 @@
+from datetime import date
+import os
 import sys
+import changelog
 from semver import Version
+
 
 with open("version") as f:
     version = Version.parse(f.read())
@@ -29,3 +33,26 @@ match sys.argv[1].lower():
 
 with open("version", "w") as f:
     f.write(str(version))
+
+os.system(f"git tag v{version}")
+print(f"New tag created: v{version}")
+
+
+with open("CHANGELOG.md", "r") as f:
+    changes = changelog.loads(f.read())
+
+for change in changes:
+    if str(change["version"]).lower() == "unreleased":
+        change["version"] = version
+        change["date"] = date.today()
+        changes.insert(
+            0,
+            {
+                "version": "Unreleased",
+            },
+        )
+        break
+
+
+with open("CHANGELOG.md", "w") as f:
+    f.write(changelog.dumps(changes))

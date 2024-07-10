@@ -5,8 +5,12 @@ on:
   push:
     paths: 
         - CHANGELOG.md
+        - .github/workflows/changerelease.yml
     branches:
         - main
+  release:
+    types: 
+      published
 
 jobs:
   sync:
