@@ -20,6 +20,9 @@ jobs:
     - name: Install requirements
       run: pip install -r requirements.txt
 
+    - name: test
+      run: python -c "import changelog; print(changelog.__version__)"
+
     - name: Install dev requitements
       run: make dev-install
     
