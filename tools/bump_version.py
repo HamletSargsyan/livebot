@@ -72,7 +72,7 @@ with open("release_body.md", "w") as f:
     f.write(content)
 
 
-os.system('git commit -a -m "bump version"')
+os.system('git commit -a -m "bump version" && git push')
 
 os.system(
     f'gh release create v{version} --notes-file release_body.md {"-p" if prerelease else ""} --title v{version}'
