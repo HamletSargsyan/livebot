@@ -15,6 +15,11 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
       
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    - run: pip install --upgrade pip && pip install -r requirement.txt
+
     - name: Send release notification
       run: python tools/send_release_notification.py
       env:
