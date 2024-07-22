@@ -2,8 +2,10 @@ import requests
 
 from helpers.datatypes import WeatherData
 from config import OPENWEATHER_API_KEY, weather_region
+from helpers.utils import cached
 
 
+@cached
 def get_weather() -> WeatherData:
     url = "http://api.openweathermap.org/data/2.5/weather?"
 

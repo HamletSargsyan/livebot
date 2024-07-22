@@ -1,3 +1,4 @@
+from typing_extensions import deprecated
 import requests
 from telebot import BaseMiddleware, CancelUpdate
 from telebot.types import Message
@@ -6,6 +7,7 @@ from helpers.advert import send_advert
 from database.funcs import database
 
 
+@deprecated("Deprecated", category=DeprecationWarning)
 class AdvertMiddleware(BaseMiddleware):
     def __init__(self) -> None:
         self.update_types = ["message"]

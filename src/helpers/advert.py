@@ -1,6 +1,7 @@
 import asyncio
 from typing import Union
 
+from typing_extensions import deprecated
 from telebot.types import Message
 
 from config import GRAMADS_TOKEN, logger
@@ -10,6 +11,7 @@ from database.models import UserModel
 import aiohttp
 
 
+@deprecated("Deprecated", category=DeprecationWarning)
 async def show_advert(user_id: int):
     """
     Undefined = 0,
@@ -70,6 +72,7 @@ async def show_advert(user_id: int):
 #             logger.error(response.text)
 
 
+@deprecated("Deprecated", category=DeprecationWarning)
 def send_advert(message: Message, user: Union[UserModel, None] = None):
     if message.chat.type != "private":
         return

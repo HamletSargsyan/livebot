@@ -8,3 +8,5 @@ argparse==1.4.0
 aiohttp==3.9.5
 semver==3.0.2
 git+https://github.com/HamletSargsyan/changelog-parser.git#egg=changelog-parser
+cachetools==5.4.0
+typing_extensions==4.12.2

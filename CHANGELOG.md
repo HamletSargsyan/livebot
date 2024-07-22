@@ -7,7 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Устарело
-- Интеграция с сервисом GramAds ([#23](https://github.com/HamletSargsyan/livebot/issues/23)) будет удалена
+- Все что связанно с интеграций с сервисом GramAds
+
+### Добавлено
+- Кеширование некоторых функций, для увеличения скорости работы с ботом
 
 ## [3.6.2] - 2024-07-10
 
