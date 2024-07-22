@@ -1,5 +1,6 @@
 from datetime import date
 import os
+import re
 import sys
 import changelog
 from semver import Version
@@ -16,6 +17,8 @@ def usage():
     sys.exit(0)
 
 
+prerelease = False
+
 match sys.argv[1].lower():
     case "major":
         version = version.bump_major()
@@ -25,6 +28,7 @@ match sys.argv[1].lower():
         version = version.bump_patch()
     case "prerelease":
         version = version.bump_prerelease()
+        prerelease = True
     case "build":
         version = version.bump_build()
     case arg:
@@ -55,5 +59,19 @@ with open("CHANGELOG.md", "w") as f:
     f.write(changelog.dumps(changes))
 
 
-os.system(f"git tag v{version}")
-print(f"New tag created: v{version}")
+with open("CHANGELOG.md") as f:
+    changes = changelog.load(f)[1]
+
+
+content = changelog.dumps([changes], "").strip()
+
+if match := re.match(r"## \[\d+\.\d+\.\d+\] - \d{4}-\d{2}-\d{2}", content):
+    content = content.replace(match.group(0), "").strip()
+
+with open("release_body.md", "w") as f:
+    f.write(content)
+
+
+os.system(
+    f'gh release create v{version} --notes-file release_body.md {"-p" if prerelease else ""} --title v{version}'
+)

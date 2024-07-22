@@ -8,3 +8,4 @@ nohup.out
 .ruff_cache/
 .mypy_cache/
 site/
+release_body.md
