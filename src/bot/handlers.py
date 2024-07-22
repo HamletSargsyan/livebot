@@ -1,6 +1,5 @@
 import random
 import string
-from datetime import datetime
 from typing import List
 
 from telebot.types import (
@@ -30,6 +29,7 @@ from helpers.utils import (
     get_item,
     Loading,
     send_channel_subscribe_message,
+    utcnow,
 )
 from base.player import (
     check_user_stats,
@@ -320,7 +320,7 @@ def workbench_cmd(message: Message):
 
         mess = (
             "<b>🧰Верстак🧰</b>\n\n"
-            "Чтобы скрафтить что-то то напиши <code>/craft буханка 1</code>\n\n"
+            "Чтобы скрафтить что-то то напиши <code>/craft [имя предмета] [кол-во]</code>\n\n"
         )
 
         args = str(message.text).split(" ")
@@ -328,19 +328,25 @@ def workbench_cmd(message: Message):
         if not args or len(args) < 2:
             available_crafts = get_available_crafts(user)
             if available_crafts:
+                print(available_crafts)
                 mess += "<b>Доступные крафты</b>\n"
                 for craft_data in available_crafts:
                     item_name = craft_data["item_name"]
                     resources = craft_data["resources"]
 
                     possible_crafts = min(
-                        user_count // count for _, count, user_count in resources
+                        user_item["user_item_quantity"] // user_item["item_count"]
+                        for user_item in resources
+                    )
+
+                    print(
+                        get_item_emoji(item_name), item_name, get_item(item_name).emoji
                     )
                     craft_str = (
                         f"{get_item_emoji(item_name)} {item_name} - {possible_crafts}\n"
                     )
                     mess += f"{craft_str}"
-
+            print(mess)
             bot.reply_to(message, mess)
             return
 
@@ -471,12 +477,12 @@ def event_cmd(message: Message):
             bot.reply_to(message, "Ивент закончился")
             return
 
-        if event_end_time < datetime.utcnow():
+        if event_end_time < utcnow():
             mess = "Ивент закончился, жди сообщение в новостном канале 💙"
             bot.reply_to(message, mess)
             return
 
-        time_difference = event_end_time - datetime.utcnow()
+        time_difference = event_end_time - utcnow()
         time_left = get_time_difference_string(time_difference)
 
         mess = (
@@ -691,7 +697,7 @@ def stats_cmd(message: Message):
             f"- Просрал: {user.casino_loose}\n"
             f"- Профит: {user.casino_win - user.casino_loose}\n\n"
             f"<b>[ Общее ]</b>\n"
-            f"- Кол-во дней в игре: {(datetime.utcnow() - user.registered_at).days} д.\n"
+            f"- Кол-во дней в игре: {(utcnow() - user.registered_at).days} д.\n"
             f"- Забанен: {'да' if user.is_banned else 'нет'}\n"
             f"- Админ: {'да' if user.is_admin else 'нет'}"
         )
@@ -773,7 +779,7 @@ def exchanger_cmd(message: Message):
         except NoResult:
             exchanger = generate_exchanger(user)
 
-        if exchanger.expires < datetime.utcnow():
+        if exchanger.expires < utcnow():
             exchanger = generate_exchanger(user)
             database.exchangers.update(**exchanger.to_dict())
 
@@ -841,7 +847,7 @@ def dog_cmd(message: Message):
             f"Опыт {int(dog.xp)}/{int(dog.max_xp)}\n"
         )
 
-        # current_time = datetime.utcnow()
+        # current_time = utcnow()
         # time_difference = current_time - user.dog.sleep_time
 
         # sleep_text = "Уложить спать"
@@ -964,7 +970,7 @@ def daily_gift_cmd(message: Message):
 
     mess = "<b>Ежедневный подарок</b>"
 
-    if daily_gift.next_claimable_at <= datetime.utcnow():
+    if daily_gift.next_claimable_at <= utcnow():
         daily_gift = generate_daily_gift(user)
 
     markup = InlineMarkup.daily_gift(user, daily_gift)
@@ -988,45 +994,44 @@ def new_chat_member(message: Message):
 @bot.message_handler(content_types=["text"])
 def text_message_handler(message: Message):
     user = database.users.get(id=message.from_user.id)
-
     text = str(message.text).lower().strip()
 
-    if text == "профиль":
-        profile_cmd(message)
-    elif text in ["инвентарь", "портфель", "инв"]:
-        bag_cmd(message)
-    elif text.startswith(("магазин", "шоп")):
-        shop_cmd(message)
-    elif text.startswith(("крафт", "верстак")):
-        workbench_cmd(message)
-    elif text in ["топ", "рейтинг"]:
-        top_cmd(message)
-    elif text == "ивент":
-        event_cmd(message)
-    elif text.startswith("юз"):
-        use_cmd(message)
-    elif text == "предметы":
-        items_cmd(message)
-    elif text == "бабло":
-        with Loading(message):
+    match text:
+        case "профиль":
+            profile_cmd(message)
+        case "инвентарь" | "портфель" | "инв":
+            bag_cmd(message)
+        case _ if text.startswith(("магазин", "шоп")):
+            shop_cmd(message)
+        case _ if text.startswith(("крафт", "верстак")):
+            workbench_cmd(message)
+        case "топ" | "рейтинг":
+            top_cmd(message)
+        case "ивент":
+            event_cmd(message)
+        case _ if text.startswith("юз"):
+            use_cmd(message)
+        case "предметы":
+            items_cmd(message)
+        case "бабло":
             bot.reply_to(message, f"{get_item_emoji('бабло')} Бабло: {user.coin}")
-    elif text == "статы":
-        stats_cmd(message)
-    elif text == "квест":
-        quest_cmd(message)
-    elif text == "погода":
-        weather_cmd(message)
-    elif text == "обменник":
-        exchanger_cmd(message)
-    elif text.startswith("передать"):
-        transfer_cmd(message)
-    elif text == "собака":
-        dog_cmd(message)
-    elif text.startswith("прайс"):
-        price_cmd(message)
-    elif text == "гайд":
-        guide_cmd(message)
-    elif text == "дом":
-        home_cmd(message)
-    elif text == "рынок":
-        market_cmd(message)
+        case "статы":
+            stats_cmd(message)
+        case "квест":
+            quest_cmd(message)
+        case "погода":
+            weather_cmd(message)
+        case "обменник":
+            exchanger_cmd(message)
+        case _ if text.startswith("передать"):
+            transfer_cmd(message)
+        case "собака":
+            dog_cmd(message)
+        case _ if text.startswith("прайс"):
+            price_cmd(message)
+        case "гайд":
+            guide_cmd(message)
+        case "дом":
+            home_cmd(message)
+        case "рынок":
+            market_cmd(message)

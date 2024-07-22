@@ -149,7 +149,7 @@ class Item:
         self.can_equip = can_equip
 
     def __repr__(self) -> str:
-        return f"<Item {self.name}>"
+        return f"(Item {self.name})"
 
     def __str__(self) -> str:
         return self.__repr__()

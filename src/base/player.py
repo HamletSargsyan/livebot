@@ -1,6 +1,6 @@
 import random
-from typing import Any, Callable, NoReturn, Union, List
-from datetime import datetime, timedelta
+from typing import Any, Callable, NoReturn, TypedDict, Union, List
+from datetime import timedelta
 
 from telebot.types import (
     Message,
@@ -26,6 +26,7 @@ from helpers.utils import (
     get_time_difference_string,
     get_item_emoji,
     get_user_tag,
+    utcnow,
 )
 
 from database.funcs import BaseDB, database, T as ModelsType
@@ -185,7 +186,7 @@ def generate_quest(user: UserModel):
     quest = QuestModel(
         name=item.name,
         quantity=quantity,
-        start_time=datetime.utcnow(),
+        start_time=utcnow(),
         xp=xp,
         reward=reward,
         owner=user._id,
@@ -195,8 +196,19 @@ def generate_quest(user: UserModel):
     return quest
 
 
-def get_available_crafts(user: UserModel):
-    available_crafts = []
+class CraftResource(TypedDict):
+    item_name: str
+    item_count: int
+    user_item_quantity: int
+
+
+class AvailableCraftItem(TypedDict):
+    item_name: str
+    resources: list[CraftResource]
+
+
+def get_available_crafts(user: UserModel) -> list[AvailableCraftItem]:
+    available_crafts: list[AvailableCraftItem] = []
 
     for item in items_list:
         if not item.craft:
@@ -204,7 +216,7 @@ def get_available_crafts(user: UserModel):
 
         craft = item.craft
         can_craft = True
-        required_resources = []
+        required_resources: List[CraftResource] = []
 
         for craft_item_name, craft_item_count in craft.items():
             user_item = get_or_add_user_item(user, craft_item_name)
@@ -212,7 +224,11 @@ def get_available_crafts(user: UserModel):
                 can_craft = False
                 break
             required_resources.append(
-                (craft_item_name, craft_item_count, user_item.quantity)
+                {
+                    "item_name": craft_item_name,
+                    "item_count": craft_item_count,
+                    "user_item_quantity": user_item.quantity,
+                }
             )
 
         if can_craft:
@@ -222,7 +238,9 @@ def get_available_crafts(user: UserModel):
 
     available_crafts = sorted(
         available_crafts,
-        key=lambda x: max(x["resources"], key=lambda y: y[2]),  # pyright: ignore
+        key=lambda x: max(x["resources"], key=lambda y: y["user_item_quantity"])[
+            "user_item_quantity"
+        ],
         reverse=True,
     )
     return available_crafts
@@ -458,7 +476,7 @@ def street(call: CallbackQuery, user: UserModel):
         )
         return
 
-    current_time = datetime.utcnow()
+    current_time = utcnow()
 
     if user.state is None:
         user.state = "street"
@@ -560,7 +578,7 @@ def street(call: CallbackQuery, user: UserModel):
 
     user.xp += xp
     user.state = None
-    user.action_time = datetime.utcnow()
+    user.action_time = utcnow()
 
     user.hunger += random.randint(2, 5)
     user.fatigue += random.randint(3, 8)
@@ -595,11 +613,11 @@ def work(call: CallbackQuery, user: UserModel):
         )
         return
 
-    current_time = datetime.utcnow()
+    current_time = utcnow()
 
     if user.state is None:
         user.state = "work"
-        user.action_time = datetime.utcnow() + timedelta(hours=3)
+        user.action_time = utcnow() + timedelta(hours=3)
         database.users.update(**user.to_dict())
     elif user.state != "work":
         bot.answer_callback_query(call.id, "Ты занят чем то другим", show_alert=True)
@@ -629,7 +647,7 @@ def work(call: CallbackQuery, user: UserModel):
 
     user.xp += xp
     user.state = None
-    user.action_time = datetime.utcnow()
+    user.action_time = utcnow()
     user.fatigue += random.randint(5, 10)
     user.hunger += random.randint(3, 6)
     user.mood -= random.randint(3, 6)
@@ -647,7 +665,7 @@ def work(call: CallbackQuery, user: UserModel):
 
 
 def sleep(call: CallbackQuery, user: UserModel):
-    current_time = datetime.utcnow()
+    current_time = utcnow()
 
     if user.state is None:
         user.state = "sleep"
@@ -673,7 +691,7 @@ def sleep(call: CallbackQuery, user: UserModel):
     user.fatigue -= fatigue
     user.xp += random.uniform(1.5, 2.0)
     user.state = None
-    user.action_time = datetime.utcnow()
+    user.action_time = utcnow()
     database.users.update(**user.to_dict())
 
     mess = "Охх, хорошенько поспал"
@@ -682,7 +700,7 @@ def sleep(call: CallbackQuery, user: UserModel):
 
 
 def game(call: CallbackQuery, user: UserModel):
-    current_time = datetime.utcnow()
+    current_time = utcnow()
 
     if user.level < 3:
         bot.answer_callback_query(call.id, "Доступно с 3 лвла", show_alert=True)
@@ -716,7 +734,7 @@ def game(call: CallbackQuery, user: UserModel):
     if random.randint(1, 100) < user.luck:
         user.mood *= 2
     user.state = None
-    user.action_time = datetime.utcnow()
+    user.action_time = utcnow()
     database.users.update(**user.to_dict())
 
     mess = "Как же хорошо было играть 😊"
@@ -736,6 +754,6 @@ def generate_daily_gift(user: UserModel):
     items = random.choices(items, k=random.randint(1, 3))
     daily_gift.items = [item.name for item in items]
     daily_gift.is_claimed = False
-    daily_gift.next_claimable_at = datetime.utcnow() + timedelta(days=1)
+    daily_gift.next_claimable_at = utcnow() + timedelta(days=1)
     database.daily_gifts.update(**daily_gift.to_dict())
     return daily_gift

@@ -1,9 +1,9 @@
-from datetime import datetime
 from typing import Union
 from telebot import BaseMiddleware, CancelUpdate
 from telebot.types import Message, CallbackQuery
 
 from database.funcs import database
+from helpers.utils import utcnow
 
 
 class ActiveMiddleware(BaseMiddleware):
@@ -17,5 +17,5 @@ class ActiveMiddleware(BaseMiddleware):
     def post_process(self, message: Union[Message, CallbackQuery], data, exception):
         user_id = message.from_user.id
         user = database.users.get(id=user_id)
-        user.last_active_time = datetime.utcnow()
+        user.last_active_time = utcnow()
         database.users.update(**user.to_dict())

@@ -2,9 +2,9 @@ import logging
 from datetime import datetime, timedelta
 import random
 import statistics
-from typing import Callable, NoReturn, Union
+from typing import NoReturn, Union
 
-from cachetools import TTLCache
+
 import requests
 from semver import Version
 from telebot.types import Message, ReplyParameters, InlineKeyboardButton
@@ -14,7 +14,6 @@ from config import (
     bot,
     channel_id,
     logger,
-    timezone,
     log_chat_id,
     log_thread_id,
     version,
@@ -26,6 +25,12 @@ from base.items import items_list
 from helpers.enums import ItemRarity
 
 
+def utcnow() -> datetime:
+    from datetime import UTC
+
+    return datetime.now(UTC)
+
+
 def log(log_text: str, log_level: str, record: logging.LogRecord) -> None:
     emoji_dict = {
         "debug": "👾",
@@ -35,7 +40,7 @@ def log(log_text: str, log_level: str, record: logging.LogRecord) -> None:
         "error": "🛑",
         "critical": "⛔",
     }
-    current_time = datetime.now(timezone).strftime("%d.%m.%Y %H:%M:%S")
+    current_time = utcnow().strftime("%d.%m.%Y %H:%M:%S")
     log_template = (
         f'<b>{emoji_dict.get(log_level.lower(), "")} {log_level.upper()}</b>\n\n'
         f"{current_time}\n\n"
@@ -60,24 +65,6 @@ def log(log_text: str, log_level: str, record: logging.LogRecord) -> None:
             logger.log(record.levelno, text)
 
 
-_cache = TTLCache(100, 18_000)  # ttl 5 h (18000 s)
-
-
-def cached(func: Callable):
-    def wrapper(*args, **kwargs):
-        key = (args, frozenset(kwargs.items()))
-
-        if key in _cache:
-            return _cache[key]
-
-        result = func(*args, **kwargs)
-        _cache[key] = result
-        return result
-
-    return wrapper
-
-
-@cached
 def remove_not_allowed_symbols(text: str) -> str:
     not_allowed_symbols = ["#", "<", ">", "{", "}", '"', "'", "$", "(", ")", "@"]
     cleaned_text = "".join(char for char in text if char not in not_allowed_symbols)
@@ -85,7 +72,6 @@ def remove_not_allowed_symbols(text: str) -> str:
     return cleaned_text
 
 
-@cached
 def get_time_difference_string(d: timedelta) -> str:
     days = d.days
     years, days_in_year = divmod(days, 365)
@@ -112,7 +98,6 @@ def get_user_tag(user: UserModel):
     return f"<a href='tg://user?id={user.id}'>{user.name}</a>"
 
 
-@cached
 def get_item(name: str) -> Union[Item, NoReturn]:
     for item in items_list:
         item.name = item.name.lower()
@@ -125,15 +110,13 @@ def get_item(name: str) -> Union[Item, NoReturn]:
     raise ItemNotFoundError(f"Item {name} not found")
 
 
-@cached
-def get_item_emoji(item_name: str) -> Union[str, None]:
+def get_item_emoji(item_name: str) -> str:
     try:
         return get_item(item_name).emoji or ""
     except AttributeError:
         return ""
 
 
-@cached
 def get_item_count_for_rarity(rarity: ItemRarity) -> int:
     if rarity == ItemRarity.COMMON:
         quantity = random.randint(5, 20)
@@ -189,7 +172,6 @@ def get_pager_controllers(name: str, pos: int, user_id: Union[int, str]):
     ]
 
 
-@cached
 def get_middle_item_price(name: str) -> int:
     from database.funcs import database
 
@@ -208,7 +190,6 @@ def get_middle_item_price(name: str) -> int:
     return int(price)
 
 
-@cached
 def calc_xp_for_level(level: int) -> int:
     return 5 * level + 50 * level + 100
 

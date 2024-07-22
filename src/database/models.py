@@ -5,6 +5,12 @@ from bson import ObjectId
 from helpers.enums import Locations
 
 
+def _utcnow():
+    from datetime import UTC
+
+    return datetime.now(UTC)
+
+
 class DictSerializable:
     def to_dict(self) -> dict:
         return self.__dict__
@@ -95,7 +101,7 @@ class PromoModel(BaseModel):
     description = Field(str, nullable=True)
     items = Field(dict, default={})
     users = Field(list, default=[])
-    created_at = Field(datetime, default=datetime.utcnow())
+    created_at = Field(datetime, default=_utcnow())
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
@@ -105,7 +111,7 @@ class QuestModel(BaseModel):
     _id = Field(ObjectId)
     name = Field(str)
     quantity = Field(int, default=1)
-    start_time = Field(datetime, default=datetime.utcnow())
+    start_time = Field(datetime, default=_utcnow())
     xp = Field(float, default=1.0)
     reward = Field(int, default=1)
     owner = Field(ObjectId)
@@ -116,7 +122,7 @@ class QuestModel(BaseModel):
 
 class ExchangerModel(BaseModel):
     _id = Field(ObjectId)
-    expires = Field(datetime, default=datetime.utcnow() + timedelta(days=1))
+    expires = Field(datetime, default=_utcnow() + timedelta(days=1))
     item = Field(str)
     price = Field(int)
     owner = Field(ObjectId)
@@ -134,7 +140,7 @@ class DogModel(BaseModel):
     health = Field(int, default=100)
     hunger = Field(int, default=0)
     fatigue = Field(int, default=0)
-    sleep_time = Field(datetime, default=datetime.utcnow())
+    sleep_time = Field(datetime, default=_utcnow())
     owner = Field(ObjectId)
 
     def __init__(self, **kwargs) -> None:
@@ -162,7 +168,7 @@ class UserModel(BaseModel):
     _id = Field(ObjectId)
     id = Field(int)
     name = Field(str)
-    registered_at = Field(datetime, default=datetime.utcnow())
+    registered_at = Field(datetime, default=_utcnow())
     level = Field(int, default=1)
     xp = Field(float, default=0.0)
     max_xp = Field(int, default=155)
@@ -178,7 +184,7 @@ class UserModel(BaseModel):
     hunger = Field(int, default=0)
     fatigue = Field(int, default=0)
     location = Field(str, default=Locations.HOME.value)
-    action_time = Field(datetime, default=datetime.utcnow())
+    action_time = Field(datetime, default=_utcnow())
     state: str | None = Field(str, nullable=True)  # type: ignore  # TODO: сделать так чтобы `Field` мог принимать несколько типов
     casino_win = Field(int, default=0)
     casino_loose = Field(int, default=0)
@@ -187,7 +193,7 @@ class UserModel(BaseModel):
     luck = Field(int, default=1)
     last_advert_time = Field(datetime, nullable=True)
     adverts_count = Field(int, default=0)
-    last_active_time = Field(datetime, default=datetime.utcnow())
+    last_active_time = Field(datetime, default=_utcnow())
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
@@ -198,7 +204,7 @@ class MarketItemModel(BaseModel):
     name = Field(str)
     price = Field(int, default=0)
     quantity = Field(int, default=0)
-    published_at = Field(datetime, default=datetime.utcnow())
+    published_at = Field(datetime, default=_utcnow())
     owner = Field(ObjectId)
 
     def __init__(self, **kwargs) -> None:
@@ -209,10 +215,13 @@ class DailyGiftModel(BaseModel):
     _id = Field(ObjectId)
     owner = Field(ObjectId)
     last_claimed_at = Field(datetime, nullable=True)
-    next_claimable_at = Field(datetime, default=datetime.utcnow() + timedelta(days=1))
+    next_claimable_at = Field(datetime, default=_utcnow() + timedelta(days=1))
     is_claimed = Field(bool, default=False)
     items = Field(list)
     streak = Field(int, default=0)
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
+
+
+del _utcnow

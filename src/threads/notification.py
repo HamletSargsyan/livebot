@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from telebot.apihelper import ApiTelegramException
 from telebot.util import antiflood, quick_markup
 
@@ -7,6 +5,7 @@ from database.funcs import database
 from database.models import NotificationModel
 from helpers.exceptions import NoResult
 from config import bot
+from helpers.utils import utcnow
 
 
 def notification():
@@ -26,7 +25,7 @@ def notification():
 
                 user = database.users.get(_id=user._id)
                 try:
-                    current_time = datetime.utcnow()
+                    current_time = utcnow()
                     if user.action_time <= current_time:
                         if user.state == "street" and not user_notification.walk:
                             user_notification.walk = True

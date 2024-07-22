@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Изменено
+
+- Подсказка о том как использовать команду `/craft`
+
+### Удалено
+
+- Кеширование, из-за изменения результата функции ([#35](https://github.com/HamletSargsyan/livebot/issues/35), [#34](https://github.com/HamletSargsyan/livebot/issues/34), [#33](https://github.com/HamletSargsyan/livebot/issues/33))
+
 ## [3.6.4] - 2024-07-22
 
 ### Исправлено

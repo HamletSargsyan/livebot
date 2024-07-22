@@ -37,6 +37,7 @@ from helpers.utils import (
     get_time_difference_string,
     get_item,
     get_user_tag,
+    utcnow,
 )
 
 from database.models import DogModel
@@ -70,7 +71,7 @@ def dog_callback(call: CallbackQuery):
         return
     elif data[1] == "friend":
         date = datetime.utcfromtimestamp(call.message.date)
-        current_time = datetime.utcnow()
+        current_time = utcnow()
         time_difference = current_time - date
 
         if time_difference >= timedelta(minutes=1):
@@ -154,7 +155,7 @@ def dog_callback(call: CallbackQuery):
             mess, call.message.chat.id, call.message.id, reply_markup=markup
         )
     elif data[1] == "sleep" and dog:
-        current_time = datetime.utcnow()
+        current_time = utcnow()
         time_difference = current_time - dog.sleep_time
         if time_difference <= timedelta(minutes=1):
             bot.answer_callback_query(
@@ -164,7 +165,7 @@ def dog_callback(call: CallbackQuery):
             )
             return
 
-        dog.sleep_time = datetime.utcnow()
+        dog.sleep_time = utcnow()
         time_difference = current_time - dog.sleep_time
 
         bot.answer_callback_query(
@@ -174,7 +175,7 @@ def dog_callback(call: CallbackQuery):
         )
     elif data[1] == "wakeup" and dog:
         bot.answer_callback_query(call.id, f"{dog.name} проснулся", show_alert=True)
-        dog.sleep_time = datetime.utcnow()
+        dog.sleep_time = utcnow()
 
     database.users.update(**user.to_dict())
     if dog:
@@ -251,7 +252,7 @@ def finish_quest_callback(call: CallbackQuery):
         "Ты выполнил квест за "
     )
 
-    total_time: timedelta = datetime.utcnow() - quest.start_time
+    total_time: timedelta = utcnow() - quest.start_time
     mess += get_time_difference_string(total_time)
 
     generate_quest(user)
@@ -789,7 +790,7 @@ def daily_gift_callback(call: CallbackQuery):
                 show_alert=True,
             )
             return
-        now = datetime.utcnow()
+        now = utcnow()
 
         daily_gift = database.daily_gifts.get(owner=user._id)
         if daily_gift.is_claimed:

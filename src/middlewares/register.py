@@ -14,7 +14,6 @@ def register_user(message: Message):
         user = UserModel(
             id=message.from_user.id,
             name=remove_not_allowed_symbols(message.from_user.full_name),
-            username=message.from_user.username,
         )
         database.users.add(**user.to_dict())
         logger.info(f"Новый пользователь: {user.name} ({user.id})")
