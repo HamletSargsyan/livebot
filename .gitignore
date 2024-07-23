@@ -5,7 +5,6 @@ __pycache__/
 .pid
 .venv/
 nohup.out
-.ruff_cache/
-.mypy_cache/
+.*_cache/
 site/
 release_body.md
