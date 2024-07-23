@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Добавлено
+
+- Добавлена команда `/version` ([#37](https://github.com/HamletSargsyan/livebot/issues/37))
+
 ## [3.7.0] - 2024-07-23
 
 ### Изменено

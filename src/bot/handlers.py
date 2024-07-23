@@ -130,7 +130,6 @@ def help(message: Message):
         "<b>Канал:</b> @LiveBotOfficial\n"
         "<b>Чат</b>: @LiveBotOfficialChat\n"
         "<b>Гайд</b>: https://hamletsargsyan.github.io/livebot/guide\n"
-        f"<b>Версия бота</b>: {version} | <i>{check_version()}</i>\n"
     )
 
     bot.reply_to(message, mess)
@@ -974,6 +973,19 @@ def daily_gift_cmd(message: Message):
         daily_gift = generate_daily_gift(user)
 
     markup = InlineMarkup.daily_gift(user, daily_gift)
+    bot.reply_to(message, mess, reply_markup=markup)
+
+
+@bot.message_handler(commands=["version"])
+def version_cmd(message: Message):
+    mess = f"<b>Версия бота</b>: <code>{version}</code> | <i>{check_version()}</i>\n"
+    markup = quick_markup(
+        {
+            "Релиз": {
+                "url": f"https://github.com/HamletSargsyan/livebot/releases/tag/v{version}"
+            }
+        }
+    )
     bot.reply_to(message, mess, reply_markup=markup)
 
 

@@ -7,9 +7,7 @@ from telebot.util import quick_markup
 
 
 def get_github_release_info(version) -> Union[dict[Any, Any], NoReturn]:
-    url = (
-        f"  https://api.github.com/repos/HamletSargsyan/livebot/releases/tags/{version}"
-    )
+    url = f"https://api.github.com/repos/HamletSargsyan/livebot/releases/tags/{version}"
     response = requests.get(url)
 
     response.raise_for_status()
