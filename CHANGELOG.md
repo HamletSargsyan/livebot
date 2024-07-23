@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Подсказка о том как использовать команду `/craft`
 
+### Исправлено
+
+- Ошибки с сравнением времени
+
 ### Удалено
 
 - Кеширование, из-за изменения результата функции ([#35](https://github.com/HamletSargsyan/livebot/issues/35), [#34](https://github.com/HamletSargsyan/livebot/issues/34), [#33](https://github.com/HamletSargsyan/livebot/issues/33))

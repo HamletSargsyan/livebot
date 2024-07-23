@@ -1,13 +1,11 @@
 from typing import TypeVar, Generic, Type, Any
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from bson import ObjectId
 
 from helpers.enums import Locations
 
 
 def _utcnow():
-    from datetime import UTC
-
     return datetime.now(UTC)
 
 
@@ -75,10 +73,10 @@ class BaseModel(DictSerializable):
                     ):
                         try:
                             v = expected_type(v)
-                        except (ValueError, TypeError):
+                        except (ValueError, TypeError) as e:
                             raise ValueError(
                                 f"Invalid type. Expected {expected_type}, got {type(v)} for field {k}"
-                            )
+                            ) from e
                 setattr(self, k, v)
 
 
