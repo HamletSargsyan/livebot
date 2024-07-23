@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Добавлена команда `/version` ([#37](https://github.com/HamletSargsyan/livebot/issues/37))
 
+### Изменено
+
+- Максимальное кол-во опыта в бусте була уменьшена с 500 до 150, из-за изменения механики получения нового уровня в версии `3.3.0`` 
+
 ## [3.7.0] - 2024-07-23
 
 ### Изменено

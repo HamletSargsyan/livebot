@@ -314,7 +314,7 @@ def use_item(message: Message, name: str):
             )
             user_item.quantity -= 1
         elif name == "буст":
-            xp = random.randint(100, 500)
+            xp = random.randint(100, 150)
             user.xp += xp
             bot.reply_to(message, f"{get_item_emoji(name)} Юзнул буст\n+ {xp} опыта")
             user_item.quantity -= 1
