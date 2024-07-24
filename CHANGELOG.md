@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.9.0] - 2024-07-24
+
 ### Изменено
 
 - Подсказка о том как использовать команды `/casino` и `/shop`
