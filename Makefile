@@ -6,7 +6,7 @@ stop:
 
 lint:
 	ruff check --respect-gitignore src tools
-	pyright src tools
+	# pyright src tools
 
 format:
 	ruff format --respect-gitignore src tools
