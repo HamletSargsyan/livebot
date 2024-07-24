@@ -17,6 +17,7 @@ from telebot.util import (
     chunks,
 )
 
+from helpers.enums import ItemType
 from helpers.exceptions import NoResult
 from base.items import items_list
 from helpers.markups import InlineMarkup
@@ -414,7 +415,8 @@ def transfer_cmd(message: Message):
         args = message.text.split(" ")  # pyright: ignore
 
         err_mess = (
-            "Что-то не так написал, надо так:\n" "<code>/transfer буханка 10</code>"
+            "Что-то не так написал, надо так:\n"
+            "<code>/transfer [имя предмета] [кол-во]</code>"
         )
 
         if len(args) < 2:
@@ -422,6 +424,11 @@ def transfer_cmd(message: Message):
             return
 
         item = args[1].lower()
+
+        if get_item(item).type == ItemType.USABLE:
+            bot.reply_to(message, "Этот предмет нельзя передать другому (временно)")
+            return
+
         try:
             count = int(args[2])
         except (ValueError, IndexError):

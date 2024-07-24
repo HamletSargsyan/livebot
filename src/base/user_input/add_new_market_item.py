@@ -5,6 +5,7 @@ from telebot.handler_backends import State, StatesGroup
 
 
 from config import bot
+from helpers.enums import ItemType
 from helpers.utils import get_item, get_item_emoji, get_middle_item_price, get_user_tag
 from database.funcs import database, cache
 from database.models import MarketItemModel
@@ -28,6 +29,11 @@ def name_state(call: CallbackQuery):
         return
 
     item = get_item(data[1])
+
+    if item.type == ItemType.USABLE:
+        bot.answer_callback_query(call.id, "Этот предмет нельзя продавать")
+        return
+
     with bot.retrieve_data(call.from_user.id, call.message.chat.id) as data:
         data["name"] = item.name
 

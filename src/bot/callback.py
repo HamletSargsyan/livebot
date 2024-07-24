@@ -11,7 +11,7 @@ from telebot.types import (
 )
 from telebot.apihelper import ApiTelegramException
 
-from helpers.enums import ItemRarity
+from helpers.enums import ItemRarity, ItemType
 from helpers.exceptions import ItemIsCoin, NoResult
 from helpers.markups import InlineMarkup
 from base.player import (
@@ -581,7 +581,7 @@ def market_callback(call: CallbackQuery):
 
         buttons = []
         for item in user_items:
-            if item.quantity <= 0:
+            if item.quantity <= 0 or get_item(item.name).type == ItemType.USABLE:
                 continue
 
             buttons.append(
