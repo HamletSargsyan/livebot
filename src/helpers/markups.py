@@ -96,6 +96,7 @@ class InlineMarkup:
             pass
 
         markup = InlineKeyboardMarkup(row_width=1)
+        buttons.reverse()
         markup.add(*buttons)
         pager_controllers = get_pager_controllers("market", pos=index, user_id=user.id)
         pager_controllers.insert(
