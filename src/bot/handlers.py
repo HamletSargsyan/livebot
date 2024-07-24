@@ -206,7 +206,9 @@ def shop_cmd(message: Message):
             bot.reply_to(message, mess)
             return
 
-        err_mess = "Что-то не так написал\n" "Надо: <code>/shop буханка 10</code>"
+        err_mess = (
+            "Что-то не так написал\n" "Надо: <code>/shop [имя предмета] [кол-во]</code>"
+        )
 
         if len(args) != 3:
             bot.reply_to(message, err_mess)
@@ -258,7 +260,7 @@ def casino(message: Message):
                 "<b>🎰Казино🎰</b>\n\n"
                 "Решил заработать легкие деньги? Ну давай\n"
                 "Шансы 50 на 50\n"
-                "Чтобы сыграть напиши <code>/casino кол-во</code>"
+                "Чтобы сыграть напиши <code>/casino [кол-во]</code>"
             )
             bot.reply_to(message, mess)
             return
