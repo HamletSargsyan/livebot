@@ -31,7 +31,10 @@ def name_state(call: CallbackQuery):
     item = get_item(data[1])
 
     if item.type == ItemType.USABLE:
-        bot.answer_callback_query(call.id, "Этот предмет нельзя продавать")
+        bot.answer_callback_query(
+            call.id,
+            "Этот предмет нельзя продавать (https://github.com/HamletSargsyan/livebot/issues/41)",
+        )
         return
 
     with bot.retrieve_data(call.from_user.id, call.message.chat.id) as data:

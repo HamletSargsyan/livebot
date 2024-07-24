@@ -426,7 +426,10 @@ def transfer_cmd(message: Message):
         item = args[1].lower()
 
         if get_item(item).type == ItemType.USABLE:
-            bot.reply_to(message, "Этот предмет нельзя передать другому (временно)")
+            bot.reply_to(
+                message,
+                "Этот предмет нельзя передать другому (https://github.com/HamletSargsyan/livebot/issues/41)",
+            )
             return
 
         try:
