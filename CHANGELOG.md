@@ -7,10 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## Добавлено
+
+- Процент использования для предметов ((#6)[https://github.com/HamletSargsyan/livebot/issues/6])
+
 ### Изменено
 
 - В команде `/market` теперь отображаются сначала новые предметы ((#40)[https://github.com/HamletSargsyan/livebot/issues/40])
 - Изменен шанс встречи мобов
+- Подсказка о том как использовать команду `/transfer`
 
 ## [3.9.0] - 2024-07-24
 
@@ -20,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Удалено
 
-- Все что связанно с интеграций с сервисом GramAds, котораые была помечена как устаревшая в версии `3.6.3`
+- Все что связанно с интеграций с сервисом GramAds, которые была помечена как устаревшая в версии `3.6.3`
 
 ## [3.8.0] - 2024-07-24
 

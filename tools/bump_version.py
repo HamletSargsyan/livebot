@@ -33,6 +33,7 @@ match sys.argv[1].lower():
         version = version.bump_build()
     case arg:
         print(f"Unknown arg `{arg}`")
+        usage()
         sys.exit(1)
 
 with open("version", "w") as f:
