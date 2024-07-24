@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 import os
 import sys
 import json
@@ -71,9 +71,8 @@ log_thread_id = 2
 
 weather_region: Final = "Сыктывкар"
 
-timezone: Final = datetime.utcnow().tzinfo
 
-event_end_time: Final = datetime(2024, 6, 1, 0, 0, 0, tzinfo=timezone)
+event_end_time: Final = datetime(2024, 6, 1, 0, 0, 0, tzinfo=UTC)
 event_open: Final = False
 
 channel_id: Final = "-1002081230318"
