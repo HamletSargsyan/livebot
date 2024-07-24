@@ -1,7 +1,7 @@
 from typing import Dict, List, Tuple, Union
 
 import transliterate
-from helpers.enums import ItemRarity, WeatherType
+from helpers.enums import ItemRarity, ItemType, WeatherType
 
 # ---------------------------------- Weather --------------------------------- #
 
@@ -118,9 +118,10 @@ class Item:
         emoji: str,
         desc: str,
         rarity: ItemRarity,
+        type: ItemType = ItemType.COUNTABLE,
         is_task_item: bool = False,
         can_exchange: bool = False,
-        is_usable: bool = False,
+        is_consumable: bool = False,
         altnames: Union[List[str], None] = None,
         craft: Union[Dict[str, int], None] = None,
         effect: Union[int, None] = None,
@@ -137,7 +138,7 @@ class Item:
         self.craft = craft
         self.effect = effect
         self.price = price
-        self.is_usable = is_usable
+        self.is_consumable = is_consumable
         self.altnames = altnames
         self.rarity = rarity
         self.is_task_item = is_task_item
@@ -147,6 +148,7 @@ class Item:
         self.strength = strength
         self.strength_reduction = strength_reduction
         self.can_equip = can_equip
+        self.type = type
 
     def __repr__(self) -> str:
         return f"(Item {self.name})"

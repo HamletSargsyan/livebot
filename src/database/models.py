@@ -2,7 +2,7 @@ from typing import TypeVar, Generic, Type, Any
 from datetime import datetime, timedelta, UTC
 from bson import ObjectId
 
-from helpers.enums import Locations
+from helpers.enums import ItemType, Locations
 
 
 def _utcnow():
@@ -84,11 +84,25 @@ class ItemModel(BaseModel):
     _id = Field(ObjectId)
     name = Field(str)
     quantity = Field(int, default=0)
+    usage: float = Field(float, default=None)  # type: ignore
     is_equipped = Field(bool, default=False)
     owner = Field(ObjectId)
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
+        from helpers.utils import get_item
+
+        _item = get_item(self.name)
+        if _item.type == ItemType.USABLE and self.quantity > 1:
+            raise ValueError(
+                "Quantity must be 0 or 1 for items with type `ItemType.USABLE`"
+            )
+        if _item.type == ItemType.COUNTABLE and self.usage is not None:
+            raise ValueError(
+                "Usage must be `None` for items with type `ItemType.COUNTABLE`"
+            )
+        if not _item.can_equip and self.is_equipped:
+            raise ValueError(f"Item {self.name} cannot be equipped")
 
 
 class PromoModel(BaseModel):

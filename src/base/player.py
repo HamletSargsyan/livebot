@@ -9,7 +9,7 @@ from telebot.types import (
     InlineKeyboardButton,
 )
 
-from helpers.enums import ItemRarity
+from helpers.enums import ItemRarity, ItemType
 
 from .items import items_list
 
@@ -276,7 +276,7 @@ def get_available_items_for_use(user: UserModel) -> List[ItemModel]:
     items = database.items.get_all(**{"owner": user._id})
     for user_item in items:
         item = get_item(user_item.name)
-        if item and item.is_usable and user_item.quantity > 0:
+        if item and item.is_consumable and user_item.quantity > 0:
             available_items.append(user_item)
 
     return sorted(available_items, key=lambda item: item.quantity, reverse=True)
@@ -292,7 +292,7 @@ def use_item(message: Message, name: str):
             bot.reply_to(message, "Такого предмета не существует")
             return
 
-        if not item.is_usable:
+        if not item.is_consumable:
             bot.reply_to(message, "Этот предмет нельзя юзать")
             return
 
@@ -387,19 +387,55 @@ def use_item(message: Message, name: str):
 
 
 def get_or_add_user_item(user: UserModel, name: str) -> Union[ItemModel, NoReturn]:
-    get_item(name)
+    item = get_item(name)
 
-    if name == "бабло":
+    if item.type != ItemType.COUNTABLE:
+        raise ValueError  # TODO: add message
+    if item.name == "бабло":
         raise ItemIsCoin
 
     try:
-        item = database.items.get(**{"owner": user._id, "name": name})
+        item = database.items.get(owner=user._id, name=item.name)
     except NoResult:
-        item = ItemModel(owner=user._id, name=name)
+        item = ItemModel(owner=user._id, name=item.name)
         id = database.items.add(**item.to_dict()).inserted_id
         item._id = id
 
     return item
+
+
+def add_user_usage_item(
+    user: UserModel, name: str, usage: float = 100
+) -> Union[list[ItemModel], NoReturn]:
+    item = get_item(name)
+
+    if item.type != ItemType.USABLE:
+        raise ValueError  # TODO: add message
+
+    item = ItemModel(owner=user._id, name=item.name, usage=usage)
+    id = database.items.add(**item.to_dict()).inserted_id
+    item._id = id
+    items = [item]
+
+    return items
+
+
+def get_or_add_user_usage_item(
+    user: UserModel, name: str, usage: float = 100
+) -> Union[list[ItemModel], NoReturn]:
+    item = get_item(name)
+
+    if item.type != ItemType.USABLE:
+        raise ValueError  # TODO: add message
+
+    try:
+        items = database.items.get_all(owner=user._id, name=item.name)
+        if len(items) == 0:
+            raise NoResult
+    except NoResult:
+        item = add_user_usage_item(user, name, usage)
+
+    return items
 
 
 def get_top(

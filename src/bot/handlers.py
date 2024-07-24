@@ -176,7 +176,8 @@ def bag_cmd(message: Message):
             for item in sorted_items:
                 if item.quantity <= 0:
                     continue
-                mess += f"{get_item_emoji(item.name)} {item.name} - {item.quantity}\n"
+                usage = f" ({item.usage:.0f}%)" if item.usage else ""
+                mess += f"{get_item_emoji(item.name)} {item.name} - {item.quantity}{usage}\n"
 
         bot.reply_to(message, mess)
 
