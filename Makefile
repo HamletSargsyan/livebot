@@ -20,9 +20,6 @@ dev-install:
 dev-setup: dev-install
 	pre-commit install
 
-release:
-	python3 tools/bump_version.py
-
 clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} +
 	rm -rf nohup.out .pid site .*_cache release_body.md
