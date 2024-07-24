@@ -53,7 +53,7 @@ class Field(Generic[T]):
     def __set_name__(self, owner: Type, name: str) -> None:
         self._name = name
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         return f"<Field type={self._type}, default={self._default}, required={self._required}, nullable={self._nullable}>"
 
 

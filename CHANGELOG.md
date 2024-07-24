@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Изменено
 
 - В команде `/market` теперь отображаются сначала новые предметы ((#40)[https://github.com/HamletSargsyan/livebot/issues/40])
+- Изменен шанс встречи мобов
 
 ## [3.9.0] - 2024-07-24
 
