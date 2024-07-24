@@ -154,5 +154,5 @@ class Item:
     def __str__(self) -> str:
         return self.__repr__()
 
-    def translit(self):
+    def translit(self) -> str:
         return transliterate.translit(self.name, reversed=True)
