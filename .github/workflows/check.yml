@@ -8,7 +8,7 @@ on:
     paths:
       - "**.py"
       - ".github/workflows/check.yml"
-    
+
 
 jobs:
   init:
@@ -27,6 +27,6 @@ jobs:
 
     - name: Install dev requitements
       run: make dev-install
-    
+
     - name: lint
       run: make lint
