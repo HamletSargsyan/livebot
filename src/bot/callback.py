@@ -860,7 +860,7 @@ def transfer_callback(call: CallbackQuery):
     mess = (
         f"{user.name} подарил {reply_user.name}\n"
         "----------------\n"
-        f"{get_item_emoji(item.name)} {item.name} ({item.usage}%)"
+        f"{get_item_emoji(item.name)} {item.name} ({int(item.usage)}%)"
     )
 
     database.users.update(**user.to_dict())

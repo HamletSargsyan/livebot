@@ -178,7 +178,7 @@ def bag_cmd(message: Message):
             for item in sorted_items:
                 if item.quantity <= 0:
                     continue
-                usage = f" ({item.usage:.0f}%)" if item.usage else ""
+                usage = f" ({int(item.usage)}%)" if item.usage else ""
                 mess += f"{get_item_emoji(item.name)} {item.name} - {item.quantity}{usage}\n"
 
         bot.reply_to(message, mess)
@@ -455,12 +455,6 @@ def transfer_cmd(message: Message):
             user.coin -= quantity
             reply_user.coin += quantity
         else:
-            user_item = get_or_add_user_item(user, item_name)
-
-            if (user_item.quantity < quantity) or (user_item.quantity <= 0):
-                bot.reply_to(message, f"У тебя нет <i>{item_name}</i>")
-                return
-
             if item.type == ItemType.USABLE:
                 mess = "Выбери какой"
                 markup = InlineMarkup.transfer_usable_items(user, reply_user, item_name)
@@ -468,6 +462,11 @@ def transfer_cmd(message: Message):
                 bot.reply_to(message, mess, reply_markup=markup)
                 return
             else:
+                user_item = get_or_add_user_item(user, item_name)
+
+                if (user_item.quantity < quantity) or (user_item.quantity <= 0):
+                    bot.reply_to(message, f"У тебя нет <i>{item_name}</i>")
+                    return
                 transfer_countable_item(user_item, quantity, reply_user)
 
         mess = (

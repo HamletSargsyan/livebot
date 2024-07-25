@@ -2,7 +2,6 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from telebot.util import quick_markup, chunks
 
 from base.items import items_list
-from base.player import get_or_add_user_usable_items
 from helpers.utils import (
     get_item_emoji,
     get_pager_controllers,
@@ -203,6 +202,8 @@ class InlineMarkup:
     def transfer_usable_items(
         cls, user: UserModel, to_user: UserModel, item_name: str
     ) -> InlineKeyboardMarkup:
+        from base.player import get_or_add_user_usable_items
+
         markup = InlineKeyboardMarkup(row_width=3)
         buttons = []
 
