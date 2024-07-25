@@ -18,7 +18,7 @@ from telebot.util import (
 )
 
 from helpers.enums import ItemType
-from helpers.exceptions import NoResult
+from helpers.exceptions import ItemNotFoundError, NoResult
 from base.items import items_list
 from helpers.markups import InlineMarkup
 from helpers.utils import (
@@ -41,6 +41,8 @@ from base.player import (
     generate_exchanger,
     get_available_items_for_use,
     get_or_add_user_item,
+    transfer_countable_item,
+    transfer_usable_item,
 )
 from base.weather import get_weather
 
@@ -49,7 +51,7 @@ import base.user_input  # noqa
 from database.funcs import database
 from database.models import ItemModel, PromoModel
 
-from config import bot, event_end_time, event_open, chat_id, logger, version
+from config import bot, event_end_time, event_open, chat_id, version
 
 
 START_MARKUP = ReplyKeyboardMarkup(resize_keyboard=True)
@@ -423,9 +425,16 @@ def transfer_cmd(message: Message):
             bot.reply_to(message, err_mess)
             return
 
-        item = args[1].lower()
+        item_name = args[1].lower()
+        try:
+            item = get_item(item_name)
+        except ItemNotFoundError:
+            bot.reply_to(
+                message, f"{item_name}??\nСерьёзно?\n\nТакого предмета не существует"
+            )
+            return
 
-        if get_item(item).type == ItemType.USABLE:
+        if item.type == ItemType.USABLE:
             bot.reply_to(
                 message,
                 "Этот предмет нельзя передать другому (https://github.com/HamletSargsyan/livebot/issues/41)",
@@ -433,45 +442,35 @@ def transfer_cmd(message: Message):
             return
 
         try:
-            count = int(args[2])
+            quantity = int(args[2])
         except (ValueError, IndexError):
-            count = 1
+            quantity = 1
 
-        if item == "бабло":
+        if item_name == "бабло":
             if user.coin <= 0:
-                bot.reply_to(message, f"У тебя нет <i>{item}</i>")
+                bot.reply_to(message, f"У тебя нет <i>{item_name}</i>")
                 return
-            elif user.coin <= count:
+            elif user.coin <= quantity:
                 bot.reply_to(message, "У тебя Недостаточно бабла, иди работать")
                 return
-            user.coin -= count
-            reply_user.coin += count
+            user.coin -= quantity
+            reply_user.coin += quantity
         else:
-            item_data = get_or_add_user_item(user, item)
-            reply_user_item_data = get_or_add_user_item(reply_user, item)
-            logger.debug(item_data.quantity)
-            logger.debug(count)
+            user_item = get_or_add_user_item(user, item_name)
 
-            if not get_item(item):
-                bot.reply_to(
-                    message, f"{item}??\nСерьёзно?\n\nТакого предмета не существует"
-                )
-                return
-            if (item_data.quantity < count) or (item_data.quantity <= 0):
-                bot.reply_to(message, f"У тебя нет <i>{item}</i>")
-                logger.debug(item_data.quantity)
-                logger.debug(count)
+            if (user_item.quantity < quantity) or (user_item.quantity <= 0):
+                bot.reply_to(message, f"У тебя нет <i>{item_name}</i>")
                 return
 
-            item_data.quantity -= count
-            reply_user_item_data.quantity += count
-            database.items.update(**reply_user_item_data.to_dict())
-            database.items.update(**item_data.to_dict())
+            if item.type == ItemType.USABLE:
+                transfer_usable_item(user_item, reply_user)
+            else:
+                transfer_countable_item(user_item, quantity, reply_user)
 
         mess = (
             f"{user.name} подарил {reply_user.name}\n"
             "----------------\n"
-            f"{get_item_emoji(item)} {item} {count}"
+            f"{item.emoji} {item_name} {quantity}"
         )
 
         database.users.update(**user.to_dict())

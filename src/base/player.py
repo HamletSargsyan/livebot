@@ -438,6 +438,26 @@ def get_or_add_user_usage_item(
     return items
 
 
+def transfer_usable_item(from_user_item: ItemModel, to_user: UserModel):
+    from_user_item.owner = to_user._id
+    database.items.update(**from_user_item.to_dict())
+
+
+def transfer_countable_item(
+    from_user_item: ItemModel, quantity: int, to_user: UserModel
+):
+    to_user_item = get_or_add_user_item(to_user, from_user_item.name)
+
+    if from_user_item.quantity < quantity:
+        raise  # TODO
+
+    from_user_item.quantity -= quantity
+    to_user_item.quantity += quantity
+
+    database.items.update(**from_user_item.to_dict())
+    database.items.update(**to_user_item.to_dict())
+
+
 def get_top(
     name: str,
     collection: BaseDB[ModelsType],
