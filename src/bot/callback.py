@@ -836,3 +836,34 @@ def daily_gift_callback(call: CallbackQuery):
             call.message.chat.id, call.message.id, reply_markup=markup
         )
         bot.send_message(call.message.chat.id, mess)
+
+
+@bot.callback_query_handler(lambda c: c.data.startswith("transfer"))
+def transfer_callback(call: CallbackQuery):
+    data = call.data.split(" ")
+
+    if data[-1] != str(call.from_user.id):
+        return
+
+    user = database.users.get(id=call.from_user.id)
+    reply_user = database.users.get(id=int(data[-2]))
+
+    item = database.items.get(_id=ObjectId(data[1]))
+
+    if item.quantity <= 0:
+        bot.answer_callback_query(call.id, "У тебя нет такого предмета")
+        return
+
+    item.owner = reply_user._id
+
+    database.items.update(**item.to_dict())
+    mess = (
+        f"{user.name} подарил {reply_user.name}\n"
+        "----------------\n"
+        f"{get_item_emoji(item.name)} {item.name} ({item.usage}%)"
+    )
+
+    database.users.update(**user.to_dict())
+    database.users.update(**reply_user.to_dict())
+
+    bot.send_message(call.message.chat.id, mess)

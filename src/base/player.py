@@ -420,8 +420,8 @@ def add_user_usage_item(
     return items
 
 
-def get_or_add_user_usage_item(
-    user: UserModel, name: str, usage: float = 100
+def get_or_add_user_usable_items(
+    user: UserModel, name: str, usage: float = 0
 ) -> Union[list[ItemModel], NoReturn]:
     item = get_item(name)
 

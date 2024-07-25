@@ -42,7 +42,6 @@ from base.player import (
     get_available_items_for_use,
     get_or_add_user_item,
     transfer_countable_item,
-    transfer_usable_item,
 )
 from base.weather import get_weather
 
@@ -434,12 +433,12 @@ def transfer_cmd(message: Message):
             )
             return
 
-        if item.type == ItemType.USABLE:
-            bot.reply_to(
-                message,
-                "Этот предмет нельзя передать другому (https://github.com/HamletSargsyan/livebot/issues/41)",
-            )
-            return
+        # if item.type == ItemType.USABLE:
+        #     bot.reply_to(
+        #         message,
+        #         "Этот предмет нельзя передать другому (https://github.com/HamletSargsyan/livebot/issues/41)",
+        #     )
+        #     return
 
         try:
             quantity = int(args[2])
@@ -463,7 +462,11 @@ def transfer_cmd(message: Message):
                 return
 
             if item.type == ItemType.USABLE:
-                transfer_usable_item(user_item, reply_user)
+                mess = "Выбери какой"
+                markup = InlineMarkup.transfer_usable_items(user, reply_user, item_name)
+
+                bot.reply_to(message, mess, reply_markup=markup)
+                return
             else:
                 transfer_countable_item(user_item, quantity, reply_user)
 

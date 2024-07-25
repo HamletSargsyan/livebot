@@ -2,6 +2,7 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from telebot.util import quick_markup, chunks
 
 from base.items import items_list
+from base.player import get_or_add_user_usable_items
 from helpers.utils import (
     get_item_emoji,
     get_pager_controllers,
@@ -197,3 +198,25 @@ class InlineMarkup:
         return quick_markup(
             {f"{get_text()}": {"callback_data": f"daily_gift claim {user.id}"}}
         )
+
+    @classmethod
+    def transfer_usable_items(
+        cls, user: UserModel, to_user: UserModel, item_name: str
+    ) -> InlineKeyboardMarkup:
+        markup = InlineKeyboardMarkup(row_width=3)
+        buttons = []
+
+        items = get_or_add_user_usable_items(user, item_name)
+        items = list(filter(lambda i: i.usage > 0 and i.quantity > 0, items))
+        items.sort(key=lambda i: i.usage)
+
+        for item in items:
+            buttons.append(
+                InlineKeyboardButton(
+                    f"{get_item_emoji(item.name)} {item.name} ({item.usage}%)",
+                    callback_data=f"transfer {item._id} {to_user.id} {user.id}",
+                )
+            )
+
+        markup.add(*buttons)
+        return markup
