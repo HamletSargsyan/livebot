@@ -19,6 +19,10 @@ def usage():
 
 prerelease = False
 
+if len(sys.argv) == 1:
+    usage()
+    sys.exit(1)
+
 match sys.argv[1].lower():
     case "major":
         version = version.bump_major()
