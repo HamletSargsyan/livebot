@@ -7,7 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## Добавлено
+## [4.0.0] - 2024-07-26
+
+### Добавлено
 
 - Процент использования для предметов ((#6)[https://github.com/HamletSargsyan/livebot/issues/6])
 - Возможность передать приметы с процентами другим игрокам ((#41)[https://github.com/HamletSargsyan/livebot/issues/41])
