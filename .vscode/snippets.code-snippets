@@ -41,6 +41,6 @@
 	"Issue link": {
 		"scope": "markdown",
 		"prefix": "#",
-		"body": "(#$1)[https://github.com/HamletSargsyan/livebot/issues/$1]$0"
+		"body": "[#$1](https://github.com/HamletSargsyan/livebot/issues/$1)$0"
 	}
 }

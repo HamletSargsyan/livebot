@@ -11,12 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Добавлено
 
-- Процент использования для предметов ((#6)[https://github.com/HamletSargsyan/livebot/issues/6])
-- Возможность передать приметы с процентами другим игрокам ((#41)[https://github.com/HamletSargsyan/livebot/issues/41])
+- Процент использования для предметов ([#6](https://github.com/HamletSargsyan/livebot/issues/6))
+- Возможность передать приметы с процентами другим игрокам ([#41](https://github.com/HamletSargsyan/livebot/issues/41))
 
 ### Изменено
 
-- В команде `/market` теперь отображаются сначала новые предметы ((#40)[https://github.com/HamletSargsyan/livebot/issues/40])
+- В команде `/market` теперь отображаются сначала новые предметы ([#40](https://github.com/HamletSargsyan/livebot/issues/40))
 - Изменен шанс встречи мобов
 - Подсказка о том как использовать команду `/transfer`
 - В команде `/shop` сначала отображаются дорогие предметы
