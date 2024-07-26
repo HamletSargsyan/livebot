@@ -202,8 +202,10 @@ def shop_cmd(message: Message):
         args = str(message.text).split(" ")
 
         if len(args) != 3:
+            items = list(filter(lambda item: item.price, items_list))
+            items.sort(key=lambda item: item.price, reverse=True)  # type: ignore
             mess = "<b>🛍Магазин🛍</b>\n\n"
-            for item in items_list:
+            for item in items:
                 if not item.price:
                     continue
 
