@@ -435,13 +435,6 @@ def transfer_cmd(message: Message):
             )
             return
 
-        # if item.type == ItemType.USABLE:
-        #     bot.reply_to(
-        #         message,
-        #         "Этот предмет нельзя передать другому (https://github.com/HamletSargsyan/livebot/issues/41)",
-        #     )
-        #     return
-
         try:
             quantity = int(args[2])
         except (ValueError, IndexError):

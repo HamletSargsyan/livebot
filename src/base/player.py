@@ -296,6 +296,13 @@ def use_item(message: Message, name: str):
             bot.reply_to(message, "Этот предмет нельзя юзать")
             return
 
+        if item.type == ItemType.USABLE:
+            bot.reply_to(
+                message,
+                "Этот предмет нельзя юзать (https://github.com/HamletSargsyan/livebot/issues/41)",
+            )
+            return
+
         user_item = get_or_add_user_item(user, item.name)
 
         if not user_item:
