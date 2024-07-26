@@ -216,11 +216,23 @@ class MarketItemModel(BaseModel):
     name = Field(str)
     price = Field(int, default=0)
     quantity = Field(int, default=0)
+    usage: float = Field(float, default=None)  # type: ignore
     published_at = Field(datetime, default=_utcnow())
     owner = Field(ObjectId)
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
+        from helpers.utils import get_item
+
+        _item = get_item(self.name)
+        if _item.type == ItemType.USABLE and self.quantity > 1:
+            raise ValueError(
+                "Quantity must be 0 or 1 for items with type `ItemType.USABLE`"
+            )
+        if _item.type == ItemType.COUNTABLE and self.usage is not None:
+            raise ValueError(
+                "Usage must be `None` for items with type `ItemType.COUNTABLE`"
+            )
 
 
 class DailyGiftModel(BaseModel):

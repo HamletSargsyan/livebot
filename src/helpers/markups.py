@@ -214,7 +214,7 @@ class InlineMarkup:
         for item in items:
             buttons.append(
                 InlineKeyboardButton(
-                    f"{get_item_emoji(item.name)} {item.name} ({item.usage}%)",
+                    f"{get_item_emoji(item.name)} ({item.usage}%)",
                     callback_data=f"transfer {item._id} {to_user.id} {user.id}",
                 )
             )

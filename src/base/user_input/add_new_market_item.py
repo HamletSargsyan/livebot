@@ -15,6 +15,7 @@ from helpers.markups import InlineMarkup
 
 class AddNewItemState(StatesGroup):
     name = State()
+    item_oid = State()
     quantity = State()
     price = State()
 
@@ -53,6 +54,10 @@ def name_state(call: CallbackQuery):
     bot.set_state(call.from_user.id, AddNewItemState.quantity, call.message.chat.id)
 
     cache.setex(f"{user.id}_item_add_message", 300, call.message.id)  # type: ignore
+
+
+@bot.message_handler(state=AddNewItemState.item_oid, is_digit=True)
+def select_item_state(message: Message): ...
 
 
 @bot.message_handler(

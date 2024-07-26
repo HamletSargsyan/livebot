@@ -15,6 +15,7 @@ from helpers.enums import ItemRarity, ItemType
 from helpers.exceptions import ItemIsCoin, NoResult
 from helpers.markups import InlineMarkup
 from base.player import (
+    add_user_usage_item,
     check_user_stats,
     coin_top,
     dog_level_top,
@@ -633,22 +634,29 @@ def market_callback(call: CallbackQuery):
             bot.answer_callback_query(call.id, "Тебе не хватает бабла", show_alert=True)
             return
 
+        item = get_item(market_item.name)
+
         item_owner.coin += market_item.price
         user.coin -= market_item.price
-
-        user_item = get_or_add_user_item(user, market_item.name)
-        user_item.quantity += market_item.quantity
+        if item.type == ItemType.COUNTABLE:
+            user_item = get_or_add_user_item(user, market_item.name)
+            user_item.quantity += market_item.quantity
+        else:
+            user_item = add_user_usage_item(user, market_item.name, market_item.usage)
+            user_item.quantity = market_item.quantity
 
         database.items.update(**user_item.to_dict())
         database.users.update(**user.to_dict())
         database.users.update(**item_owner.to_dict())
 
-        mess = f"{get_user_tag(user)} купил {market_item.quantity} {get_item_emoji(market_item.name)}"
+        usage = f" ({int(market_item.usage)}%)" if market_item.usage else ""
+
+        mess = f"{get_user_tag(user)} купил {market_item.quantity} {get_item_emoji(market_item.name)}{usage}"
         bot.send_message(call.message.chat.id, mess)
 
         bot.send_message(
             item_owner.id,
-            f"{get_user_tag(user)} купил у тебя {market_item.quantity} {get_item_emoji(market_item.name)}",
+            f"{get_user_tag(user)} купил у тебя {market_item.quantity} {get_item_emoji(market_item.name)}{usage}",
         )
 
         database.market_items.delete(**market_item.to_dict())

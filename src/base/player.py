@@ -405,19 +405,18 @@ def get_or_add_user_item(user: UserModel, name: str) -> Union[ItemModel, NoRetur
 
 
 def add_user_usage_item(
-    user: UserModel, name: str, usage: float = 100
-) -> Union[list[ItemModel], NoReturn]:
-    item = get_item(name)
+    user: UserModel, name: str, usage: float = 0
+) -> Union[ItemModel, NoReturn]:
+    _item = get_item(name)
 
-    if item.type != ItemType.USABLE:
+    if _item.type != ItemType.USABLE:
         raise ValueError  # TODO: add message
 
-    item = ItemModel(owner=user._id, name=item.name, usage=usage)
+    item = ItemModel(owner=user._id, name=_item.name, usage=usage)
     id = database.items.add(**item.to_dict()).inserted_id
     item._id = id
-    items = [item]
 
-    return items
+    return item
 
 
 def get_or_add_user_usable_items(

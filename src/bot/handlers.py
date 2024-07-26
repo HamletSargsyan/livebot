@@ -171,12 +171,14 @@ def bag_cmd(message: Message):
         if not inventory:
             mess += "<i>Пусто...</i>"
         else:
-            sorted_items = sorted(
-                inventory, key=lambda item: item.quantity, reverse=True
+            inventory.sort(
+                key=lambda item: item.usage if item.usage else item.quantity,
+                reverse=True,
             )
+            inventory.sort(key=lambda item: item.quantity, reverse=True)
 
-            for item in sorted_items:
-                if item.quantity <= 0:
+            for item in inventory:
+                if item.quantity <= 0 or (item.usage and item.usage <= 0):
                     continue
                 usage = f" ({int(item.usage)}%)" if item.usage else ""
                 mess += f"{get_item_emoji(item.name)} {item.name} - {item.quantity}{usage}\n"
