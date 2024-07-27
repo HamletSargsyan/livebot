@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import transliterate
 from helpers.enums import ItemRarity, ItemType, WeatherType
@@ -90,7 +90,7 @@ class SysInfo:
 
 
 class WeatherData:
-    def __init__(self, data: dict):
+    def __init__(self, data: dict[str, Any]):
         self.data: dict = data
         self.coord: Coordinates = Coordinates(data.get("coord", {}))
         self.weather: Weather = Weather(data.get("weather", [{}])[0])

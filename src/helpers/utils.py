@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 import random
 import statistics
 from typing import NoReturn, Union
@@ -26,8 +26,6 @@ from helpers.enums import ItemRarity
 
 
 def utcnow() -> datetime:
-    from datetime import UTC
-
     return datetime.now(UTC)
 
 

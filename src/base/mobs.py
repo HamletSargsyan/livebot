@@ -101,7 +101,7 @@ class Trader(BaseMob):
 
 class Chest(BaseMob):
     def __init__(self):
-        super().__init__("сундук", 3.3)
+        super().__init__("сундук", 1.3)
 
     def on_meet(self):
         if not self.user or not self.message:
