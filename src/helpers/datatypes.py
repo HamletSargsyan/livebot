@@ -1,4 +1,4 @@
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Optional, Tuple
 
 import transliterate
 from helpers.enums import ItemRarity, ItemType, WeatherType
@@ -122,14 +122,14 @@ class Item:
         is_task_item: bool = False,
         can_exchange: bool = False,
         is_consumable: bool = False,
-        altnames: Union[List[str], None] = None,
-        craft: Union[Dict[str, int], None] = None,
-        effect: Union[int, None] = None,
-        price: Union[int, None] = None,
-        task_coin: Union[Tuple[int, int], None] = None,
-        exchange_price: Union[Tuple[int, int], None] = None,
-        strength: Union[float, None] = None,
-        strength_reduction: Union[tuple[float, float], None] = None,
+        altnames: Optional[List[str]] = None,
+        craft: Optional[Dict[str, int]] = None,
+        effect: Optional[int] = None,
+        price: Optional[int] = None,
+        task_coin: Optional[Tuple[int, int]] = None,
+        exchange_price: Optional[Tuple[int, int]] = None,
+        strength: Optional[float] = None,
+        strength_reduction: Optional[tuple[float, float]] = None,
         can_equip: bool = False,
     ):
         self.name = name

@@ -313,80 +313,83 @@ def use_item(message: Message, name: str):
             bot.reply_to(message, f"У тебя нет {item.name} {item.emoji}")
             return
 
-        if name in ["трава", "буханка", "сэндвич", "пицца", "тако", "суп"]:
-            user.hunger -= item.effect  # pyright: ignore
-            bot.reply_to(
-                message,
-                f"Поел {item.emoji}\n- {item.effect} голода",
-            )
-            user_item.quantity -= 1
-        elif name == "буст":
-            xp = random.randint(100, 150)
-            user.xp += xp
-            bot.reply_to(message, f"{get_item_emoji(name)} Юзнул буст\n+ {xp} опыта")
-            user_item.quantity -= 1
-        elif name == "бокс":
-            mess = "Ты открыл бокс и получил\n---------\n"
-            num_items_to_get = random.randint(1, 3)
+        match item.name:
+            case "трава" | "буханка" | "сэндвич" | "пицца" | "тако" | "суп":
+                user.hunger -= item.effect  # pyright: ignore
+                bot.reply_to(
+                    message,
+                    f"Поел {item.emoji}\n- {item.effect} голода",
+                )
+                user_item.quantity -= 1
+            case "буст":
+                xp = random.randint(100, 150)
+                user.xp += xp
+                bot.reply_to(
+                    message, f"{get_item_emoji(name)} Юзнул буст\n+ {xp} опыта"
+                )
+                user_item.quantity -= 1
+            case "бокс":
+                mess = "Ты открыл бокс и получил\n---------\n"
+                num_items_to_get = random.randint(1, 3)
 
-            items_to_get = random.choices(
-                items_list,
-                k=num_items_to_get,
-            )
-            for item_ in items_to_get:
-                quantity = get_item_count_for_rarity(item_.rarity)
+                items_to_get = random.choices(
+                    items_list,
+                    k=num_items_to_get,
+                )
+                for item_ in items_to_get:
+                    quantity = get_item_count_for_rarity(item_.rarity)
 
-                if quantity == 0:
-                    continue
-                mess += f"+ {quantity} {item_.name} {item_.emoji}\n"
-                if item_.name == "бабло":
-                    user.coin += quantity
-                else:
-                    _item = get_or_add_user_item(user, item_.name)
+                    if quantity == 0:
+                        continue
+                    mess += f"+ {quantity} {item_.name} {item_.emoji}\n"
+                    if item_.name == "бабло":
+                        user.coin += quantity
+                    else:
+                        _item = get_or_add_user_item(user, item_.name)
 
-                    _item.quantity += quantity
-                    database.items.update(**_item.to_dict())
+                        _item.quantity += quantity
+                        database.items.update(**_item.to_dict())
 
-            user_item.quantity -= 1
+                user_item.quantity -= 1
 
-            bot.reply_to(message, mess)
-        elif name in ["энергос", "чай"]:
-            user.fatigue -= item.effect  # pyright: ignore
-            bot.reply_to(
-                message,
-                f"{item.emoji} юзнул {item.name}\n- {item.effect} усталости",
-            )
-            user_item.quantity -= 1
-        elif name == "пилюля":
-            bot.reply_to(message, f"{item.emoji} в разработке")
-            return
-        elif name == "хелп":
-            user.health += item.effect  # pyright: ignore
-            bot.reply_to(message, f"{item.effect} юзнул хелп")
-            user_item.quantity -= 1
-        elif name == "фиксоманчик":
-            bot.reply_to(message, f"{item.emoji} в разработке")
-            return
-        elif name == "водка":
-            user.fatigue = 0
-            user.health -= item.effect  # pyright: ignore
-            bot.reply_to(message, f"{item.emoji} юзнул водку")
-            user_item.quantity -= 1
-        elif name == "велик":
-            if user.state != "street":
-                bot.reply_to(message, "Ты не гуляешь")
+                bot.reply_to(message, mess)
+            case "энергос" | "чай":
+                user.fatigue -= item.effect  # pyright: ignore
+                bot.reply_to(
+                    message,
+                    f"{item.emoji} юзнул {item.name}\n- {item.effect} усталости",
+                )
+                user_item.quantity -= 1
+            case "пилюля":
+                bot.reply_to(message, f"{item.emoji} в разработке")
                 return
-            minutes = random.randint(10, 45)
-            user.action_time -= timedelta(minutes=minutes)
-            bot.reply_to(
-                message,
-                f"{item.emoji} юзнул велик и сократил время прогулки на {minutes} минут",
-            )
-            user_item.quantity -= 1
-        elif name == "клевер-удачы":
-            user.luck += item.effect  # type: ignore
-            user_item.quantity -= 1
-            bot.reply_to(message, f"{item.emoji} Увеличил удачу на 1")
+            case "хелп":
+                user.health += item.effect  # pyright: ignore
+                bot.reply_to(message, f"{item.effect} юзнул хелп")
+                user_item.quantity -= 1
+            case "фиксоманчик":
+                bot.reply_to(message, f"{item.emoji} в разработке")
+                return
+            case "водка":
+                user.fatigue = 0
+                user.health -= item.effect  # pyright: ignore
+                bot.reply_to(message, f"{item.emoji} юзнул водку")
+                user_item.quantity -= 1
+            case "велик":
+                if user.state != "street":
+                    bot.reply_to(message, "Ты не гуляешь")
+                    return
+                minutes = random.randint(10, 45)
+                user.action_time -= timedelta(minutes=minutes)
+                bot.reply_to(
+                    message,
+                    f"{item.emoji} юзнул велик и сократил время прогулки на {minutes} минут",
+                )
+                user_item.quantity -= 1
+            case "клевер-удачы":
+                user.luck += item.effect  # type: ignore
+                user_item.quantity -= 1
+                bot.reply_to(message, f"{item.emoji} Увеличил удачу на 1")
 
         database.users.update(**user.to_dict())
         database.items.update(**user_item.to_dict())
