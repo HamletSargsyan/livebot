@@ -442,7 +442,7 @@ def get_or_add_user_usable_items(
         if len(items) == 0:
             raise NoResult
     except NoResult:
-        item = add_user_usage_item(user, name, usage)
+        items = [add_user_usage_item(user, name, usage)]
 
     return items
 

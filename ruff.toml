@@ -23,9 +23,6 @@ exclude = [
     "buck-out",
     "build",
     "dist",
-    "node_modules",
-    "site-packages",
-    "venv",
 ]
 
 # Same as Black.
@@ -59,7 +56,7 @@ indent-style = "space"
 skip-magic-trailing-comma = false
 
 # Like Black, automatically detect the appropriate line ending.
-line-ending = "auto"
+line-ending = "lf"
 
 # Enable auto-formatting of code examples in docstrings. Markdown,
 # reStructuredText code/literal blocks and doctests are all supported.
