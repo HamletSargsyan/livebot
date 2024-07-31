@@ -461,7 +461,7 @@ def chest_callback(call: CallbackQuery):
         key.quantity -= 1
         mess = "Открыл сундук\n\n"
         items = []
-        for _ in range(random.randint(2, 7)):
+        for _ in range(random.randint(2, 5)):
             rarity = random.choice(
                 [
                     ItemRarity.COMMON,
