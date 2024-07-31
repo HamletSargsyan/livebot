@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Рефакторинг функции `use_item`
 - Уменьшен шас встречи сундука во время прогулки
 
+### Исправлено
+
+- Баг-фикс ([коммит](https://github.com/HamletSargsyan/livebot/commit/58f8ca0b957ef9485896722eb4e7b96c52bae589))
+
 ## [4.0.0] - 2024-07-26
 
 ### Добавлено
