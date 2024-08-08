@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Исправлено
+
+- Типизация для новой версии `pyTelegramBotApi`
+
 ## [4.1.0] - 2024-08-06
 
 ### Изменено
