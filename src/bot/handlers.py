@@ -24,6 +24,7 @@ from helpers.markups import InlineMarkup
 from helpers.utils import (
     check_user_subscription,
     check_version,
+    from_user,
     get_middle_item_price,
     get_time_difference_string,
     get_item_emoji,
@@ -79,12 +80,12 @@ START_MARKUP.add(
 @bot.message_handler(commands=["start"])
 def start(message: Message):
     with Loading(message):
-        user_id = message.from_user.id
+        user_id = from_user(message).id
 
-        user = database.users.get(id=message.from_user.id)
+        user = database.users.get(id=from_user(message).id)
 
         mess = (
-            f"Здорова {message.from_user.first_name}, добро пожаловать в игру\n\n"
+            f"Здорова {from_user(message).first_name}, добро пожаловать в игру\n\n"
             "Помощь: /help"
         )
 
@@ -103,7 +104,7 @@ def start(message: Message):
                 if not ref_user:
                     bot.reply_to(message, mess, reply_markup=START_MARKUP)
                     return
-                user = database.users.get(id=message.from_user.id)
+                user = database.users.get(id=from_user(message).id)
 
                 coin = random.randint(5000, 15000)
                 ref_user.coin += coin
@@ -141,9 +142,9 @@ def help(message: Message):
 def profile_cmd(message: Message):
     with Loading(message):
         if message.reply_to_message:
-            user = user = database.users.get(id=message.reply_to_message.from_user.id)
+            user = user = database.users.get(id=from_user(message.reply_to_message).id)
         else:
-            user = database.users.get(id=message.from_user.id)
+            user = database.users.get(id=from_user(message).id)
 
         check_user_stats(user, message.chat.id)
 
@@ -164,7 +165,7 @@ def profile_cmd(message: Message):
 @bot.message_handler(commands=["bag"])
 def bag_cmd(message: Message):
     with Loading(message):
-        user = database.users.get(id=message.from_user.id)
+        user = database.users.get(id=from_user(message).id)
 
         mess = "<b>Рюкзак</b>\n\n"
         inventory = database.items.get_all(**{"owner": user._id})
@@ -190,7 +191,7 @@ def bag_cmd(message: Message):
 def items_cmd(message: Message):
     with Loading(message):
         mess = f"<b>Предметы</b>\n\n1 / {len(list(chunks(items_list, 6)))}"
-        user = database.users.get(id=message.from_user.id)
+        user = database.users.get(id=from_user(message).id)
         markup = markup = InlineMarkup.items_pager(user=user)
 
         bot.reply_to(message, mess, reply_markup=markup)
@@ -221,7 +222,7 @@ def shop_cmd(message: Message):
             bot.reply_to(message, err_mess)
             return
 
-        user = database.users.get(id=message.from_user.id)
+        user = database.users.get(id=from_user(message).id)
 
         item_name = args[1]
         try:
@@ -277,7 +278,7 @@ def casino(message: Message):
         except ValueError:
             count = 1
 
-        user = database.users.get(id=message.from_user.id)
+        user = database.users.get(id=from_user(message).id)
 
         ticket = get_or_add_user_item(user, "билет")
 
@@ -324,7 +325,7 @@ def casino(message: Message):
 @bot.message_handler(commands=["workbench", "craft"])
 def workbench_cmd(message: Message):
     with Loading(message):
-        user = database.users.get(id=message.from_user.id)
+        user = database.users.get(id=from_user(message).id)
 
         mess = (
             "<b>🧰Верстак🧰</b>\n\n"
@@ -414,8 +415,8 @@ def transfer_cmd(message: Message):
             bot.reply_to(message, "Кому кидать собрался??")
             return
 
-        user = database.users.get(id=message.from_user.id)
-        reply_user = database.users.get(id=message.reply_to_message.from_user.id)
+        user = database.users.get(id=from_user(message).id)
+        reply_user = database.users.get(id=from_user(message.reply_to_message).id)
 
         args = message.text.split(" ")  # pyright: ignore
 
@@ -481,7 +482,7 @@ def transfer_cmd(message: Message):
 @bot.message_handler(commands=["event"])
 def event_cmd(message: Message):
     with Loading(message):
-        user = database.users.get(id=message.from_user.id)
+        user = database.users.get(id=from_user(message).id)
 
         if event_open is False:
             bot.reply_to(message, "Ивент закончился")
@@ -528,9 +529,9 @@ def top_cmd(message: Message):
 
         markup = quick_markup(
             {
-                "🪙": {"callback_data": f"top coin {message.from_user.id}"},
-                "🏵": {"callback_data": f"top level {message.from_user.id}"},
-                "🐶": {"callback_data": f"top dog_level {message.from_user.id}"},
+                "🪙": {"callback_data": f"top coin {from_user(message).id}"},
+                "🏵": {"callback_data": f"top level {from_user(message).id}"},
+                "🐶": {"callback_data": f"top dog_level {from_user(message).id}"},
             }
         )
 
@@ -540,7 +541,7 @@ def top_cmd(message: Message):
 @bot.message_handler(commands=["use"])
 def use_cmd(message: Message):
     with Loading(message):
-        user = database.users.get(id=message.from_user.id)
+        user = database.users.get(id=from_user(message).id)
 
         args = str(message.text).split(" ")
 
@@ -571,7 +572,7 @@ def use_cmd(message: Message):
 @bot.message_handler(commands=["ref"])
 def ref(message: Message):
     with Loading(message):
-        user = database.users.get(id=message.from_user.id)
+        user = database.users.get(id=from_user(message).id)
 
         mess = (
             "Хочешь заработать?\n"
@@ -584,7 +585,7 @@ def ref(message: Message):
 @bot.message_handler(commands=["add_promo"])
 def add_promo(message: Message):
     with Loading(message):
-        user = database.users.get(id=message.from_user.id)
+        user = database.users.get(id=from_user(message).id)
 
         if not user.is_admin:
             return
@@ -641,7 +642,7 @@ def add_promo(message: Message):
 @bot.message_handler(commands=["promo"])
 def promo(message: Message) -> None:
     with Loading(message):
-        user = database.users.get(id=message.from_user.id)
+        user = database.users.get(id=from_user(message).id)
 
         bot.delete_message(message.chat.id, message.id)
         if not check_user_subscription(user):
@@ -698,7 +699,7 @@ def promo(message: Message) -> None:
 @bot.message_handler(commands=["stats"])
 def stats_cmd(message: Message):
     with Loading(message):
-        user = database.users.get(id=message.from_user.id)
+        user = database.users.get(id=from_user(message).id)
 
         mess = (
             "<b>Статистика</b>\n\n\n"
@@ -718,7 +719,7 @@ def stats_cmd(message: Message):
 @bot.message_handler(commands=["quest"])
 def quest_cmd(message: Message):
     with Loading(message):
-        user = database.users.get(id=message.from_user.id)
+        user = database.users.get(id=from_user(message).id)
         try:
             quest = database.quests.get(**{"owner": user._id})
         except NoResult:
@@ -778,7 +779,7 @@ def exchanger_cmd(message: Message):
     #     )
     #     return
     with Loading(message):
-        user = database.users.get(id=message.from_user.id)
+        user = database.users.get(id=from_user(message).id)
 
         if user.level < 5:
             bot.reply_to(message, "Обменник доступен с 5 уровня")
@@ -837,7 +838,7 @@ def exchanger_cmd(message: Message):
 @bot.message_handler(commands=["dog"])
 def dog_cmd(message: Message):
     with Loading(message):
-        user = database.users.get(id=message.from_user.id)
+        user = database.users.get(id=from_user(message).id)
 
         try:
             dog = database.dogs.get(**{"owner": user._id})
@@ -879,7 +880,7 @@ def dog_cmd(message: Message):
 @bot.message_handler(commands=["rename_dog"])
 def rename_dog_command(message: Message):
     with Loading(message):
-        user = database.users.get(id=message.from_user.id)
+        user = database.users.get(id=from_user(message).id)
 
         try:
             dog = database.dogs.get(**{"owner": user._id})
@@ -926,7 +927,7 @@ def price_cmd(message: Message):
 @bot.message_handler(commands=["home"])
 def home_cmd(message: Message):
     with Loading(message):
-        user = database.users.get(id=message.from_user.id)
+        user = database.users.get(id=from_user(message).id)
         mess = "🏠 Дом милый дом"
 
         markup = InlineMarkup.home_main(user)
@@ -954,7 +955,7 @@ def guide_cmd(message: Message):
 
 @bot.message_handler(commands=["market"])
 def market_cmd(message: Message):
-    user = database.users.get(id=message.from_user.id)
+    user = database.users.get(id=from_user(message).id)
 
     mess = "<b>Рынок</b>\n\n"
 
@@ -967,7 +968,7 @@ def market_cmd(message: Message):
 
 @bot.message_handler(commands=["daily_gift"])
 def daily_gift_cmd(message: Message):
-    user = database.users.get(id=message.from_user.id)
+    user = database.users.get(id=from_user(message).id)
 
     if not check_user_subscription(user):
         send_channel_subscribe_message(message)
@@ -1016,7 +1017,7 @@ def new_chat_member(message: Message):
 
 @bot.message_handler(content_types=["text"])
 def text_message_handler(message: Message):
-    user = database.users.get(id=message.from_user.id)
+    user = database.users.get(id=from_user(message).id)
     text = str(message.text).lower().strip()
 
     match text:

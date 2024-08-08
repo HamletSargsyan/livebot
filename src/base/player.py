@@ -21,6 +21,7 @@ from helpers.markups import InlineMarkup
 from helpers.utils import (
     Loading,
     calc_xp_for_level,
+    from_user,
     get_item,
     get_item_count_for_rarity,
     get_time_difference_string,
@@ -284,7 +285,7 @@ def get_available_items_for_use(user: UserModel) -> List[ItemModel]:
 
 def use_item(message: Message, name: str):
     with Loading(message):
-        user = database.users.get(id=message.from_user.id)
+        user = database.users.get(id=from_user(message).id)
 
         item = get_item(name)
 

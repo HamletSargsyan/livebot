@@ -7,7 +7,7 @@ from typing import NoReturn, Union
 
 import requests
 from semver import Version
-from telebot.types import Message, ReplyParameters, InlineKeyboardButton
+from telebot.types import Message, ReplyParameters, InlineKeyboardButton, User
 from telebot.util import antiflood, escape, split_string, quick_markup
 
 from config import (
@@ -162,7 +162,7 @@ def get_pager_controllers(name: str, pos: int, user_id: Union[int, str]):
     return [
         InlineKeyboardButton(
             controller.text,
-            callback_data=controller.callback_data.format(
+            callback_data=controller.callback_data.format(  # type: ignore
                 name=name, pos=pos, user_id=user_id
             ),
         )
@@ -225,3 +225,10 @@ def check_version() -> str:  # type: ignore
             return "актуальная версия"
         case 1:
             return "текущая версия бота больше чем в репозитории"
+
+
+def from_user(message: Message) -> User:
+    """
+    pyright hack
+    """
+    return message.from_user  # type: ignore
