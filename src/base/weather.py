@@ -1,4 +1,4 @@
-import requests
+import httpx
 
 from helpers.datatypes import WeatherData
 from config import OPENWEATHER_API_KEY, weather_region
@@ -13,5 +13,5 @@ def get_weather() -> WeatherData:
         "appid": OPENWEATHER_API_KEY,
         "units": "metric",
     }
-    response = requests.get(url, params=params)
+    response = httpx.get(url, params=params)
     return WeatherData(response.json())
