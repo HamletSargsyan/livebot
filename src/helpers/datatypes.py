@@ -172,4 +172,15 @@ class Achievement:
         description: str,
         condition: Callable[[UserModel], bool],
     ) -> None:
-        pass
+        self.name = name
+        self.description = description
+        self.condition = condition
+
+    def __str__(self) -> str:
+        return f"{self.name}"
+
+    def check(self, user: UserModel):
+        if not self.condition(user):
+            return
+
+
