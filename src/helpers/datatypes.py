@@ -1,6 +1,8 @@
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import transliterate
+
+from database.models import UserModel
 from helpers.enums import ItemRarity, ItemType, WeatherType
 
 # ---------------------------------- Weather --------------------------------- #
@@ -158,3 +160,16 @@ class Item:
 
     def translit(self) -> str:
         return transliterate.translit(self.name, reversed=True)
+
+
+# ------------------------------- achievements ------------------------------- #
+
+
+class Achievement:
+    def __init__(
+        self,
+        name: str,
+        description: str,
+        condition: Callable[[UserModel], bool],
+    ) -> None:
+        pass
