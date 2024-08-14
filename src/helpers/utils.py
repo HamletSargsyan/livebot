@@ -3,6 +3,7 @@ from datetime import UTC, datetime, timedelta
 import random
 import statistics
 from typing import NoReturn, Union
+from typing_extensions import deprecated
 
 
 import requests
@@ -162,7 +163,7 @@ def get_pager_controllers(name: str, pos: int, user_id: Union[int, str]):
     return [
         InlineKeyboardButton(
             controller.text,
-            callback_data=controller.callback_data.format(  # type: ignore
+            callback_data=controller.callback_data.format(
                 name=name, pos=pos, user_id=user_id
             ),
         )
@@ -227,6 +228,7 @@ def check_version() -> str:  # type: ignore
             return "текущая версия бота больше чем в репозитории"
 
 
+@deprecated("Deprecated. Use `message.from_user` instead", category=DeprecationWarning)
 def from_user(message: Message) -> User:
     """
     pyright hack

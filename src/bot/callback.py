@@ -49,7 +49,7 @@ from config import bot
 
 @bot.callback_query_handler(lambda c: c.data.startswith("dog"))
 def dog_callback(call: CallbackQuery):
-    data = str(call.data).split(" ")
+    data = call.data.split(" ")
     user = database.users.get(id=call.from_user.id)
 
     try:
@@ -186,7 +186,7 @@ def dog_callback(call: CallbackQuery):
 
 @bot.callback_query_handler(lambda c: c.data.startswith("skip_quest"))
 def new_quest_callback(call: CallbackQuery):
-    if str(call.data).split(" ")[-1] != str(call.from_user.id):
+    if call.data.split(" ")[-1] != str(call.from_user.id):
         return
 
     if not isinstance(call.message, Message):
@@ -219,7 +219,7 @@ def new_quest_callback(call: CallbackQuery):
 
 @bot.callback_query_handler(lambda c: c.data.startswith("finish_quest"))
 def finish_quest_callback(call: CallbackQuery):
-    if str(call.data).split(" ")[-1] != str(call.from_user.id):
+    if call.data.split(" ")[-1] != str(call.from_user.id):
         return
 
     if not isinstance(call.message, Message):
@@ -274,12 +274,12 @@ def finish_quest_callback(call: CallbackQuery):
 
 @bot.callback_query_handler(lambda c: c.data.startswith("use"))
 def use_callback(call: CallbackQuery):
-    if str(call.data).split(" ")[-1] != str(call.from_user.id):
+    if call.data.split(" ")[-1] != str(call.from_user.id):
         return
 
     user = database.users.get(id=call.from_user.id)
 
-    item = get_item(str(call.data).split(" ")[1])
+    item = get_item(call.data.split(" ")[1])
 
     if not call.message.reply_to_message:
         return
@@ -314,13 +314,13 @@ def use_callback(call: CallbackQuery):
 
 @bot.callback_query_handler(lambda c: c.data.startswith("item_info_main"))
 def item_info_main_callback(call: CallbackQuery):
-    if str(call.data).split(" ")[-1] != str(call.from_user.id):
+    if call.data.split(" ")[-1] != str(call.from_user.id):
         return
 
     try:
         user = database.users.get(id=call.from_user.id)
-        action = str(call.data).split(" ")[1]
-        pos = int(str(call.data).split(" ")[2])
+        action = call.data.split(" ")[1]
+        pos = int(call.data.split(" ")[2])
         max_pos = len(list(chunks(items_list, 6))) - 1
 
         if action == "next":
@@ -347,11 +347,11 @@ def item_info_main_callback(call: CallbackQuery):
 
 @bot.callback_query_handler(lambda c: c.data.startswith("item_info"))
 def item_info_callback(call: CallbackQuery):
-    if str(call.data).split(" ")[-1] != str(call.from_user.id):
+    if call.data.split(" ")[-1] != str(call.from_user.id):
         return
 
-    item = get_item(str(call.data).split(" ")[1])
-    pos = str(call.data).split(" ")[2]
+    item = get_item(call.data.split(" ")[1])
+    pos = call.data.split(" ")[2]
 
     markup = quick_markup(
         {"Назад": {"callback_data": f"item_info_main None {pos} {call.from_user.id}"}}
@@ -380,7 +380,7 @@ def item_info_callback(call: CallbackQuery):
 
 @bot.callback_query_handler(lambda c: c.data.startswith("trader"))
 def trader_callback(call: CallbackQuery):
-    data = str(call.data).split(" ")
+    data = call.data.split(" ")
     if data[-1] != str(call.from_user.id):
         return
 
@@ -420,7 +420,7 @@ def trader_callback(call: CallbackQuery):
 
 @bot.callback_query_handler(lambda c: c.data.startswith("top"))
 def top_callback(call: CallbackQuery):
-    data = str(call.data).split(" ")
+    data = call.data.split(" ")
     if data[-1] != str(call.from_user.id):
         return
 
@@ -444,7 +444,7 @@ def top_callback(call: CallbackQuery):
 
 @bot.callback_query_handler(lambda c: c.data.startswith("chest"))
 def chest_callback(call: CallbackQuery):
-    data = str(call.data).split(" ")
+    data = call.data.split(" ")
 
     if data[-1] != str(call.from_user.id):
         return
@@ -496,7 +496,7 @@ def chest_callback(call: CallbackQuery):
 
 @bot.callback_query_handler(lambda c: c.data.startswith("actions"))
 def actions_callback(call: CallbackQuery):
-    data = str(call.data).split(" ")
+    data = call.data.split(" ")
 
     if data[-1] != str(call.from_user.id):
         return
@@ -529,7 +529,7 @@ def actions_callback(call: CallbackQuery):
 
 @bot.callback_query_handler(lambda c: c.data.startswith("open"))
 def open_callback(call: CallbackQuery):
-    data = str(call.data).split(" ")
+    data = call.data.split(" ")
 
     if data[-1] != str(call.from_user.id):
         return
@@ -560,7 +560,7 @@ def open_callback(call: CallbackQuery):
 
 @bot.callback_query_handler(lambda c: c.data.split(" ")[0] == "market")
 def market_callback(call: CallbackQuery):
-    data = str(call.data).split(" ")
+    data = call.data.split(" ")
 
     if data[-1] != str(call.from_user.id):
         return
@@ -690,8 +690,8 @@ def market_callback(call: CallbackQuery):
 
     else:
         try:
-            action = str(call.data).split(" ")[1]
-            pos = int(str(call.data).split(" ")[2])
+            action = call.data.split(" ")[1]
+            pos = int(call.data.split(" ")[2])
 
             market_items = database.market_items.get_all()
             max_pos = len(list(chunks(market_items, 6))) - 1
@@ -720,7 +720,7 @@ def market_callback(call: CallbackQuery):
 
 @bot.callback_query_handler(lambda c: c.data.startswith("market_item_open"))
 def market_item_open_callback(call: CallbackQuery):
-    data = str(call.data).split(" ")
+    data = call.data.split(" ")
 
     if data[-1] != str(call.from_user.id):
         return
@@ -745,7 +745,7 @@ def market_item_open_callback(call: CallbackQuery):
 
 @bot.callback_query_handler(lambda c: c.data.startswith("delate_state"), state="*")
 def delate_state_callback(call: CallbackQuery):
-    data = str(call.data).split(" ")
+    data = call.data.split(" ")
 
     if data[-1] != str(call.from_user.id):
         return
@@ -762,7 +762,7 @@ def delate_state_callback(call: CallbackQuery):
 
 @bot.callback_query_handler(lambda c: c.data.startswith("levelup"))
 def levelup_callback(call: CallbackQuery):
-    data = str(call.data).split(" ")
+    data = call.data.split(" ")
 
     if data[-1] != str(call.from_user.id):
         return
@@ -783,7 +783,7 @@ def levelup_callback(call: CallbackQuery):
 
 @bot.callback_query_handler(lambda c: c.data.startswith("daily_gift"))
 def daily_gift_callback(call: CallbackQuery):
-    data = str(call.data).split(" ")
+    data = call.data.split(" ")
 
     if data[-1] != str(call.from_user.id):
         return
@@ -848,7 +848,7 @@ def daily_gift_callback(call: CallbackQuery):
 
 @bot.callback_query_handler(lambda c: c.data.startswith("transfer"))
 def transfer_callback(call: CallbackQuery):
-    data = str(call.data).split(" ")
+    data = call.data.split(" ")
 
     if data[-1] != str(call.from_user.id):
         return

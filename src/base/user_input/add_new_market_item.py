@@ -30,7 +30,7 @@ class AddNewItemState(StatesGroup):
     state=AddNewItemState.name, func=lambda c: c.data.startswith("sell")
 )
 def name_state(call: CallbackQuery):
-    data = call.data.split(" ")  # type: ignore
+    data = call.data.split(" ")
 
     if data[-1] != str(call.from_user.id):
         return

@@ -89,8 +89,8 @@ def start(message: Message):
             "Помощь: /help"
         )
 
-        if len(message.text.split("/start ")) != 1:  # pyright: ignore
-            param = message.text.split("/start ")[1]  # pyright: ignore
+        if len(message.text.split("/start ")) != 1:
+            param = message.text.split("/start ")[1]
             users_id = [str(user.id) for user in database.users.get_all()]
 
             if param in users_id:
@@ -200,7 +200,7 @@ def items_cmd(message: Message):
 @bot.message_handler(commands=["shop"])
 def shop_cmd(message: Message):
     with Loading(message):
-        args = str(message.text).split(" ")
+        args = message.text.split(" ")
 
         if len(args) != 3:
             items = list(filter(lambda item: item.price, items_list))
@@ -332,7 +332,7 @@ def workbench_cmd(message: Message):
             "Чтобы скрафтить что-то то напиши <code>/craft [имя предмета] [кол-во]</code>\n\n"
         )
 
-        args = str(message.text).split(" ")
+        args = message.text.split(" ")
 
         if not args or len(args) < 2:
             available_crafts = get_available_crafts(user)
@@ -418,7 +418,7 @@ def transfer_cmd(message: Message):
         user = database.users.get(id=from_user(message).id)
         reply_user = database.users.get(id=from_user(message.reply_to_message).id)
 
-        args = message.text.split(" ")  # pyright: ignore
+        args = message.text.split(" ")
 
         err_mess = (
             "Что-то не так написал, надо так:\n"
@@ -543,7 +543,7 @@ def use_cmd(message: Message):
     with Loading(message):
         user = database.users.get(id=from_user(message).id)
 
-        args = str(message.text).split(" ")
+        args = message.text.split(" ")
 
         if len(args) < 2:
             markup = InlineKeyboardMarkup()
@@ -606,7 +606,7 @@ def add_promo(message: Message):
         description = None
 
         line_num = 0
-        for line in str(message.text).split("\n"):
+        for line in message.text.split("\n"):
             if line_num == 0:
                 try:
                     usage_count = int(line.split(" ")[-1])
@@ -649,7 +649,7 @@ def promo(message: Message) -> None:
             send_channel_subscribe_message(message)
             return
 
-        text = str(message.text).split(" ")
+        text = message.text.split(" ")
 
         if len(text) != 1:
             text = text[1]
@@ -801,7 +801,7 @@ def exchanger_cmd(message: Message):
             f"Чтобы обменять напиши <code>/exchanger кол-во</code>"
         )
 
-        args = str(message.text).split(" ")
+        args = message.text.split(" ")
 
         if len(args) < 2:
             bot.reply_to(message, mess)
@@ -892,7 +892,7 @@ def rename_dog_command(message: Message):
             return
 
         try:
-            name = message.text.split(" ")[1]  # pyright: ignore
+            name = message.text.split(" ")[1]
         except KeyError:
             bot.reply_to(message, "По моему ты забыл написать имя")
             return
@@ -907,7 +907,7 @@ def rename_dog_command(message: Message):
 def price_cmd(message: Message):
     with Loading(message):
         try:
-            name = str(message.text).split(" ")[1].lower()
+            name = message.text.split(" ")[1].lower()
         except KeyError:
             bot.reply_to(message, "По моему ты что-то забыл...")
             return
@@ -1025,7 +1025,7 @@ def new_chat_member(message: Message):
 @bot.message_handler(content_types=["text"])
 def text_message_handler(message: Message):
     user = database.users.get(id=from_user(message).id)
-    text = str(message.text).lower().strip()
+    text = message.text.lower().strip()
 
     match text:
         case "профиль":

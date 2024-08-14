@@ -1,14 +1,15 @@
-from datetime import UTC, datetime
 import os
 import sys
 import json
 import logging
 from typing import Final
+from datetime import UTC, datetime
 
-from dotenv import load_dotenv
 from redis import Redis
+from dotenv import load_dotenv
 
 from semver import Version
+
 import telebot
 from telebot.storage import StateRedisStorage
 from telebot.custom_filters import StateFilter, IsDigitFilter
