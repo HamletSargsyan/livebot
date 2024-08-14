@@ -25,7 +25,6 @@ def get_weather() -> WeatherData:
     response = httpx.get(url, params=params)
     weather_data = WeatherData(response.json())
 
-    # Сохраняем данные в кеш
     cache["weather_data"] = weather_data
 
     return weather_data
