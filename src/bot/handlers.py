@@ -1001,6 +1001,13 @@ def version_cmd(message: Message):
     bot.reply_to(message, mess, reply_markup=markup)
 
 
+@bot.message_handler(commands=["time"])
+def time_cmd(message: Message):
+    time = utcnow().strftime("%H:%M:%S %d.%m.%Y")
+    mess = f"Сейчас <code>{time}</code> по UTC"
+    bot.reply_to(message, mess)
+
+
 # ---------------------------------------------------------------------------- #
 
 
