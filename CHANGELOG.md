@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Изменено
 - Модуль Заменен `requests` на `httpx`
 
+### Исправлено
+- Орфографические ошибки в документации
+
 ## [4.2.0] - 2024-08-08
 
 ### Исправлено
