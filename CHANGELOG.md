@@ -7,9 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Добавлена
+### Добавлено
 
 - Команда `/time`
+- Кеширование в команду `/weather`. Погода обновляется раз в 30 минут
 
 ### Изменено
 - Модуль Заменен `requests` на `httpx`
