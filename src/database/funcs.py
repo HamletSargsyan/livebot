@@ -103,4 +103,4 @@ class DataBase:
 
 
 database = DataBase()
-cache = redis.from_url(REDIS_URL)
+redis_cache = redis.from_url(REDIS_URL)

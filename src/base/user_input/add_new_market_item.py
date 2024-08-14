@@ -13,7 +13,7 @@ from helpers.utils import (
     get_middle_item_price,
     get_user_tag,
 )
-from database.funcs import database, cache
+from database.funcs import database, redis_cache
 from database.models import MarketItemModel
 from helpers.exceptions import NoResult
 from helpers.markups import InlineMarkup
@@ -59,7 +59,7 @@ def name_state(call: CallbackQuery):
     )
     bot.set_state(call.from_user.id, AddNewItemState.quantity, call.message.chat.id)
 
-    cache.setex(f"{user.id}_item_add_message", 300, call.message.id)  # type: ignore
+    redis_cache.setex(f"{user.id}_item_add_message", 300, call.message.id)  # type: ignore
 
 
 # TODO
@@ -89,7 +89,7 @@ def quantity_state(message: Message):
     with bot.retrieve_data(from_user(message).id, message.chat.id) as data:
         data["quantity"] = int(message.text)  # type: ignore
 
-    call_message_id = cache.get(f"{from_user(message).id}_item_add_message")
+    call_message_id = redis_cache.get(f"{from_user(message).id}_item_add_message")
     bot.delete_message(message.chat.id, message.id)
 
     item = get_item(user_item.name)
@@ -129,11 +129,11 @@ def price_state(message: Message):
     user_item.quantity -= item.quantity
     database.items.update(**user_item.to_dict())
 
-    call_message_id = cache.get(f"{from_user(message).id}_item_add_message")
+    call_message_id = redis_cache.get(f"{from_user(message).id}_item_add_message")
 
     bot.delete_message(message.chat.id, call_message_id)  # type: ignore
     bot.delete_message(message.chat.id, message.id)
 
-    cache.delete(f"{from_user(message).id}_item_add_message")
+    redis_cache.delete(f"{from_user(message).id}_item_add_message")
     mess = f"{get_user_tag(user)} выставил на продажу {item.quantity} {get_item_emoji(item.name)} за {item.price} {get_item_emoji('бабло')}"
     bot.send_message(message.chat.id, mess)
