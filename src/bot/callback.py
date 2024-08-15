@@ -890,7 +890,7 @@ def achievements_callback(call: CallbackQuery):
     if data[1] == "view":
         ach = get_achievement(data[2])
         mess = f"<b>{ach.name}</b>"
-        markup = quick_markup({"Назад": {"callback_data": "achievements"}})
+        markup = quick_markup({"Назад": {"callback_data": "achievements main"}})
 
         bot.edit_message_text(
             mess, call.message.chat.id, call.message.id, reply_markup=markup
