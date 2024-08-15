@@ -5,6 +5,8 @@ import logging
 from typing import Final
 from datetime import UTC, datetime
 
+from dns import resolver
+
 from redis import Redis
 from dotenv import load_dotenv
 
@@ -16,6 +18,11 @@ from telebot.custom_filters import StateFilter, IsDigitFilter
 
 
 load_dotenv()
+
+# NOTE: Это для termux
+resolver.default_resolver = resolver.Resolver(configure=False)
+resolver.default_resolver.nameservers = ["8.8.8.8"]
+
 
 with open("version") as f:
     version: Final = Version.parse(f.read())
