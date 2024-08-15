@@ -191,3 +191,6 @@ class Achievement:
         if progress >= self.need:
             return True
         return False
+
+    def translit(self) -> str:
+        return transliterate.translit(self.name, reversed=True)

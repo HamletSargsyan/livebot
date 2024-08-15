@@ -11,6 +11,7 @@ from semver import Version
 from telebot.types import Message, ReplyParameters, InlineKeyboardButton, User
 from telebot.util import antiflood, escape, split_string, quick_markup
 
+from base.achievements import ACHIEVEMENTS
 from config import (
     bot,
     channel_id,
@@ -20,8 +21,8 @@ from config import (
     version,
 )
 from database.models import UserModel
-from helpers.datatypes import Item
-from helpers.exceptions import ItemNotFoundError
+from helpers.datatypes import Achievement, Item
+from helpers.exceptions import AchievementNotFoundError, ItemNotFoundError
 from base.items import items_list
 from helpers.enums import ItemRarity
 
@@ -234,3 +235,12 @@ def from_user(message: Message) -> User:
     pyright hack
     """
     return message.from_user  # type: ignore
+
+
+def get_achievement(name: str) -> Achievement:
+    for achievement in ACHIEVEMENTS:
+        if name == achievement.name:
+            return achievement
+        elif name == achievement.translit():
+            return achievement
+    raise AchievementNotFoundError(name)

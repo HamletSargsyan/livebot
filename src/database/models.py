@@ -253,7 +253,6 @@ class DailyGiftModel(BaseModel):
 class AchievementModel(BaseModel):
     _id = Field(ObjectId)
     name = Field(str)
-    reward: dict[str, int] = Field(dict, default={})  # type: ignore
     created_at = Field(datetime, default=_utcnow())
 
     def __init__(self, **kwargs) -> None:

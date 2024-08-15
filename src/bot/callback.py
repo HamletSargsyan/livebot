@@ -32,6 +32,7 @@ from base.player import (
 from base.items import items_list
 from helpers.utils import (
     check_user_subscription,
+    get_achievement,
     get_item_count_for_rarity,
     get_item_emoji,
     get_middle_item_price,
@@ -875,3 +876,30 @@ def transfer_callback(call: CallbackQuery):
     database.users.update(**reply_user.to_dict())
 
     bot.send_message(call.message.chat.id, mess)
+
+
+@bot.callback_query_handler(lambda c: c.data.startswith("achievements"))
+def achievements_callback(call: CallbackQuery):
+    data = call.data.split(" ")
+
+    if data[-1] != str(call.from_user.id):
+        return
+
+    user = database.users.get(id=call.from_user.id)
+
+    if data[1] == "view":
+        ach = get_achievement(data[2])
+        mess = f"<b>{ach.name}</b>"
+        markup = quick_markup({"Назад": {"callback_data": "achievements"}})
+
+        bot.edit_message_text(
+            mess, call.message.chat.id, call.message.id, reply_markup=markup
+        )
+    elif data[1] == "main":
+        mess = "Достижения"
+
+        markup = InlineMarkup.achievements(user)
+
+        bot.edit_message_text(
+            mess, call.message.chat.id, call.message.id, reply_markup=markup
+        )

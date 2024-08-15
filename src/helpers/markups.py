@@ -236,7 +236,7 @@ class InlineMarkup:
             buttons.append(
                 InlineKeyboardButton(
                     text=("✅ " if result else "❌ ") + achievement.name,
-                    callback_data="achievement",  # TODO
+                    callback_data=f"achievements view {achievement.translit()} {user.id}",
                 )
             )
 
