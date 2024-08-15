@@ -184,3 +184,4 @@ class Achievement:
     def check(self, user: UserModel):
         if not self.condition(user):
             return
+        raise NotImplementedError
