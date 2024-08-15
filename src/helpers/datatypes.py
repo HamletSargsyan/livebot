@@ -171,10 +171,12 @@ class Achievement:
         name: str,
         description: str,
         condition: Callable[[UserModel], bool],
+        reward: dict[str, int],
     ) -> None:
         self.name = name
         self.description = description
         self.condition = condition
+        self.reward = reward
 
     def __str__(self) -> str:
         return f"{self.name}"
@@ -182,5 +184,3 @@ class Achievement:
     def check(self, user: UserModel):
         if not self.condition(user):
             return
-
-

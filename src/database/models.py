@@ -248,4 +248,15 @@ class DailyGiftModel(BaseModel):
         super().__init__(**kwargs)
 
 
+class AchievementModel(BaseModel):
+    _id = Field(ObjectId)
+    name = Field(str)
+    description = Field(str)
+    reward = Field(dict, default={})
+    created_at = Field(datetime, default=_utcnow())
+
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
+
+
 del _utcnow
