@@ -231,7 +231,7 @@ class InlineMarkup:
 
         achievements = sorted(ACHIEVEMENTS, key=lambda a: a.check(user), reverse=True)
         achievements = list(
-            filter(lambda a: is_completed_achievement(user, a.name), achievements)
+            filter(lambda a: not is_completed_achievement(user, a.name), achievements)
         )
 
         for achievement in achievements:
