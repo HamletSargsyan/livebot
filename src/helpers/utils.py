@@ -248,7 +248,7 @@ def get_achievement(name: str) -> Achievement:
 
 def achievement_progress(user: UserModel, name: str) -> str:
     ach = get_achievement(name)
-    percentage = calc_percentage(user.achievement_progress[ach.key], ach.need)
+    percentage = calc_percentage(user.achievement_progress.get(ach.key, 0), ach.need)
 
     progress = f"[{create_progress_bar(percentage)}] {percentage}%"
     return progress
