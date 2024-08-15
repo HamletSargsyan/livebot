@@ -1,6 +1,7 @@
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from telebot.util import quick_markup, chunks
 
+from base.achievements import ACHIEVEMENTS
 from base.items import items_list
 from helpers.utils import (
     get_item_emoji,
@@ -220,4 +221,25 @@ class InlineMarkup:
             )
 
         markup.add(*buttons)
+        return markup
+
+    @classmethod
+    def achievements(cls, user: UserModel) -> InlineKeyboardMarkup:
+        markup = InlineKeyboardMarkup(row_width=1)
+        buttons = []
+
+        achievements = sorted(ACHIEVEMENTS, key=lambda a: a.check(user), reverse=True)
+
+        for achievement in achievements:
+            result = achievement.check(user)
+
+            buttons.append(
+                InlineKeyboardButton(
+                    text=("✅ " if result else "❌ ") + achievement.name,
+                    callback_data="achievement",  # TODO
+                )
+            )
+
+        markup.add(*buttons)
+
         return markup

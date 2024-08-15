@@ -1,3 +1,4 @@
+from collections import defaultdict
 from typing import TypeVar, Generic, Type, Any
 from datetime import datetime, timedelta, UTC
 from bson import ObjectId
@@ -206,7 +207,7 @@ class UserModel(BaseModel):
     last_advert_time = Field(datetime, nullable=True)
     adverts_count = Field(int, default=0)
     last_active_time = Field(datetime, default=_utcnow())
-    achievement_progress: dict[str, int] = Field(dict, default={})  # type: ignore
+    achievement_progress: dict[str, int] = Field(dict, default=defaultdict(int))  # type: ignore
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)

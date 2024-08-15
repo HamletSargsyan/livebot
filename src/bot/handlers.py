@@ -1008,6 +1008,16 @@ def time_cmd(message: Message):
     bot.reply_to(message, mess)
 
 
+@bot.message_handler(commands=["achievements"])
+def achievements_cmd(message: Message):
+    user = database.users.get(id=message.from_user.id)
+
+    markup = InlineMarkup.achievements(user)
+
+    mess = "Достижения"
+    bot.reply_to(message, mess, reply_markup=markup)
+
+
 # ---------------------------------------------------------------------------- #
 
 
@@ -1066,3 +1076,5 @@ def text_message_handler(message: Message):
             home_cmd(message)
         case "рынок":
             market_cmd(message)
+        case "достижения" | "ачивки":
+            achievements_cmd(message)

@@ -650,6 +650,7 @@ def street(call: CallbackQuery, user: UserModel):
     user.fatigue += random.randint(3, 8)
     user.mood -= random.randint(3, 6)
     user.met_mob = False
+    user.achievement_progress["бродяга"] += 1
     database.users.update(**user.to_dict())
 
     try:
@@ -717,6 +718,7 @@ def work(call: CallbackQuery, user: UserModel):
     user.fatigue += random.randint(5, 10)
     user.hunger += random.randint(3, 6)
     user.mood -= random.randint(3, 6)
+    user.achievement_progress["работяга"] += 1
 
     database.users.update(**user.to_dict())
 
