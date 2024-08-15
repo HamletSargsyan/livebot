@@ -46,7 +46,7 @@ from helpers.utils import (
 from database.models import DogModel
 from database.funcs import database
 
-from config import bot
+from config import bot, logger
 
 
 @bot.callback_query_handler(lambda c: c.data.startswith("dog"))
@@ -890,8 +890,11 @@ def achievements_callback(call: CallbackQuery):
 
     if data[1] == "view":
         ach = get_achievement(data[2])
-        mess = f"<b>{ach.name}</b>\n\n"
+        mess = f"<b>{ach.emoji} {ach.name}</b>\n\n"
+        mess += f"<i>{ach.desc}</i>"
         mess += f"{achievement_progress(user, ach.name)}"
+
+        logger.debug(user.achievement_progress)
 
         markup = quick_markup(
             {"Назад": {"callback_data": f"achievements main {user.id}"}}
