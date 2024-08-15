@@ -266,16 +266,20 @@ def is_completed_achievement(user: UserModel, name: str) -> bool:
 
 def award_user_achievement(user: UserModel, achievement: Achievement):
     if is_completed_achievement(user, achievement.name):
+        logger.debug("completed")
         return
     from database.funcs import database
     from base.player import get_or_add_user_item
 
+    logger.debug("new ach add")
     ach = AchievementModel(name=achievement.name, owner=user._id)
     database.achievements.add(**ach.to_dict())
 
     reward = ""
 
+    logger.debug(user.achievement_progress)
     del user.achievement_progress[achievement.key]
+    logger.debug(achievement_progress)
 
     for item, quantity in achievement.reward.items():
         if item == "бабло":
@@ -323,3 +327,4 @@ def create_progress_bar(percentage: float) -> str:
 
     progress_bar = filled_block * filled_length + empty_block * empty_length
     return progress_bar
+
