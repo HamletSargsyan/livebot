@@ -212,6 +212,22 @@ class UserModel(BaseModel):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
 
+    def to_dict(self) -> dict:
+        data = super().to_dict()
+        if isinstance(data.get("achievement_progress"), defaultdict):
+            data["achievement_progress"] = dict(data["achievement_progress"])
+        return data
+
+    @classmethod
+    def from_dict(cls, dict_data: dict):
+        if "achievement_progress" in dict_data and isinstance(
+            dict_data["achievement_progress"], dict
+        ):
+            dict_data["achievement_progress"] = defaultdict(
+                int, dict_data["achievement_progress"]
+            )
+        return super().from_dict(dict_data)
+
 
 class MarketItemModel(BaseModel):
     _id = Field(ObjectId)

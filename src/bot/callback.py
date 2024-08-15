@@ -891,7 +891,7 @@ def achievements_callback(call: CallbackQuery):
     if data[1] == "view":
         ach = get_achievement(data[2])
         mess = f"<b>{ach.emoji} {ach.name}</b>\n\n"
-        mess += f"<i>{ach.desc}</i>"
+        mess += f"<i>{ach.desc}</i>\n\n"
         mess += f"{achievement_progress(user, ach.name)}"
 
         logger.debug(user.achievement_progress)
