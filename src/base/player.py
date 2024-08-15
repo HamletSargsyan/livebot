@@ -17,7 +17,6 @@ from base.mobs import generate_mob
 from base.weather import get_weather
 
 from helpers.exceptions import ItemIsCoin, NoResult
-from helpers.markups import InlineMarkup
 from helpers.utils import (
     Loading,
     award_user_achievement,
@@ -32,6 +31,7 @@ from helpers.utils import (
     increment_achievement_progress,
     utcnow,
 )
+from helpers.markups import InlineMarkup
 
 from database.funcs import BaseDB, database, T as ModelsType
 from database.models import (

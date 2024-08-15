@@ -12,7 +12,6 @@ from telebot.types import Message, ReplyParameters, InlineKeyboardButton, User
 from telebot.util import antiflood, escape, split_string, quick_markup
 
 from base.achievements import ACHIEVEMENTS
-from base.player import get_or_add_user_item
 from config import (
     bot,
     channel_id,
@@ -269,6 +268,7 @@ def award_user_achievement(user: UserModel, achievement: Achievement):
     if is_completed_achievement(user, achievement.name):
         return
     from database.funcs import database
+    from base.player import get_or_add_user_item
 
     ach = AchievementModel(name=achievement.name, owner=user._id)
     database.achievements.add(**ach.to_dict())
