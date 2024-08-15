@@ -833,7 +833,7 @@ def generate_daily_gift(user: UserModel):
 
 
 def check_achievements(user: UserModel):
-    for key in user.achievement_progress:
+    for key in list(user.achievement_progress):
         ach = get_achievement(key.replace("-", " "))
         if ach.check(user):
             award_user_achievement(user, ach)
