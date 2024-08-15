@@ -31,6 +31,7 @@ from base.player import (
 )
 from base.items import items_list
 from helpers.utils import (
+    achievement_progress,
     check_user_subscription,
     get_achievement,
     get_item_count_for_rarity,
@@ -889,7 +890,9 @@ def achievements_callback(call: CallbackQuery):
 
     if data[1] == "view":
         ach = get_achievement(data[2])
-        mess = f"<b>{ach.name}</b>"
+        mess = f"<b>{ach.name}</b>\n\n"
+        mess += f"{achievement_progress(user, ach.name)}"
+
         markup = quick_markup(
             {"Назад": {"callback_data": f"achievements main {user.id}"}}
         )

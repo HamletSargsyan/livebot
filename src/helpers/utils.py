@@ -244,3 +244,32 @@ def get_achievement(name: str) -> Achievement:
         elif name == achievement.translit():
             return achievement
     raise AchievementNotFoundError(name)
+
+
+def achievement_progress(user: UserModel, name: str) -> str:
+    ach = get_achievement(name)
+    percentage = calc_percentage(user.achievement_progress[ach.key], ach.need)
+
+    progress = f"[{create_progress_bar(percentage)}] {percentage}%"
+    return progress
+
+
+def calc_percentage(part: int, total: int = 100) -> float:
+    if total == 0:
+        raise ValueError("Общий объем не может быть равен нулю")
+    return (part / total) * 100
+
+
+def create_progress_bar(percentage: float) -> str:
+    if not (0 <= percentage <= 100):
+        raise ValueError("Процент должен быть в диапазоне от 0 до 100.")
+
+    length: int = 10
+    filled_length = int(length * percentage // 100)
+    empty_length = length - filled_length
+
+    filled_block = "■"
+    empty_block = "□"
+
+    progress_bar = filled_block * filled_length + empty_block * empty_length
+    return progress_bar
