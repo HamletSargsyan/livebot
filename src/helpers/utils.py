@@ -278,15 +278,14 @@ def award_user_achievement(user: UserModel, achievement: Achievement):
     reward = ""
 
     logger.debug(user.achievement_progress)
-    del user.achievement_progress[achievement.key]
-    logger.debug(achievement_progress)
 
     for item, quantity in achievement.reward.items():
+        logger.debug(item, quantity)
+        reward = f"{get_item_emoji(item)} {item} {quantity}\n"
         if item == "бабло":
             user.coin += quantity
             database.users.update(**user.to_dict())
         else:
-            reward += f"{get_item_emoji(item)} {item} {quantity}\n"
             user_item = get_or_add_user_item(user, item)
             user_item.quantity += quantity
             database.items.update(**user_item.to_dict())
