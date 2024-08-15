@@ -232,9 +232,7 @@ class InlineMarkup:
         achievements = sorted(ACHIEVEMENTS, key=lambda a: a.check(user), reverse=True)
 
         for achievement in achievements:
-            result = achievement.check(user) and is_completed_achievement(
-                user, achievement.name
-            )
+            result = is_completed_achievement(user, achievement.name)
 
             buttons.append(
                 InlineKeyboardButton(
