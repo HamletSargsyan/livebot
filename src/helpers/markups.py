@@ -7,6 +7,7 @@ from helpers.utils import (
     get_item_emoji,
     get_pager_controllers,
     get_time_difference_string,
+    is_completed_achievement,
     utcnow,
 )
 from database.models import DailyGiftModel, MarketItemModel, UserModel
@@ -231,7 +232,9 @@ class InlineMarkup:
         achievements = sorted(ACHIEVEMENTS, key=lambda a: a.check(user), reverse=True)
 
         for achievement in achievements:
-            result = achievement.check(user)
+            result = achievement.check(user) and is_completed_achievement(
+                user, achievement.name
+            )
 
             buttons.append(
                 InlineKeyboardButton(
