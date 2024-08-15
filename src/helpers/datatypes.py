@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import transliterate
 
@@ -168,20 +168,26 @@ class Item:
 class Achievement:
     def __init__(
         self,
+        /,
         name: str,
-        description: str,
-        condition: Callable[[UserModel], bool],
+        emoji: str,
+        desc: str,
+        need: int,
+        key: str,
         reward: dict[str, int],
     ) -> None:
         self.name = name
-        self.description = description
-        self.condition = condition
+        self.emoji = emoji
+        self.desc = desc
+        self.need = need
+        self.key = key
         self.reward = reward
 
     def __str__(self) -> str:
         return f"{self.name}"
 
     def check(self, user: UserModel):
-        if not self.condition(user):
-            return
-        raise NotImplementedError
+        progress = user.achievement_progress.get(self.key, 0)
+        if progress >= self.need:
+            return True
+        return False
