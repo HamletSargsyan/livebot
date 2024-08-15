@@ -7,6 +7,7 @@ from helpers.utils import (
     get_item_emoji,
     get_pager_controllers,
     get_time_difference_string,
+    is_completed_achievement,
     utcnow,
 )
 from database.models import DailyGiftModel, MarketItemModel, UserModel
@@ -229,6 +230,9 @@ class InlineMarkup:
         buttons = []
 
         achievements = sorted(ACHIEVEMENTS, key=lambda a: a.check(user), reverse=True)
+        achievements = list(
+            filter(lambda a: is_completed_achievement(user, a.name), achievements)
+        )
 
         for achievement in achievements:
             result = achievement.check(user)

@@ -9,7 +9,6 @@ ACHIEVEMENTS: Final[list[Achievement]] = [
         emoji="💼",
         desc="поработай 10 раз",
         need=10,
-        key="работяга",
         reward={
             "бабло": 10_000,
         },
@@ -19,7 +18,6 @@ ACHIEVEMENTS: Final[list[Achievement]] = [
         emoji="🚶",
         desc="погуляй 10 раз",
         need=10,
-        key="бродяга",
         reward={
             "бабло": 10_000,
         },

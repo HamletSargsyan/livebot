@@ -173,14 +173,13 @@ class Achievement:
         emoji: str,
         desc: str,
         need: int,
-        key: str,
         reward: dict[str, int],
     ) -> None:
         self.name = name
         self.emoji = emoji
         self.desc = desc
         self.need = need
-        self.key = key
+        self.key = name.strip().replace(" ", "-")
         self.reward = reward
 
     def __str__(self) -> str:

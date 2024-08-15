@@ -20,13 +20,16 @@ from helpers.exceptions import ItemIsCoin, NoResult
 from helpers.markups import InlineMarkup
 from helpers.utils import (
     Loading,
+    award_user_achievement,
     calc_xp_for_level,
     from_user,
+    get_achievement,
     get_item,
     get_item_count_for_rarity,
     get_time_difference_string,
     get_item_emoji,
     get_user_tag,
+    increment_achievement_progress,
     utcnow,
 )
 
@@ -119,6 +122,8 @@ def check_user_stats(user: UserModel, chat_id: Union[str, int, None] = None):
 
     if user.coin < 0:
         user.coin = 0
+
+    check_achievements(user)
 
     # TODO edit
     # tg_user = bot.get_chat(user.id)
@@ -650,7 +655,7 @@ def street(call: CallbackQuery, user: UserModel):
     user.fatigue += random.randint(3, 8)
     user.mood -= random.randint(3, 6)
     user.met_mob = False
-    user.achievement_progress["бродяга"] += 1
+    increment_achievement_progress(user, "бродяга")
     database.users.update(**user.to_dict())
 
     try:
@@ -718,7 +723,7 @@ def work(call: CallbackQuery, user: UserModel):
     user.fatigue += random.randint(5, 10)
     user.hunger += random.randint(3, 6)
     user.mood -= random.randint(3, 6)
-    user.achievement_progress["работяга"] += 1
+    increment_achievement_progress(user, "работяга")
 
     database.users.update(**user.to_dict())
 
@@ -825,3 +830,10 @@ def generate_daily_gift(user: UserModel):
     daily_gift.next_claimable_at = utcnow() + timedelta(days=1)
     database.daily_gifts.update(**daily_gift.to_dict())
     return daily_gift
+
+
+def check_achievements(user: UserModel):
+    for key in user.achievement_progress:
+        ach = get_achievement(key.replace("-", " "))
+        if ach.check(user):
+            award_user_achievement(user, ach)

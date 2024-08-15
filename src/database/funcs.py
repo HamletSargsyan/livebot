@@ -9,6 +9,7 @@ import redis
 from helpers.exceptions import NoResult
 from config import DB_NAME, DB_URL, REDIS_URL
 from database.models import (
+    AchievementModel,
     MarketItemModel,
     NotificationModel,
     UserModel,
@@ -40,6 +41,7 @@ dogs = db.get_collection("dogs")
 notifications = db.get_collection("notifications")
 market_items = db.get_collection("market_items")
 daily_gifts = db.get_collection("daily_gifts")
+achievements = db.get_collection("achievements")
 
 
 T = TypeVar(
@@ -53,6 +55,7 @@ T = TypeVar(
     NotificationModel,
     MarketItemModel,
     DailyGiftModel,
+    AchievementModel,
 )
 
 
@@ -100,6 +103,7 @@ class DataBase:
         self.notifications = BaseDB(notifications, NotificationModel)
         self.market_items = BaseDB(market_items, MarketItemModel)
         self.daily_gifts = BaseDB(daily_gifts, DailyGiftModel)
+        self.achievements = BaseDB(achievements, AchievementModel)
 
 
 database = DataBase()

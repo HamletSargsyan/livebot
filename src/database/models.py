@@ -1,4 +1,3 @@
-from collections import defaultdict
 from typing import TypeVar, Generic, Type, Any
 from datetime import datetime, timedelta, UTC
 from bson import ObjectId
@@ -207,26 +206,10 @@ class UserModel(BaseModel):
     last_advert_time = Field(datetime, nullable=True)
     adverts_count = Field(int, default=0)
     last_active_time = Field(datetime, default=_utcnow())
-    achievement_progress: dict[str, int] = Field(dict, default=defaultdict(int))  # type: ignore
+    achievement_progress: dict[str, int] = Field(dict, default={})  # type: ignore
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
-
-    def to_dict(self) -> dict:
-        data = super().to_dict()
-        if isinstance(data.get("achievement_progress"), defaultdict):
-            data["achievement_progress"] = dict(data["achievement_progress"])
-        return data
-
-    @classmethod
-    def from_dict(cls, dict_data: dict):
-        if "achievement_progress" in dict_data and isinstance(
-            dict_data["achievement_progress"], dict
-        ):
-            dict_data["achievement_progress"] = defaultdict(
-                int, dict_data["achievement_progress"]
-            )
-        return super().from_dict(dict_data)
 
 
 class MarketItemModel(BaseModel):
@@ -268,6 +251,7 @@ class DailyGiftModel(BaseModel):
 
 class AchievementModel(BaseModel):
     _id = Field(ObjectId)
+    owner = Field(ObjectId)
     name = Field(str)
     created_at = Field(datetime, default=_utcnow())
 

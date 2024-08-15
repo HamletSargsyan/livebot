@@ -12,6 +12,7 @@ from telebot.types import Message, ReplyParameters, InlineKeyboardButton, User
 from telebot.util import antiflood, escape, split_string, quick_markup
 
 from base.achievements import ACHIEVEMENTS
+from base.player import get_or_add_user_item
 from config import (
     bot,
     channel_id,
@@ -20,9 +21,9 @@ from config import (
     log_thread_id,
     version,
 )
-from database.models import UserModel
+from database.models import AchievementModel, UserModel
 from helpers.datatypes import Achievement, Item
-from helpers.exceptions import AchievementNotFoundError, ItemNotFoundError
+from helpers.exceptions import AchievementNotFoundError, ItemNotFoundError, NoResult
 from base.items import items_list
 from helpers.enums import ItemRarity
 
@@ -252,6 +253,55 @@ def achievement_progress(user: UserModel, name: str) -> str:
 
     progress = f"[{create_progress_bar(percentage)}] {percentage}%"
     return progress
+
+
+def is_completed_achievement(user: UserModel, name: str) -> bool:
+    from database.funcs import database
+
+    try:
+        database.achievements.get(owner=user._id, name=name)
+        return True
+    except NoResult:
+        return False
+
+
+def award_user_achievement(user: UserModel, achievement: Achievement):
+    if is_completed_achievement(user, achievement.name):
+        return
+    from database.funcs import database
+
+    ach = AchievementModel(name=achievement.name, owner=user._id)
+    database.achievements.add(**ach.to_dict())
+
+    reward = ""
+
+    del user.achievement_progress[achievement.key]
+
+    for item, quantity in achievement.reward.items():
+        if item == "бабло":
+            user.coin += quantity
+            database.users.update(**user.to_dict())
+        else:
+            reward += f"{get_item_emoji(item)} {item} {quantity}\n"
+            user_item = get_or_add_user_item(user, item)
+            user_item.quantity += quantity
+            database.items.update(**user_item.to_dict())
+
+    bot.send_message(
+        user.id,
+        f"Поздравляю🎉, ты получил достижение '{ach.name}'\n\nЗа это ты получил {reward}",
+    )
+
+
+def increment_achievement_progress(user: UserModel, key: str):
+    if not is_completed_achievement(user, key.replace("-", " ")):
+        from database.funcs import database
+
+        if key in user.achievement_progress:
+            user.achievement_progress[key] += 1
+        else:
+            user.achievement_progress[key] = 1
+        database.users.update(**user.to_dict())
 
 
 def calc_percentage(part: int, total: int = 100) -> float:
