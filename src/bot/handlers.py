@@ -916,7 +916,11 @@ def price_cmd(message: Message):
             bot.reply_to(message, "По моему ты что-то забыл...")
             return
 
-        item = get_item(name)
+        try:
+            item = get_item(name)
+        except ItemNotFoundError:
+            bot.reply_to(message, "такого предмета не существует")
+            return
         price = get_middle_item_price(item.name)
         if not item:
             mess = "Такого предмета не существует"
