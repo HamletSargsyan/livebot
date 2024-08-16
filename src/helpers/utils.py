@@ -268,12 +268,10 @@ def is_completed_achievement(user: UserModel, name: str) -> bool:
 
 def award_user_achievement(user: UserModel, achievement: Achievement):
     if is_completed_achievement(user, achievement.name):
-        logger.debug("completed")
         return
     from database.funcs import database
     from base.player import get_or_add_user_item
 
-    logger.debug("new ach add")
     ach = AchievementModel(name=achievement.name, owner=user._id)
     database.achievements.add(**ach.to_dict())
 
@@ -303,15 +301,9 @@ def increment_achievement_progress(user: UserModel, key: str):
             user.achievement_progress[key] += 1
         else:
             user.achievement_progress[key] = 1
-        logger.debug(
-            f"Before update: {user.to_dict()}",
-        )
         database.users.update(
             user._id,
             **{f"achievement_progress.{key}": user.achievement_progress[key]},
-        )
-        logger.debug(
-            f"After update: {database.users.get(_id=user._id).to_dict()}",
         )
 
 
