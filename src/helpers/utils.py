@@ -252,7 +252,7 @@ def achievement_progress(user: UserModel, name: str) -> str:
     percentage = calc_percentage(achievement_progress, ach.need)
 
     progress = f"Выполнил: {achievement_progress}/{ach.need}\n"
-    progress += f"[<code>{create_progress_bar(percentage)}] {percentage:.2f}%</code>"
+    progress += f"[{create_progress_bar(percentage)}] {percentage:.2f}%"
     return progress
 
 
@@ -334,3 +334,14 @@ def create_progress_bar(percentage: float) -> str:
 
     progress_bar = filled_block * filled_length + empty_block * empty_length
     return progress_bar
+
+
+def achievement_status(user: UserModel, achievement: Achievement) -> int:
+    progress = user.achievement_progress.get(achievement.key, 0)
+    is_completed = is_completed_achievement(user, achievement.name)
+    if progress > 0 and not is_completed:
+        return 0  # В процессе
+    elif is_completed:
+        return 2  # Выполнено
+    else:
+        return 1  # Не начато

@@ -911,3 +911,11 @@ def achievements_callback(call: CallbackQuery):
         bot.edit_message_text(
             mess, call.message.chat.id, call.message.id, reply_markup=markup
         )
+
+    elif data[1] == "filter":
+        filter = data[2]
+        markup = InlineMarkup.achievements_view(user, filter)  # type: ignore
+
+        bot.edit_message_reply_markup(
+            call.message.chat.id, call.message.id, reply_markup=markup
+        )

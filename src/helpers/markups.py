@@ -1,10 +1,12 @@
+from copy import deepcopy
+from typing import Literal
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from telebot.util import quick_markup, chunks
 
 from base.achievements import ACHIEVEMENTS
 from base.items import items_list
-from helpers.datatypes import Achievement
 from helpers.utils import (
+    achievement_status,
     get_item_emoji,
     get_pager_controllers,
     get_time_difference_string,
@@ -226,40 +228,67 @@ class InlineMarkup:
         return markup
 
     @classmethod
-    def achievements(cls, user: UserModel) -> InlineKeyboardMarkup:
+    def achievements_view(
+        cls,
+        user: UserModel,
+        status: Literal["all", "in_progress", "completed", "not_started"] = "all",
+    ) -> InlineKeyboardMarkup:
         markup = InlineKeyboardMarkup(row_width=1)
         buttons = []
 
-        def achievement_status(achievement: Achievement) -> int:
-            progress = user.achievement_progress.get(achievement.key, 0)
-            is_completed = is_completed_achievement(user, achievement.name)
-            if progress > 0 and not is_completed:
-                return 0  # В процессе
-            elif is_completed:
-                return 2  # Выполнено
-            else:
-                return 1  # Не начато
+        achievements = deepcopy(ACHIEVEMENTS)
+        if status == "in_progress":
+            achievements = [a for a in achievements if achievement_status(user, a) == 0]
+        elif status == "not_started":
+            achievements = [a for a in achievements if achievement_status(user, a) == 1]
+        elif status == "completed":
+            achievements = [a for a in achievements if achievement_status(user, a) == 2]
 
-        achievements = sorted(ACHIEVEMENTS, key=lambda a: achievement_status(a))
+        else:
+            achievements.sort(key=lambda a: achievement_status(user, a))
 
         for achievement in achievements:
             progress = user.achievement_progress.get(achievement.key, 0)
             is_completed = is_completed_achievement(user, achievement.name)
+            emoji = ""
 
-            if progress > 0 and not is_completed:
-                emoji = "⏳"
-            elif is_completed:
-                emoji = "✅"
-            else:
-                emoji = "❌"
+            if status == "all":
+                if progress > 0 and not is_completed:
+                    emoji = "⏳"
+                elif is_completed:
+                    emoji = "✅"
+                else:
+                    emoji = "❌"
 
             buttons.append(
                 InlineKeyboardButton(
-                    text=f"{emoji}\t{achievement.name} {achievement.emoji}",
+                    text=f"{emoji} {achievement.name} {achievement.emoji}",
                     callback_data=f"achievements view {achievement.translit()} {user.id}",
                 )
             )
 
         markup.add(*buttons)
+        markup.row(
+            InlineKeyboardButton("Назад", callback_data=f"achievements main {user.id}")
+        )
 
         return markup
+
+    @classmethod
+    def achievements(cls, user: UserModel) -> InlineKeyboardMarkup:
+        return quick_markup(
+            {
+                "Все достижения": {
+                    "callback_data": f"achievements filter all {user.id}"
+                },
+                "В прогрессе": {
+                    "callback_data": f"achievements filter in_progress {user.id}"
+                },
+                "Не начатие": {
+                    "callback_data": f"achievements filter not_started {user.id}"
+                },
+                "Получение": {
+                    "callback_data": f"achievements filter completed {user.id}"
+                },
+            }
+        )
