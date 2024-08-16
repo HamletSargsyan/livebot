@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Команда `/time`
 - Кеширование в команду `/weather`. Погода обновляется раз в 30 минут
+- Достижения (команда `/achievements`)
 
 ### Изменено
 - Модуль Заменен `requests` на `httpx`

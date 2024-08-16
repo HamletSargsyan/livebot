@@ -74,6 +74,7 @@ START_MARKUP.add(
         KeyboardButton("Погода"),
         KeyboardButton("Обменник"),
         KeyboardButton("Гайд"),
+        KeyboardButton("Достижения"),
     ]
 )
 

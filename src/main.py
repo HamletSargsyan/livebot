@@ -23,6 +23,7 @@ def configure_bot_commands():
         BotCommand("exchanger", "Обменник"),
         BotCommand("transfer", "Перекидка предметов"),
         BotCommand("shop", "Магазин"),
+        BotCommand("achievements", "Достижения"),
         BotCommand("weather", "Погода"),
         BotCommand("items", "Информация о всех приметах"),
         BotCommand("casino", "Казино"),
