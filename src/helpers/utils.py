@@ -293,14 +293,15 @@ def award_user_achievement(user: UserModel, achievement: Achievement):
     )
 
 
-def increment_achievement_progress(user: UserModel, key: str):
+def increment_achievement_progress(user: UserModel, key: str, quantity: int = 1):
     if not is_completed_achievement(user, key.replace("-", " ")):
         from database.funcs import database
 
         if key in user.achievement_progress:
-            user.achievement_progress[key] += 1
+            user.achievement_progress[key] += quantity
         else:
-            user.achievement_progress[key] = 1
+            user.achievement_progress[key] = quantity
+
         database.users.update(
             user._id,
             **{f"achievement_progress.{key}": user.achievement_progress[key]},

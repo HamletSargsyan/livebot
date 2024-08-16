@@ -40,6 +40,7 @@ from helpers.utils import (
     get_time_difference_string,
     get_item,
     get_user_tag,
+    increment_achievement_progress,
     utcnow,
 )
 
@@ -650,6 +651,9 @@ def market_callback(call: CallbackQuery):
         database.items.update(**user_item.to_dict())
         database.users.update(**user.to_dict())
         database.users.update(**item_owner.to_dict())
+
+        increment_achievement_progress(user, "богач", market_item.price)
+        increment_achievement_progress(item_owner, "продавец")
 
         usage = f" ({int(market_item.usage)}%)" if market_item.usage else ""
 
