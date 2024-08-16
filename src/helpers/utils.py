@@ -11,6 +11,7 @@ from semver import Version
 from telebot.types import Message, ReplyParameters, InlineKeyboardButton, User
 from telebot.util import antiflood, escape, split_string, quick_markup
 
+from base.achievements import ACHIEVEMENTS
 from config import (
     bot,
     channel_id,
@@ -19,9 +20,9 @@ from config import (
     log_thread_id,
     version,
 )
-from database.models import UserModel
-from helpers.datatypes import Item
-from helpers.exceptions import ItemNotFoundError
+from database.models import AchievementModel, UserModel
+from helpers.datatypes import Achievement, Item
+from helpers.exceptions import AchievementNotFoundError, ItemNotFoundError, NoResult
 from base.items import items_list
 from helpers.enums import ItemRarity
 
@@ -234,3 +235,113 @@ def from_user(message: Message) -> User:
     pyright hack
     """
     return message.from_user  # type: ignore
+
+
+def get_achievement(name: str) -> Achievement:
+    for achievement in ACHIEVEMENTS:
+        if name == achievement.name:
+            return achievement
+        elif name == achievement.translit() or name == achievement.key:
+            return achievement
+    raise AchievementNotFoundError(name)
+
+
+def achievement_progress(user: UserModel, name: str) -> str:
+    ach = get_achievement(name)
+    achievement_progress = user.achievement_progress.get(ach.key, 0)
+    percentage = calc_percentage(achievement_progress, ach.need)
+
+    progress = f"Выполнил: {achievement_progress}/{ach.need}\n"
+    progress += f"[{create_progress_bar(percentage)}] {percentage:.2f}%"
+    return progress
+
+
+def is_completed_achievement(user: UserModel, name: str) -> bool:
+    from database.funcs import database
+
+    try:
+        database.achievements.get(owner=user._id, name=name)
+        return True
+    except NoResult:
+        return False
+
+
+def award_user_achievement(user: UserModel, achievement: Achievement):
+    if is_completed_achievement(user, achievement.name):
+        logger.debug("completed")
+        return
+    from database.funcs import database
+    from base.player import get_or_add_user_item
+
+    logger.debug("new ach add")
+    ach = AchievementModel(name=achievement.name, owner=user._id)
+    database.achievements.add(**ach.to_dict())
+
+    reward = ""
+
+    for item, quantity in achievement.reward.items():
+        reward = f"+ {quantity} {item} {get_item_emoji(item)}\n"
+        if item == "бабло":
+            user.coin += quantity
+            database.users.update(**user.to_dict())
+        else:
+            user_item = get_or_add_user_item(user, item)
+            user_item.quantity += quantity
+            database.items.update(**user_item.to_dict())
+
+    bot.send_message(
+        user.id,
+        f"Поздравляю🎉, ты получил достижение '{ach.name}'\n\nЗа это ты получил:\n{reward}",
+    )
+
+
+def increment_achievement_progress(user: UserModel, key: str):
+    if not is_completed_achievement(user, key.replace("-", " ")):
+        from database.funcs import database
+
+        if key in user.achievement_progress:
+            user.achievement_progress[key] += 1
+        else:
+            user.achievement_progress[key] = 1
+        logger.debug(
+            f"Before update: {user.to_dict()}",
+        )
+        database.users.update(
+            user._id,
+            **{f"achievement_progress.{key}": user.achievement_progress[key]},
+        )
+        logger.debug(
+            f"After update: {database.users.get(_id=user._id).to_dict()}",
+        )
+
+
+def calc_percentage(part: int, total: int = 100) -> float:
+    if total == 0:
+        raise ValueError("Общий объем не может быть равен нулю")
+    return (part / total) * 100
+
+
+def create_progress_bar(percentage: float) -> str:
+    if not (0 <= percentage <= 100):
+        raise ValueError("Процент должен быть в диапазоне от 0 до 100.")
+
+    length: int = 10
+    filled_length = int(length * percentage // 100)
+    empty_length = length - filled_length
+
+    filled_block = "■"
+    empty_block = "□"
+
+    progress_bar = filled_block * filled_length + empty_block * empty_length
+    return progress_bar
+
+
+def achievement_status(user: UserModel, achievement: Achievement) -> int:
+    progress = user.achievement_progress.get(achievement.key, 0)
+    is_completed = is_completed_achievement(user, achievement.name)
+    if progress > 0 and not is_completed:
+        return 0  # В процессе
+    elif is_completed:
+        return 2  # Выполнено
+    else:
+        return 1  # Не начато

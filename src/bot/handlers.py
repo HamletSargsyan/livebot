@@ -30,6 +30,7 @@ from helpers.utils import (
     get_item_emoji,
     get_item,
     Loading,
+    increment_achievement_progress,
     send_channel_subscribe_message,
     utcnow,
 )
@@ -109,6 +110,8 @@ def start(message: Message):
                 coin = random.randint(5000, 15000)
                 ref_user.coin += coin
                 database.users.update(**ref_user.to_dict())
+                increment_achievement_progress(ref_user, "друзья навеки")
+
                 bot.send_message(
                     ref_user.id,
                     (
@@ -1008,6 +1011,16 @@ def time_cmd(message: Message):
     bot.reply_to(message, mess)
 
 
+@bot.message_handler(commands=["achievements"])
+def achievements_cmd(message: Message):
+    user = database.users.get(id=message.from_user.id)
+
+    markup = InlineMarkup.achievements(user)
+
+    mess = "Достижения"
+    bot.reply_to(message, mess, reply_markup=markup)
+
+
 # ---------------------------------------------------------------------------- #
 
 
@@ -1066,3 +1079,5 @@ def text_message_handler(message: Message):
             home_cmd(message)
         case "рынок":
             market_cmd(message)
+        case "достижения" | "ачивки":
+            achievements_cmd(message)

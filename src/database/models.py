@@ -206,6 +206,7 @@ class UserModel(BaseModel):
     last_advert_time = Field(datetime, nullable=True)
     adverts_count = Field(int, default=0)
     last_active_time = Field(datetime, default=_utcnow())
+    achievement_progress: dict[str, int] = Field(dict, default={})  # type: ignore
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
@@ -243,6 +244,16 @@ class DailyGiftModel(BaseModel):
     is_claimed = Field(bool, default=False)
     items = Field(list)
     streak = Field(int, default=0)
+
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
+
+
+class AchievementModel(BaseModel):
+    _id = Field(ObjectId)
+    owner = Field(ObjectId)
+    name = Field(str)
+    created_at = Field(datetime, default=_utcnow())
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)

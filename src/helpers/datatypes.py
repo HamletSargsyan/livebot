@@ -1,6 +1,8 @@
 from typing import Any, Dict, List, Optional, Tuple
 
 import transliterate
+
+from database.models import UserModel
 from helpers.enums import ItemRarity, ItemType, WeatherType
 
 # ---------------------------------- Weather --------------------------------- #
@@ -158,3 +160,36 @@ class Item:
 
     def translit(self) -> str:
         return transliterate.translit(self.name, reversed=True)
+
+
+# ------------------------------- achievements ------------------------------- #
+
+
+class Achievement:
+    def __init__(
+        self,
+        /,
+        name: str,
+        emoji: str,
+        desc: str,
+        need: int,
+        reward: dict[str, int],
+    ) -> None:
+        self.name = name
+        self.emoji = emoji
+        self.desc = desc
+        self.need = need
+        self.key = name.strip().replace(" ", "-")
+        self.reward = reward
+
+    def __str__(self) -> str:
+        return f"{self.name}"
+
+    def check(self, user: UserModel):
+        progress = user.achievement_progress.get(self.key, 0)
+        if progress >= self.need:
+            return True
+        return False
+
+    def translit(self) -> str:
+        return transliterate.translit(self.key, reversed=True)

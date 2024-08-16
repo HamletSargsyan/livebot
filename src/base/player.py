@@ -17,18 +17,21 @@ from base.mobs import generate_mob
 from base.weather import get_weather
 
 from helpers.exceptions import ItemIsCoin, NoResult
-from helpers.markups import InlineMarkup
 from helpers.utils import (
     Loading,
+    award_user_achievement,
     calc_xp_for_level,
     from_user,
+    get_achievement,
     get_item,
     get_item_count_for_rarity,
     get_time_difference_string,
     get_item_emoji,
     get_user_tag,
+    increment_achievement_progress,
     utcnow,
 )
+from helpers.markups import InlineMarkup
 
 from database.funcs import BaseDB, database, T as ModelsType
 from database.models import (
@@ -119,6 +122,8 @@ def check_user_stats(user: UserModel, chat_id: Union[str, int, None] = None):
 
     if user.coin < 0:
         user.coin = 0
+
+    check_achievements(user)
 
     # TODO edit
     # tg_user = bot.get_chat(user.id)
@@ -651,6 +656,7 @@ def street(call: CallbackQuery, user: UserModel):
     user.mood -= random.randint(3, 6)
     user.met_mob = False
     database.users.update(**user.to_dict())
+    increment_achievement_progress(user, "бродяга")
 
     try:
         user_notification = database.notifications.get(**{"owner": user._id})
@@ -719,6 +725,7 @@ def work(call: CallbackQuery, user: UserModel):
     user.mood -= random.randint(3, 6)
 
     database.users.update(**user.to_dict())
+    increment_achievement_progress(user, "работяга")
 
     try:
         user_notification = database.notifications.get(**{"owner": user._id})
@@ -758,7 +765,9 @@ def sleep(call: CallbackQuery, user: UserModel):
     user.xp += random.uniform(1.5, 2.0)
     user.state = None
     user.action_time = utcnow()
+
     database.users.update(**user.to_dict())
+    increment_achievement_progress(user, "сонный")
 
     mess = "Охх, хорошенько поспал"
     bot.edit_message_text(mess, call.message.chat.id, call.message.id)
@@ -801,7 +810,9 @@ def game(call: CallbackQuery, user: UserModel):
         user.mood *= 2
     user.state = None
     user.action_time = utcnow()
+
     database.users.update(**user.to_dict())
+    increment_achievement_progress(user, "игроман")
 
     mess = "Как же хорошо было играть 😊"
     bot.edit_message_text(mess, call.message.chat.id, call.message.id)
@@ -823,3 +834,10 @@ def generate_daily_gift(user: UserModel):
     daily_gift.next_claimable_at = utcnow() + timedelta(days=1)
     database.daily_gifts.update(**daily_gift.to_dict())
     return daily_gift
+
+
+def check_achievements(user: UserModel):
+    for key in list(user.achievement_progress):
+        ach = get_achievement(key.replace("-", " "))
+        if ach.check(user):
+            award_user_achievement(user, ach)
