@@ -655,8 +655,8 @@ def street(call: CallbackQuery, user: UserModel):
     user.fatigue += random.randint(3, 8)
     user.mood -= random.randint(3, 6)
     user.met_mob = False
-    increment_achievement_progress(user, "бродяга")
     database.users.update(**user.to_dict())
+    increment_achievement_progress(user, "бродяга")
 
     try:
         user_notification = database.notifications.get(**{"owner": user._id})
@@ -723,9 +723,9 @@ def work(call: CallbackQuery, user: UserModel):
     user.fatigue += random.randint(5, 10)
     user.hunger += random.randint(3, 6)
     user.mood -= random.randint(3, 6)
-    increment_achievement_progress(user, "работяга")
 
     database.users.update(**user.to_dict())
+    increment_achievement_progress(user, "работяга")
 
     try:
         user_notification = database.notifications.get(**{"owner": user._id})
@@ -765,7 +765,9 @@ def sleep(call: CallbackQuery, user: UserModel):
     user.xp += random.uniform(1.5, 2.0)
     user.state = None
     user.action_time = utcnow()
+
     database.users.update(**user.to_dict())
+    increment_achievement_progress(user, "сонный")
 
     mess = "Охх, хорошенько поспал"
     bot.edit_message_text(mess, call.message.chat.id, call.message.id)
@@ -808,7 +810,9 @@ def game(call: CallbackQuery, user: UserModel):
         user.mood *= 2
     user.state = None
     user.action_time = utcnow()
+
     database.users.update(**user.to_dict())
+    increment_achievement_progress(user, "игроман")
 
     mess = "Как же хорошо было играть 😊"
     bot.edit_message_text(mess, call.message.chat.id, call.message.id)

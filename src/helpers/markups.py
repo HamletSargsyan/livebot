@@ -3,6 +3,7 @@ from telebot.util import quick_markup, chunks
 
 from base.achievements import ACHIEVEMENTS
 from base.items import items_list
+from helpers.datatypes import Achievement
 from helpers.utils import (
     get_item_emoji,
     get_pager_controllers,
@@ -229,14 +230,32 @@ class InlineMarkup:
         markup = InlineKeyboardMarkup(row_width=1)
         buttons = []
 
-        achievements = sorted(ACHIEVEMENTS, key=lambda a: a.check(user), reverse=True)
+        def achievement_status(achievement: Achievement) -> int:
+            progress = user.achievement_progress.get(achievement.key, 0)
+            is_completed = is_completed_achievement(user, achievement.name)
+            if progress > 0 and not is_completed:
+                return 0  # В процессе
+            elif is_completed:
+                return 2  # Выполнено
+            else:
+                return 1  # Не начато
+
+        achievements = sorted(ACHIEVEMENTS, key=lambda a: achievement_status(a))
 
         for achievement in achievements:
-            result = is_completed_achievement(user, achievement.name)
+            progress = user.achievement_progress.get(achievement.key, 0)
+            is_completed = is_completed_achievement(user, achievement.name)
+
+            if progress > 0 and not is_completed:
+                emoji = "⏳"
+            elif is_completed:
+                emoji = "✅"
+            else:
+                emoji = "❌"
 
             buttons.append(
                 InlineKeyboardButton(
-                    text=("✅ " if result else "❌ ") + achievement.name,
+                    text=f"{emoji}\t{achievement.name} {achievement.emoji}",
                     callback_data=f"achievements view {achievement.translit()} {user.id}",
                 )
             )

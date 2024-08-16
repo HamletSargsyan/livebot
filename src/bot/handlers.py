@@ -30,6 +30,7 @@ from helpers.utils import (
     get_item_emoji,
     get_item,
     Loading,
+    increment_achievement_progress,
     send_channel_subscribe_message,
     utcnow,
 )
@@ -109,6 +110,8 @@ def start(message: Message):
                 coin = random.randint(5000, 15000)
                 ref_user.coin += coin
                 database.users.update(**ref_user.to_dict())
+                increment_achievement_progress(ref_user, "друзья навеки")
+
                 bot.send_message(
                     ref_user.id,
                     (

@@ -192,4 +192,4 @@ class Achievement:
         return False
 
     def translit(self) -> str:
-        return transliterate.translit(self.name, reversed=True)
+        return transliterate.translit(self.key, reversed=True)

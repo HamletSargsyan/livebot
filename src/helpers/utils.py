@@ -241,16 +241,18 @@ def get_achievement(name: str) -> Achievement:
     for achievement in ACHIEVEMENTS:
         if name == achievement.name:
             return achievement
-        elif name == achievement.translit():
+        elif name == achievement.translit() or name == achievement.key:
             return achievement
     raise AchievementNotFoundError(name)
 
 
 def achievement_progress(user: UserModel, name: str) -> str:
     ach = get_achievement(name)
-    percentage = calc_percentage(user.achievement_progress.get(ach.key, 0), ach.need)
+    achievement_progress = user.achievement_progress.get(ach.key, 0)
+    percentage = calc_percentage(achievement_progress, ach.need)
 
-    progress = f"[{create_progress_bar(percentage)}] {percentage}%"
+    progress = f"Выполнил: {achievement_progress}/{ach.need}\n"
+    progress += f"[<code>{create_progress_bar(percentage)}] {percentage:.2f}%</code>"
     return progress
 
 
@@ -277,11 +279,8 @@ def award_user_achievement(user: UserModel, achievement: Achievement):
 
     reward = ""
 
-    logger.debug(user.achievement_progress)
-
     for item, quantity in achievement.reward.items():
-        logger.debug(item, quantity)
-        reward = f"{get_item_emoji(item)} {item} {quantity}\n"
+        reward = f"+ {quantity} {item} {get_item_emoji(item)}\n"
         if item == "бабло":
             user.coin += quantity
             database.users.update(**user.to_dict())
@@ -292,7 +291,7 @@ def award_user_achievement(user: UserModel, achievement: Achievement):
 
     bot.send_message(
         user.id,
-        f"Поздравляю🎉, ты получил достижение '{ach.name}'\n\nЗа это ты получил {reward}",
+        f"Поздравляю🎉, ты получил достижение '{ach.name}'\n\nЗа это ты получил:\n{reward}",
     )
 
 
@@ -304,7 +303,16 @@ def increment_achievement_progress(user: UserModel, key: str):
             user.achievement_progress[key] += 1
         else:
             user.achievement_progress[key] = 1
-        database.users.update(**user.to_dict())
+        logger.debug(
+            f"Before update: {user.to_dict()}",
+        )
+        database.users.update(
+            user._id,
+            **{f"achievement_progress.{key}": user.achievement_progress[key]},
+        )
+        logger.debug(
+            f"After update: {database.users.get(_id=user._id).to_dict()}",
+        )
 
 
 def calc_percentage(part: int, total: int = 100) -> float:
@@ -326,4 +334,3 @@ def create_progress_bar(percentage: float) -> str:
 
     progress_bar = filled_block * filled_length + empty_block * empty_length
     return progress_bar
-
