@@ -24,11 +24,14 @@ from base.player import (
     level_top,
     use_item,
     get_available_items_for_use,
+)
+from base.actions import (
     game,
     sleep,
     street,
     work,
 )
+
 from base.items import items_list
 from helpers.utils import (
     achievement_progress,
