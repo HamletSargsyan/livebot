@@ -9,4 +9,4 @@ semver==3.0.2
 git+https://github.com/HamletSargsyan/changelog-parser.git#egg=changelog-parser
 typing_extensions==4.12.2
 httpx==0.27.0
-cachetools==5.4.0
+cachetools==5.5.0
