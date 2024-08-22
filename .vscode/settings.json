@@ -63,6 +63,7 @@
         "pymongo",
         "setex",
         "telebot",
+        "termux",
         "translit"
     ],
 }

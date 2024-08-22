@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Изменено
 
 - Функции действий для игрока (прогулка, работа, и тд) из `base/player.py` перенесены в `base/actions.py`
+- Рефакторинг файла `config.py`
 
 ## [5.1.0] - 2024-08-16
 
@@ -244,7 +245,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Добавлено
 
-- Новый предмет: клевер-удачы 🍀 [#8](https://github.com/HamletSargsyan/livebot/issues/8)
+- Новый предмет: клевер-удачи 🍀 [#8](https://github.com/HamletSargsyan/livebot/issues/8)
 
 ## [3.2.3] - 2024-05-14
 

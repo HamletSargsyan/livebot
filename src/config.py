@@ -96,7 +96,7 @@ class TelegramLogsHandler(logging.Handler):
         super().__init__()
 
     def emit(self, record):
-        if record.levelno == 10 and record.name == "TeleBot":
+        if record.levelno == 10 and record.name == telebot.logger.name:
             return
         from helpers.utils import log
 
@@ -106,13 +106,8 @@ class TelegramLogsHandler(logging.Handler):
 
 
 logger.addHandler(TelegramLogsHandler())
-
-formatter = logging.Formatter(
-    '%(asctime)s (%(filename)s:%(lineno)d %(threadName)s) %(levelname)s - %(name)s: "%(message)s"'
-)
-
 console_output_handler = logging.StreamHandler(sys.stderr)
-console_output_handler.setFormatter(formatter)
+console_output_handler.setFormatter(telebot.formatter)
 logger.addHandler(console_output_handler)
 
 telebot.logger.addHandler(TelegramLogsHandler())
