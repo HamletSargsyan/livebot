@@ -7,9 +7,12 @@ repos:
       language: system
       types: [python]
       pass_filenames: false
+      exclude: "src/*test*.py"
     - id: format
       name: format
       entry: make format
       language: system
       types: [python]
       pass_filenames: false
+      exclude: "src/*test*.py"
+

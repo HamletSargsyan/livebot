@@ -1,6 +1,6 @@
 import os
 from typing import Any, NoReturn, Union
-import requests
+import httpx
 
 from telebot import TeleBot
 from telebot.util import quick_markup
@@ -8,7 +8,7 @@ from telebot.util import quick_markup
 
 def get_github_release_info(version) -> Union[dict[Any, Any], NoReturn]:
     url = f"https://api.github.com/repos/HamletSargsyan/livebot/releases/tags/{version}"
-    response = requests.get(url)
+    response = httpx.get(url)
 
     response.raise_for_status()
     release_info = response.json()  # type: dict

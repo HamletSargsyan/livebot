@@ -44,7 +44,7 @@ def name_state(call: CallbackQuery):
         )
         return
 
-    with bot.retrieve_data(call.from_user.id, call.message.chat.id) as data:
+    with bot.retrieve_data(call.from_user.id, call.message.chat.id) as data:  # type: ignore
         data["name"] = item.name
 
     user = database.users.get(id=call.from_user.id)
@@ -79,14 +79,14 @@ def invalid_int_input(message: Message):
 @bot.message_handler(state=AddNewItemState.quantity, is_digit=True)
 def quantity_state(message: Message):
     user = database.users.get(id=from_user(message).id)
-    with bot.retrieve_data(from_user(message).id, message.chat.id) as data:
+    with bot.retrieve_data(from_user(message).id, message.chat.id) as data:  # type: ignore
         user_item = database.items.get(owner=user._id, name=data["name"])
 
     if user_item.quantity < int(message.text):  # type: ignore
         bot.reply_to(message, "У тебя нет столько")
         return
 
-    with bot.retrieve_data(from_user(message).id, message.chat.id) as data:
+    with bot.retrieve_data(from_user(message).id, message.chat.id) as data:  # type: ignore
         data["quantity"] = int(message.text)  # type: ignore
 
     call_message_id = redis_cache.get(f"{from_user(message).id}_item_add_message")
@@ -106,7 +106,7 @@ def quantity_state(message: Message):
 @bot.message_handler(state=AddNewItemState.price, is_digit=True)
 def price_state(message: Message):
     user = database.users.get(id=from_user(message).id)
-    with bot.retrieve_data(from_user(message).id, message.chat.id) as data:
+    with bot.retrieve_data(from_user(message).id, message.chat.id) as data:  # type: ignore
         try:
             user_item = database.items.get(owner=user._id, name=data["name"])
         except NoResult:

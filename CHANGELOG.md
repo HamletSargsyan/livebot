@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Функции действий для игрока (прогулка, работа, и тд) из `base/player.py` перенесены в `base/actions.py`
 - Рефакторинг файла `config.py`
+- Модуль `requests` окончательно заменен на `httpx`
 
 ## [5.1.0] - 2024-08-16
 

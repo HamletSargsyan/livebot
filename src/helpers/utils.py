@@ -6,7 +6,7 @@ from typing import NoReturn, Union
 from typing_extensions import deprecated
 
 
-import requests
+import httpx
 from semver import Version
 from telebot.types import Message, ReplyParameters, InlineKeyboardButton, User
 from telebot.util import antiflood, escape, split_string, quick_markup
@@ -210,9 +210,9 @@ def send_channel_subscribe_message(message: Message):
 
 def check_version() -> str:  # type: ignore
     url = "https://api.github.com/repos/HamletSargsyan/livebot/releases/latest"
-    response = requests.get(url)
+    response = httpx.get(url)
 
-    if not response.ok:
+    if response.status_code != 200:
         logger.error(response.text)
         response.raise_for_status()
 
