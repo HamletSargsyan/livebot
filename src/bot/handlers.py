@@ -52,11 +52,11 @@ import base.user_input  # noqa
 from database.funcs import database
 from database.models import ItemModel, PromoModel
 
-from config import bot, event_end_time, event_open, chat_id, version
+from config import bot, config, version
 
 
 START_MARKUP = ReplyKeyboardMarkup(resize_keyboard=True)
-if event_open:
+if config.event:
     START_MARKUP.add(KeyboardButton("Ивент"))
 
 START_MARKUP.add(
@@ -488,16 +488,11 @@ def event_cmd(message: Message):
     with Loading(message):
         user = database.users.get(id=from_user(message).id)
 
-        if event_open is False:
+        if config.event.open is False:
             bot.reply_to(message, "Ивент закончился")
             return
 
-        if event_end_time < utcnow():
-            mess = "Ивент закончился, жди сообщение в новостном канале 💙"
-            bot.reply_to(message, mess)
-            return
-
-        time_difference = event_end_time - utcnow()
+        time_difference = config.event.end_time - utcnow()
         time_left = get_time_difference_string(time_difference)
 
         mess = (
@@ -1035,7 +1030,7 @@ def new_chat_member(message: Message):
         return
 
     for new_member in message.new_chat_members:
-        if str(message.chat.id) == chat_id:
+        if str(message.chat.id) == config.telegram.chat_id:
             mess = f"Привет {user_link(new_member)}, добро пожаловать в официальный чат по лайвботу 💙\n\n"
             bot.send_message(message.chat.id, mess)
 

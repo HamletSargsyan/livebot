@@ -7,7 +7,7 @@ from pymongo.collection import Collection
 import redis
 
 from helpers.exceptions import NoResult
-from config import DB_NAME, DB_URL, REDIS_URL
+from config import config
 from database.models import (
     AchievementModel,
     MarketItemModel,
@@ -22,15 +22,15 @@ from database.models import (
 )
 
 
-client = MongoClient(DB_URL, tz_aware=True)
+client = MongoClient(config.database.url, tz_aware=True)
 
-if DB_NAME == "test":
-    choice = input(f"Drop database `{DB_NAME}`? [N/y] ")
+if config.database.name == "test":
+    choice = input(f"Drop database `{config.database.name}`? [N/y] ")
     if choice == "y":
-        client.drop_database(DB_NAME)
+        client.drop_database(config.database.name)
         del choice
 
-db = client.get_database(DB_NAME)
+db = client.get_database(config.database.name)
 
 users = db.get_collection("users")
 items = db.get_collection("items")
@@ -107,4 +107,4 @@ class DataBase:
 
 
 database = DataBase()
-redis_cache = redis.from_url(REDIS_URL)
+redis_cache = redis.from_url(config.redis.url)

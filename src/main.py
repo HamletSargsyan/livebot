@@ -1,12 +1,13 @@
 from threading import Thread
 
 import argparse
+import telebot
 from telebot.types import BotCommand
 
 import bot as _  # noqa: F401
 from threads.check import check
 from threads.notification import notification
-from config import bot, event_open, logger
+from config import bot, config, logger
 from middlewares import middlewares
 
 
@@ -33,7 +34,7 @@ def configure_bot_commands():
         BotCommand("help", "Помощь"),
     ]
 
-    if event_open:
+    if config.event.open:
         commands.insert(0, BotCommand("event", "Ивент"))
 
     bot.set_my_commands(commands)
@@ -57,11 +58,9 @@ def main(args):
     logger.info("Бот включен")
 
     if args.debug:
-        import config
-
-        config.DEBUG = True
-        config.telebot.logger.setLevel(10)
-        config.logger.setLevel(10)
+        config.general.debug = True
+        logger.setLevel(10)
+        telebot.logger.setLevel(10)
         logger.warning("Бот работает в режиме DEBUG")
 
     configure_bot_commands()
@@ -81,8 +80,5 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-
-    if args.debug:
-        DEBUG = True
 
     main(args)

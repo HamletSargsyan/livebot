@@ -14,10 +14,8 @@ from telebot.util import antiflood, escape, split_string, quick_markup
 from base.achievements import ACHIEVEMENTS
 from config import (
     bot,
-    channel_id,
     logger,
-    log_chat_id,
-    log_thread_id,
+    config,
     version,
 )
 from database.models import AchievementModel, UserModel
@@ -56,9 +54,9 @@ def log(log_text: str, log_level: str, record: logging.LogRecord) -> None:
         try:
             antiflood(
                 bot.send_message,
-                log_chat_id,
+                config.telegram.log_chat_id,
                 log_template.format(text=escape(text)),
-                message_thread_id=log_thread_id,
+                message_thread_id=config.telegram.log_thread_id,
             )
         except Exception as e:
             logger.exception(e)
@@ -195,14 +193,14 @@ def calc_xp_for_level(level: int) -> int:
 
 
 def check_user_subscription(user: UserModel) -> bool:
-    tg_user = bot.get_chat_member(channel_id, user.id)
+    tg_user = bot.get_chat_member(config.telegram.channel_id, user.id)
     if tg_user.status in ["member", "administrator", "creator"]:
         return True
     return False
 
 
 def send_channel_subscribe_message(message: Message):
-    chat_info = bot.get_chat(channel_id)
+    chat_info = bot.get_chat(config.telegram.channel_id)
     markup = quick_markup({"Подписаться": {"url": f"t.me/{chat_info.username}"}})
     mess = "Чтобы использовать эту функцию нужно подписаться на новостной канал"
     bot.reply_to(message, mess, reply_markup=markup)

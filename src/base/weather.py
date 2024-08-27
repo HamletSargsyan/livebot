@@ -3,7 +3,7 @@ import httpx
 from cachetools import TTLCache
 
 from helpers.datatypes import WeatherData
-from config import OPENWEATHER_API_KEY, weather_region, logger
+from config import config, logger
 
 
 cache = TTLCache(maxsize=1, ttl=1800)
@@ -18,8 +18,8 @@ def get_weather() -> WeatherData:
     url = "http://api.openweathermap.org/data/2.5/weather?"
     params = {
         "lang": "RU",
-        "q": weather_region,
-        "appid": OPENWEATHER_API_KEY,
+        "q": config.weather.region,
+        "appid": config.weather.api_key,
         "units": "metric",
     }
     response = httpx.get(url, params=params)
