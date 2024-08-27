@@ -7,11 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Добавлено
+
+- Добавлен скрипт `tools/create_config.py` для генерации конфига бота
+
 ### Изменено
 
 - Функции действий для игрока (прогулка, работа, и тд) из `base/player.py` перенесены в `base/actions.py`
-- Рефакторинг файла `config.py`
+- Рефакторинг файла `config.py`. Теперь все конфиги хранятся в файле `config.toml` в место файла `.env`
 - Модуль `requests` окончательно заменен на `httpx`
+
+### Удалено
+
+- Библиотека `python-dotenv` из файла `requirements.txt`
 
 ## [5.1.0] - 2024-08-16
 
