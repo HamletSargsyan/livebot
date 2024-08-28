@@ -31,7 +31,7 @@ python3 tools/create_config.py
     Основной бот работает на версии python 3.11.9
 
 
-### Запуск для сервера
+### Запуск на сервере
 
 ```bash
 bash run.sh
