@@ -135,7 +135,6 @@ class TelegramLogsHandler(logging.Handler):
         super().__init__()
 
     def emit(self, record):
-        print(record.filename)
         if record.levelno == 10 and record.name == telebot.logger.name:
             return
         from helpers.utils import log

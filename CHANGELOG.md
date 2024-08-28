@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Функции действий для игрока (прогулка, работа, и тд) из `base/player.py` перенесены в `base/actions.py`
 - Рефакторинг файла `config.py`. Теперь все конфиги хранятся в файле `config.toml` в место файла `.env`
 - Модуль `requests` окончательно заменен на `httpx`
+- В команде `/event` теперь отображается сколько осталось до начала ивента
 
 ### Удалено
 

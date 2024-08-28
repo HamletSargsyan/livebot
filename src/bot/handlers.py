@@ -56,7 +56,7 @@ from config import bot, config, version
 
 
 START_MARKUP = ReplyKeyboardMarkup(resize_keyboard=True)
-if config.event:
+if config.event.open:
     START_MARKUP.add(KeyboardButton("Ивент"))
 
 START_MARKUP.add(
@@ -489,7 +489,13 @@ def event_cmd(message: Message):
         user = database.users.get(id=from_user(message).id)
 
         if config.event.open is False:
-            bot.reply_to(message, "Ивент закончился")
+            if config.event.start_time < utcnow():
+                bot.reply_to(message, "Ивент закончился")
+            else:
+                bot.reply_to(
+                    message,
+                    f"До начала ивента осталось {get_time_difference_string(config.event.start_time - utcnow())}",
+                )
             return
 
         time_difference = config.event.end_time - utcnow()
