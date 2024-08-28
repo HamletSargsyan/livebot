@@ -3,7 +3,7 @@ import sys
 import json
 import logging
 from dns import resolver
-from typing import Final, List
+from typing import Final, List, Optional
 from datetime import UTC, datetime
 
 import toml
@@ -34,11 +34,11 @@ class RedisConfig:
 @dataclass
 class TelegramConfig:
     token: str
-    log_chat_id: str
-    log_thread_id: int
     owners: List[int]
     channel_id: str
     chat_id: str
+    log_chat_id: str
+    log_thread_id: Optional[int] = None
 
 
 @dataclass
@@ -52,9 +52,9 @@ class EventConfig:
     start_time: datetime
     end_time: datetime
 
-    def __init__(self, start_time: str, end_time: str, open: bool):
-        self.start_time = datetime.fromisoformat(start_time.replace("Z", "+00:00"))
-        self.end_time = datetime.fromisoformat(end_time.replace("Z", "+00:00"))
+    def __init__(self, start_time: str, end_time: str):
+        self.start_time = datetime.fromisoformat(start_time)
+        self.end_time = datetime.fromisoformat(end_time)
 
     @property
     def open(self) -> bool:

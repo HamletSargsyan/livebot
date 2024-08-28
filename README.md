@@ -8,6 +8,7 @@
 
 ## Ссылки
 
+- [Документация](https://hamletsargsyan.github.io/livebot)
 - [Бот](https://t.me/lliivveebot)
 - [Чат](https://t.me/LiveBotOfficialChat)
 - [Новостной канал](https://t.me/LiveBotOfficial)

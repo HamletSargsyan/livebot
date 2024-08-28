@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Добавлено
 
 - Добавлен скрипт `tools/create_config.py` для генерации конфига бота
+- Новые страницы в документации для разработчиков
 
 ### Изменено
 

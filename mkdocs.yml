@@ -4,6 +4,7 @@ edit_uri: blob/main/docs/
 
 markdown_extensions:
   - meta
+  - tables
   - admonition
   - pymdownx.details
   - pymdownx.superfences
