@@ -11,8 +11,12 @@ from redis import Redis
 from semver import Version
 
 import telebot
+from telebot import ExceptionHandler
 from telebot.storage import StateRedisStorage
 from telebot.custom_filters import StateFilter, IsDigitFilter
+
+
+TELEGRAM_ID: Final = 777000
 
 
 @dataclass
@@ -102,31 +106,6 @@ with open("version") as f:
     version: Final = Version.parse(f.read())
 
 
-class RedisStorage(StateRedisStorage):
-    def set_record(self, key, value):
-        connection = Redis(connection_pool=self.redis)
-        connection.setex(self.prefix + str(key), 120, json.dumps(value))
-        connection.close()
-        return True
-
-
-state_storage = RedisStorage(redis_url=config.redis.url)
-
-bot = telebot.TeleBot(
-    config.telegram.token,
-    parse_mode="html",
-    skip_pending=True,
-    num_threads=10,
-    disable_web_page_preview=True,
-    use_class_middlewares=True,
-    state_storage=state_storage,
-)
-
-bot.add_custom_filter(StateFilter(bot))
-bot.add_custom_filter(IsDigitFilter())
-
-TELEGRAM_ID: Final = 777000
-
 logger = logging.Logger("Bot")
 
 
@@ -152,3 +131,36 @@ logger.addHandler(TelegramLogsHandler())
 
 telebot.logger.addHandler(TelegramLogsHandler())
 telebot.logger.setLevel(20)
+
+
+class RedisStorage(StateRedisStorage):
+    def set_record(self, key, value):
+        connection = Redis(connection_pool=self.redis)
+        connection.setex(self.prefix + str(key), 120, json.dumps(value))
+        connection.close()
+        return True
+
+
+state_storage = RedisStorage(redis_url=config.redis.url)
+
+
+class ErrorHandler(ExceptionHandler):
+    def handle(self, exception: Exception):
+        logger.exception(exception)
+        return True
+
+
+bot = telebot.TeleBot(
+    config.telegram.token,
+    parse_mode="html",
+    skip_pending=True,
+    num_threads=10,
+    disable_web_page_preview=True,
+    use_class_middlewares=True,
+    state_storage=state_storage,
+    exception_handler=ErrorHandler(),
+)
+
+
+bot.add_custom_filter(StateFilter(bot))
+bot.add_custom_filter(IsDigitFilter())
