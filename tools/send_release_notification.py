@@ -3,7 +3,6 @@ from typing import Any, NoReturn, Union
 import httpx
 
 from telebot import TeleBot
-from telebot.util import quick_markup
 
 
 def get_github_release_info(version) -> Union[dict[Any, Any], NoReturn]:
@@ -38,10 +37,8 @@ def send_release_notification():
         f"{body}"
     )
 
-    markup = quick_markup({"Релиз": {"url": release.get("html_url")}})
-
     bot = TeleBot(bot_token, parse_mode="markdown", disable_web_page_preview=True)
-    bot.send_message(chat_id, message, reply_markup=markup)
+    bot.send_message(chat_id, message)
 
 
 if __name__ == "__main__":
