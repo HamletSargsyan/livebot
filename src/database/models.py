@@ -33,7 +33,7 @@ class BaseModel:
 @dataclass
 class ItemModel(BaseModel):
     name: str
-    quantity: int
+    quantity: int = 0
     usage: Optional[float] = None
     is_equipped: bool = False
     _id: ObjectId = field(default_factory=ObjectId)
