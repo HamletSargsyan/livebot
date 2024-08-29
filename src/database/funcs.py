@@ -73,17 +73,17 @@ class BaseDB(Generic[T]):
     def update(self, _id: ObjectId, **data):
         return self.collection.update_one({"_id": _id}, {"$set": data})
 
-    def get(self, **data):
+    def get(self, **data) -> T:
         obj = self.collection.find_one(data)
         if not obj:
             raise NoResult
-        return self.model(**obj)
+        return self.model.from_dict(obj)
 
-    def get_all(self, **data):
+    def get_all(self, **data) -> list[T]:
         obj = self.collection.find(data)
         if not obj:
             raise NoResult
-        return [self.model(**attrs) for attrs in obj]
+        return [self.model.from_dict(attrs) for attrs in obj]
 
     def check_exists(self, **data) -> bool:
         try:

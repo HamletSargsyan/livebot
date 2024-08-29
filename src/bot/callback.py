@@ -98,7 +98,7 @@ def dog_callback(call: CallbackQuery):
             )
             return
 
-        dog = DogModel(user=user)
+        dog = DogModel(owner=user._id)
         dog.name = f"Собачка-{user.id}"
         database.dogs.add(**dog.to_dict())
 
@@ -648,7 +648,7 @@ def market_callback(call: CallbackQuery):
             user_item = get_or_add_user_item(user, market_item.name)
             user_item.quantity += market_item.quantity
         else:
-            user_item = add_user_usage_item(user, market_item.name, market_item.usage)
+            user_item = add_user_usage_item(user, market_item.name, market_item.usage)  # type: ignore
             user_item.quantity = market_item.quantity
 
         database.items.update(**user_item.to_dict())
@@ -877,7 +877,7 @@ def transfer_callback(call: CallbackQuery):
     mess = (
         f"{user.name} подарил {reply_user.name}\n"
         "----------------\n"
-        f"{get_item_emoji(item.name)} {item.name} ({int(item.usage)}%)"
+        f"{get_item_emoji(item.name)} {item.name} ({int(item.usage)}%)"  # type: ignore
     )
 
     database.users.update(**user.to_dict())

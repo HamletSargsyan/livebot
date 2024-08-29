@@ -213,8 +213,8 @@ class InlineMarkup:
         buttons = []
 
         items = get_or_add_user_usable_items(user, item_name)
-        items = list(filter(lambda i: i.usage > 0 and i.quantity > 0, items))
-        items.sort(key=lambda i: i.usage)
+        items = list(filter(lambda i: i.usage > 0 and i.quantity > 0, items))  # type: ignore
+        items.sort(key=lambda i: i.usage)  # type: ignore
 
         for item in items:
             buttons.append(
