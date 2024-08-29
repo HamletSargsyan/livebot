@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Модели базы данных изменены на `dataclass`
 
+### Исправлено
+
+- Якорные ссылки в документации
+
 ## [6.0.0] - 2024-08-28
 
 ### Добавлено

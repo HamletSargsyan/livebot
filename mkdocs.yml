@@ -8,10 +8,14 @@ markdown_extensions:
   - admonition
   - pymdownx.details
   - pymdownx.superfences
-
+  - toc:
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
 theme:
   features:
     - content.code.copy
+    - navigation.instant
   name: material
   language: ru
   palette:
