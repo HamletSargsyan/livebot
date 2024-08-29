@@ -1,9 +1,9 @@
-from dataclasses import dataclass
 import sys
 import json
 import logging
 from dns import resolver
-from typing import Final, List, Optional
+from dataclasses import dataclass
+from typing import Final, Optional
 from datetime import UTC, datetime
 
 import toml
@@ -38,7 +38,7 @@ class RedisConfig:
 @dataclass
 class TelegramConfig:
     token: str
-    owners: List[int]
+    owners: list[int]
     channel_id: str
     chat_id: str
     log_chat_id: str
