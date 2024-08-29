@@ -54,7 +54,7 @@ def start_threads():
         thread.start()
 
 
-def main(args):
+def main(args: argparse.Namespace):
     logger.info("Бот включен")
 
     if args.debug:
