@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Optional
 
 import transliterate
 
@@ -124,12 +124,12 @@ class Item:
         is_task_item: bool = False,
         can_exchange: bool = False,
         is_consumable: bool = False,
-        altnames: Optional[List[str]] = None,
-        craft: Optional[Dict[str, int]] = None,
+        altnames: Optional[list[str]] = None,
+        craft: Optional[dict[str, int]] = None,
         effect: Optional[int] = None,
         price: Optional[int] = None,
-        task_coin: Optional[Tuple[int, int]] = None,
-        exchange_price: Optional[Tuple[int, int]] = None,
+        task_coin: Optional[tuple[int, int]] = None,
+        exchange_price: Optional[tuple[int, int]] = None,
         strength: Optional[float] = None,
         strength_reduction: Optional[tuple[float, float]] = None,
         can_equip: bool = False,
