@@ -726,7 +726,7 @@ def quest_cmd(message: Message):
     with Loading(message):
         user = database.users.get(id=from_user(message).id)
         try:
-            quest = database.quests.get(**{"owner": user._id})
+            quest = database.quests.get(owner=user._id)
         except NoResult:
             quest = None
 
@@ -791,7 +791,7 @@ def exchanger_cmd(message: Message):
             return
 
         try:
-            exchanger = database.exchangers.get(**{"owner": user._id})
+            exchanger = database.exchangers.get(owner=user._id)
         except NoResult:
             exchanger = generate_exchanger(user)
 
@@ -846,7 +846,7 @@ def dog_cmd(message: Message):
         user = database.users.get(id=from_user(message).id)
 
         try:
-            dog = database.dogs.get(**{"owner": user._id})
+            dog = database.dogs.get(owner=user._id)
         except NoResult:
             dog = None
 
@@ -888,7 +888,7 @@ def rename_dog_command(message: Message):
         user = database.users.get(id=from_user(message).id)
 
         try:
-            dog = database.dogs.get(**{"owner": user._id})
+            dog = database.dogs.get(owner=user._id)
         except NoResult:
             dog = None
 

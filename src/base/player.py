@@ -263,7 +263,12 @@ def generate_exchanger(user: UserModel):
     exchange_price = item.exchange_price
     price = random.randint(min(exchange_price), max(exchange_price))  # pyright: ignore
 
-    exchanger = ExchangerModel(item=item.name, price=price, owner=user._id)
+    exchanger = ExchangerModel(
+        item=item.name,
+        price=price,
+        expires=utcnow() + timedelta(days=1),
+        owner=user._id,
+    )
 
     exchanger_add = database.exchangers.add(**exchanger.to_dict())
     exchanger._id = exchanger_add.inserted_id

@@ -82,9 +82,9 @@ class QuestModel(BaseModel):
 class ExchangerModel(BaseModel):
     item: str
     price: int
+    expires: datetime
     _id: ObjectId = field(default_factory=ObjectId)
     owner: ObjectId = field(default_factory=ObjectId)
-    expires: datetime = field(default_factory=lambda: _utcnow() + timedelta(days=1))
 
 
 @dataclass
