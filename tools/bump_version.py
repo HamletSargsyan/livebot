@@ -7,7 +7,8 @@ from semver import Version
 
 
 with open("version") as f:
-    version = Version.parse(f.read())
+    old_version = Version.parse(f.read())
+    version = old_version
 
 
 def usage():
@@ -60,6 +61,12 @@ for change in changes:
         break
 
 
+print(f"{old_version} -> {version}")
+choice = input("Сделать релиз? [N/y] ").lower()
+
+if choice != "y":
+    sys.exit(0)
+
 with open("CHANGELOG.md", "w") as f:
     f.write(changelog.dumps(changes))
 
@@ -77,8 +84,19 @@ with open("release_body.md", "w") as f:
     f.write(content)
 
 
-os.system('git commit -a -m "bump version" && git push')
+os.system("make fix && make lint && make format")
+r = os.system('git commit -a -m "bump version" && git push')
 
-os.system(
+if r != 0:
+    sys.exit(1)
+
+r = os.system(
     f'gh release create v{version} --notes-file release_body.md {"-p" if prerelease else ""} --title v{version}'
 )
+
+
+if r != 0:
+    sys.exit(1)
+
+print("Релиз успешно опубликован")
+print(f"https://github.com/HamletSargsyan/livebot/releases/tag/v{version}")
