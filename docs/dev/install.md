@@ -22,7 +22,7 @@ pip3 install -r requirements.txt
 python3 tools/create_config.py
 ```
 
-после этой команды будет создан файл `config.toml`
+после этой команды будет создан файл `config.toml`. [Здесь](config.md#настройка) можно прочитать про настройку
 
 ## Запуск
 

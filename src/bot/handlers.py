@@ -785,9 +785,16 @@ def exchanger_cmd(message: Message):
     #     return
     with Loading(message):
         user = database.users.get(id=from_user(message).id)
+        markup = quick_markup(
+            {
+                "Гайд": {
+                    "url": "https://hamletsargsyan.github.io/livebot/guide/#обменник"
+                }
+            }
+        )
 
         if user.level < 5:
-            bot.reply_to(message, "Обменник доступен с 5 уровня")
+            bot.reply_to(message, "Обменник доступен с 5 уровня", reply_markup=markup)
             return
 
         try:
@@ -809,7 +816,7 @@ def exchanger_cmd(message: Message):
         args = message.text.split(" ")
 
         if len(args) < 2:
-            bot.reply_to(message, mess)
+            bot.reply_to(message, mess, reply_markup=markup)
             return
 
         try:
@@ -820,11 +827,15 @@ def exchanger_cmd(message: Message):
         user_item = get_or_add_user_item(user, exchanger.item)
 
         if not user_item:
-            bot.reply_to(message, f"У тебя нет {get_item_emoji(exchanger.item)}")
+            bot.reply_to(
+                message,
+                f"У тебя нет {get_item_emoji(exchanger.item)}",
+                reply_markup=markup,
+            )
             return
 
         if user_item.quantity < quantity:
-            bot.reply_to(message, "Тебе не хватает")
+            bot.reply_to(message, "Тебе не хватает", reply_markup=markup)
             return
 
         coin = quantity * exchanger.price
@@ -837,6 +848,7 @@ def exchanger_cmd(message: Message):
         bot.reply_to(
             message,
             f"Обменял {quantity} {get_item_emoji(exchanger.item)} за {coin} {get_item_emoji('бабло')}",
+            reply_markup=markup,
         )
 
 
