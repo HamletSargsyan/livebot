@@ -41,6 +41,13 @@ match sys.argv[1].lower():
         usage()
         sys.exit(1)
 
+
+print(f"{old_version} -> {version}")
+choice = input("Сделать релиз? [N/y] ").lower()
+
+if choice != "y":
+    sys.exit(0)
+
 with open("version", "w") as f:
     f.write(str(version))
 
@@ -60,12 +67,6 @@ for change in changes:
         )
         break
 
-
-print(f"{old_version} -> {version}")
-choice = input("Сделать релиз? [N/y] ").lower()
-
-if choice != "y":
-    sys.exit(0)
 
 with open("CHANGELOG.md", "w") as f:
     f.write(changelog.dumps(changes))
@@ -99,4 +100,3 @@ if r != 0:
     sys.exit(1)
 
 print("Релиз успешно опубликован")
-print(f"https://github.com/HamletSargsyan/livebot/releases/tag/v{version}")
