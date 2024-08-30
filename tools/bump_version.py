@@ -95,8 +95,8 @@ r = os.system(
     f'gh release create v{version} --notes-file release_body.md {"-p" if prerelease else ""} --title v{version}'
 )
 
-
 if r != 0:
     sys.exit(1)
 
+os.system("git fetch --tags")
 print("Релиз успешно опубликован")
