@@ -809,8 +809,8 @@ def exchanger_cmd(message: Message):
         mess = (
             "<b>Обменник 🔄</b>\n\n"
             f"<b>Предмет:</b> {exchanger.item} {get_item_emoji(exchanger.item)}\n"
-            f"<b>Цена за 1 шт:</b> {exchanger.price} {get_item_emoji('бабло')}\n\n"
-            f"Чтобы обменять напиши <code>/exchanger кол-во</code>"
+            f"<b>Цена за 1 шт:</b> {exchanger.price} {get_item_emoji('бабло')}\n"
+            f"<b>Новый предмет появится через:</b> {get_time_difference_string(exchanger.expires - utcnow())}\n"
         )
 
         args = message.text.split(" ")
