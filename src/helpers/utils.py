@@ -287,7 +287,7 @@ def award_user_achievement(user: UserModel, achievement: Achievement):
 
     bot.send_message(
         user.id,
-        f"Поздравляю🎉, ты получил достижение '{ach.name}'\n\nЗа это ты получил:\n{reward}",
+        f'Поздравляю🎉, ты получил достижение "{ach.name}"\n\nЗа это ты получил:\n{reward}',
     )
 
 
