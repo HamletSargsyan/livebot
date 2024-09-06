@@ -2,7 +2,7 @@ import logging
 from datetime import UTC, datetime, timedelta
 import random
 import statistics
-from typing import NoReturn, Union
+from typing import Callable, NoReturn, Union
 from typing_extensions import deprecated
 
 
@@ -336,3 +336,14 @@ def achievement_status(user: UserModel, achievement: Achievement) -> int:
         return 2  # Выполнено
     else:
         return 1  # Не начато
+
+
+def only_admin(func: Callable[[Message, UserModel], None]):
+    from database.funcs import database
+
+    def wrapper(message: Message):
+        user = database.users.get(id=message.from_user.id)
+        if user.is_admin or user.id in config.telegram.owners:
+            return func(message, user)
+
+    return wrapper

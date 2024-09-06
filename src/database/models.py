@@ -117,7 +117,7 @@ class NotificationModel(BaseModel):
 
 @dataclass
 class Violation:
-    description: str
+    reason: str
     type: Literal["warn", "mute", "ban", "permanent-ban"]
     date: datetime = field(default_factory=_utcnow)
     is_permanent: bool = False

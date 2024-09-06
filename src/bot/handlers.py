@@ -30,7 +30,9 @@ from helpers.utils import (
     get_item_emoji,
     get_item,
     Loading,
+    get_user_tag,
     increment_achievement_progress,
+    only_admin,
     send_channel_subscribe_message,
     utcnow,
 )
@@ -50,7 +52,7 @@ from base.weather import get_weather
 import base.user_input  # noqa
 
 from database.funcs import database
-from database.models import ItemModel, PromoModel
+from database.models import ItemModel, PromoModel, UserModel, Violation
 
 from config import bot, config, version
 
@@ -1048,6 +1050,30 @@ def rules_cmd(message: Message):
     )
 
     bot.reply_to(message, mess, reply_markup=markup)
+
+
+@bot.message_handler(commands=["warn"])
+@only_admin
+def warn_cmd(message: Message, user: UserModel):
+    if not message.reply_to_message:
+        return
+    reply_user = database.users.get(id=message.reply_to_message.from_user.id)
+    reason = " ".join(message.text.strip().split(" ")[1:])
+
+    reply_user.violations.append(Violation(reason, "warn"))
+
+    database.users.update(**user.to_dict())
+
+    mess = (
+        f"{get_user_tag(reply_user)} получил варн.\n\n"
+        f"<b>Причина</b>\n"
+        f"<i>{reason}</i>"
+    )
+    markup = quick_markup(
+        {"Правила": {"url": "https://hamletsargsyan.github.io/livebot/rules"}}
+    )
+
+    bot.send_message(message.chat.id, mess, reply_markup=markup)
 
 
 # ---------------------------------------------------------------------------- #
