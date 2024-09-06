@@ -941,8 +941,8 @@ def accept_rules_callback(call: CallbackQuery):
 
     bot.answer_callback_query(
         call.id,
-        "Спасибо что прочитал правила. Теперь можешь спокойно пользовался ботом",
+        "Теперь можешь спокойно пользовался ботом",
         show_alert=True,
     )
 
-    bot.delete_message(call.message.chat.id, call.message.id)
+    bot.delete_message(call.message.chat.id, call.message.id)  # type: ignore
