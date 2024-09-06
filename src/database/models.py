@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta, UTC
-from typing import Optional
+from typing import Literal, Optional
 from bson import ObjectId, Int64
 from dataclasses import dataclass, field, fields
 
@@ -116,6 +116,18 @@ class NotificationModel(BaseModel):
 
 
 @dataclass
+class Violation:
+    description: str
+    type: Literal["warn", "mute", "ban", "permanent-ban"]
+    date: datetime = field(default_factory=_utcnow)
+    is_permanent: bool = False
+
+    def __post_init__(self):
+        if self.type == "permanent-ban":
+            self.is_permanent = True
+
+
+@dataclass
 class UserModel(BaseModel):
     id: int
     name: str
@@ -127,9 +139,7 @@ class UserModel(BaseModel):
     is_admin: bool = False
     is_banned: bool = False
     met_mob: bool = False
-    ban_reason: Optional[str] = None
-    ban_time: Optional[datetime] = None
-    is_infinity_ban: Optional[bool] = None
+    violations: list[Violation] = field(default_factory=list)
     coin: int = 0
     health: int = 100
     mood: int = 100
@@ -146,6 +156,7 @@ class UserModel(BaseModel):
     adverts_count: int = 0
     last_active_time: datetime = field(default_factory=_utcnow)
     achievement_progress: dict = field(default_factory=dict)
+    accepted_rules: bool = False
 
 
 @dataclass

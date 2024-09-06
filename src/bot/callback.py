@@ -926,3 +926,23 @@ def achievements_callback(call: CallbackQuery):
         bot.edit_message_reply_markup(
             call.message.chat.id, call.message.id, reply_markup=markup
         )
+
+
+@bot.callback_query_handler(lambda c: c.data.startswith("accept_rules"))
+def accept_rules_callback(call: CallbackQuery):
+    data = call.data.split(" ")
+
+    if data[-1] != str(call.from_user.id):
+        return
+
+    user = database.users.get(id=call.from_user.id)
+    user.accepted_rules = True
+    database.users.update(**user.to_dict())
+
+    bot.answer_callback_query(
+        call.id,
+        "Спасибо что прочитал правила. Теперь можешь спокойно пользовался ботом",
+        show_alert=True,
+    )
+
+    bot.delete_message(call.message.chat.id, call.message.id)

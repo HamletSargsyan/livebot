@@ -1039,6 +1039,17 @@ def achievements_cmd(message: Message):
     bot.reply_to(message, mess, reply_markup=markup)
 
 
+@bot.message_handler(commands=["rules"])
+def rules_cmd(message: Message):
+    mess = "Правила"
+
+    markup = quick_markup(
+        {"Читать": {"url": "https://hamletsargsyan.github.io/livebot/rules"}}
+    )
+
+    bot.reply_to(message, mess, reply_markup=markup)
+
+
 # ---------------------------------------------------------------------------- #
 
 
