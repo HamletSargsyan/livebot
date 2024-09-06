@@ -1060,6 +1060,9 @@ def warn_cmd(message: Message, user: UserModel):
     reply_user = database.users.get(id=message.reply_to_message.from_user.id)
     reason = " ".join(message.text.strip().split(" ")[1:])
 
+    if not reason:
+        return
+
     reply_user.violations.append(Violation(reason, "warn"))
 
     database.users.update(**user.to_dict())
