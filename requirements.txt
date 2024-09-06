@@ -9,3 +9,4 @@ git+https://github.com/HamletSargsyan/changelog-parser.git#egg=changelog-parser
 typing_extensions==4.12.2
 httpx==0.27.2
 cachetools==5.5.0
+dacite==1.8.1

@@ -1,7 +1,9 @@
 from datetime import datetime, timedelta, UTC
-from typing import Literal, Optional
+from typing import Any, Literal, Optional
+from dataclasses import asdict, dataclass, field
+
 from bson import ObjectId, Int64
-from dataclasses import dataclass, field, fields
+from dacite import from_dict as _from_dict
 
 from helpers.enums import ItemType, Locations
 
@@ -14,20 +16,18 @@ def _utcnow():
 class BaseModel:
     def to_dict(self) -> dict:
         result = {}
-        for key, value in self.__dict__.items():
-            if isinstance(value, int):
+        for key, value in asdict(self).items():
+            if isinstance(value, bool):
+                result[key] = value
+            elif isinstance(value, int):
                 result[key] = Int64(value)
             else:
                 result[key] = value
         return result
 
     @classmethod
-    def from_dict(cls, dict_data: dict):
-        field_names = {f.name for f in fields(cls)}
-        filtered_data = {
-            key: value for key, value in dict_data.items() if key in field_names
-        }
-        return cls(**filtered_data)
+    def from_dict(cls, dict_data: dict[str, Any]):
+        return _from_dict(cls, dict_data)
 
 
 @dataclass
@@ -128,6 +128,13 @@ class Violation:
 
 
 @dataclass
+class UserAction:
+    type: Literal["street", "work", "sleep", "game"]
+    end: datetime
+    start: datetime = field(default_factory=_utcnow)
+
+
+@dataclass
 class UserModel(BaseModel):
     id: int
     name: str
@@ -146,8 +153,7 @@ class UserModel(BaseModel):
     hunger: int = 0
     fatigue: int = 0
     location: str = Locations.HOME.value
-    action_time: datetime = field(default_factory=_utcnow)
-    state: Optional[str] = None
+    action: Optional[UserAction] = None
     casino_win: int = 0
     casino_loose: int = 0
     new_quest_coin_quantity: int = 2

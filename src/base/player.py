@@ -381,11 +381,11 @@ def use_item(message: Message, name: str):
                 bot.reply_to(message, f"{item.emoji} юзнул водку")
                 user_item.quantity -= 1
             case "велик":
-                if user.state != "street":
+                if not user.action or user.action.type != "street":
                     bot.reply_to(message, "Ты не гуляешь")
                     return
                 minutes = random.randint(10, 45)
-                user.action_time -= timedelta(minutes=minutes)
+                user.action.end -= timedelta(minutes=minutes)
                 bot.reply_to(
                     message,
                     f"{item.emoji} юзнул велик и сократил время прогулки на {minutes} минут",

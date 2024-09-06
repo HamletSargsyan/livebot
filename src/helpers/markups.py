@@ -28,21 +28,21 @@ class InlineMarkup:
 
     @classmethod
     def actions_choice(cls, user: UserModel) -> InlineKeyboardMarkup:
-        def active_state_emoji(name):
-            return "🔹" if user.state == name else ""
+        def active_action_emoji(name):
+            return "🔹" if user.action and user.action.type == name else ""
 
         markup = quick_markup(
             {
-                f"Прогулка {active_state_emoji('street')}": {
+                f"Прогулка {active_action_emoji('street')}": {
                     "callback_data": f"actions street {user.id}"
                 },
-                f"Работа {active_state_emoji('work')}": {
+                f"Работа {active_action_emoji('work')}": {
                     "callback_data": f"actions work {user.id}"
                 },
-                f"Спать {active_state_emoji('sleep')}": {
+                f"Спать {active_action_emoji('sleep')}": {
                     "callback_data": f"actions sleep {user.id}"
                 },
-                f"Играть {active_state_emoji('game')}": {
+                f"Играть {active_action_emoji('game')}": {
                     "callback_data": f"actions game {user.id}"
                 },
             }

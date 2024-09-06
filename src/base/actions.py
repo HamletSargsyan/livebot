@@ -7,7 +7,7 @@ from base.weather import get_weather
 from base.player import check_user_stats, get_or_add_user_item
 
 from database.funcs import database
-from database.models import UserModel
+from database.models import UserAction, UserModel
 
 from config import bot
 
@@ -40,16 +40,15 @@ def street(call: CallbackQuery, user: UserModel):
 
     current_time = utcnow()
 
-    if user.state is None:
-        user.state = "street"
-        user.action_time = current_time + timedelta(hours=1)
+    if user.action is None:
+        user.action = UserAction("street", current_time + timedelta(hours=1))
         database.users.update(**user.to_dict())
-    elif user.state != "street":
+    elif user.action.type != "street":
         bot.answer_callback_query(call.id, "Ты занят чем то другим", show_alert=True)
         return
 
-    if user.action_time >= current_time:
-        time_left = user.action_time - current_time
+    if user.action.end >= current_time:
+        time_left = user.action.end - current_time
         mess = f"<b>Улица</b>\n\nГуляешь\nОсталось: {get_time_difference_string(time_left)}"
 
         if not user.met_mob:
@@ -139,8 +138,7 @@ def street(call: CallbackQuery, user: UserModel):
         database.dogs.update(**dog.to_dict())
 
     user.xp += xp
-    user.state = None
-    user.action_time = utcnow()
+    user.action = None
 
     user.hunger += random.randint(2, 5)
     user.fatigue += random.randint(3, 8)
@@ -178,16 +176,15 @@ def work(call: CallbackQuery, user: UserModel):
 
     current_time = utcnow()
 
-    if user.state is None:
-        user.state = "work"
-        user.action_time = utcnow() + timedelta(hours=3)
+    if user.action is None:
+        user.action = UserAction("work", current_time + timedelta(hours=3))
         database.users.update(**user.to_dict())
-    elif user.state != "work":
+    elif user.action.type != "work":
         bot.answer_callback_query(call.id, "Ты занят чем то другим", show_alert=True)
         return
 
-    if user.action_time >= current_time:
-        time_left = user.action_time - current_time
+    if user.action.end >= current_time:
+        time_left = user.action.end - current_time
         mess = f"<b>Работа</b>\n\nОсталось: {get_time_difference_string(time_left)}"
 
         bot.edit_message_text(
@@ -209,8 +206,8 @@ def work(call: CallbackQuery, user: UserModel):
     user.coin += coin
 
     user.xp += xp
-    user.state = None
-    user.action_time = utcnow()
+    user.action = None
+
     user.fatigue += random.randint(5, 10)
     user.hunger += random.randint(3, 6)
     user.mood -= random.randint(3, 6)
@@ -231,16 +228,17 @@ def work(call: CallbackQuery, user: UserModel):
 def sleep(call: CallbackQuery, user: UserModel):
     current_time = utcnow()
 
-    if user.state is None:
-        user.state = "sleep"
-        user.action_time = current_time + timedelta(hours=random.randint(3, 8))
+    if user.action is None:
+        user.action = UserAction(
+            "sleep", current_time + timedelta(hours=random.randint(3, 8))
+        )
         database.users.update(**user.to_dict())
-    elif user.state != "sleep":
+    elif user.action.type != "sleep":
         bot.answer_callback_query(call.id, "Ты занят чем то другим", show_alert=True)
         return
 
-    if user.action_time >= current_time:
-        time_left = user.action_time - current_time
+    if user.action.end >= current_time:
+        time_left = user.action.end - current_time
         mess = f"<b>🛏️ Спишь</b>\n\nОсталось: {get_time_difference_string(time_left)}"
 
         bot.edit_message_text(
@@ -254,8 +252,7 @@ def sleep(call: CallbackQuery, user: UserModel):
     fatigue = random.randint(50, 100)
     user.fatigue -= fatigue
     user.xp += random.uniform(1.5, 2.0)
-    user.state = None
-    user.action_time = utcnow()
+    user.action = None
 
     database.users.update(**user.to_dict())
     increment_achievement_progress(user, "сонный")
@@ -272,18 +269,20 @@ def game(call: CallbackQuery, user: UserModel):
         bot.answer_callback_query(call.id, "Доступно с 3 лвла", show_alert=True)
         return
 
-    if user.state is None:
-        user.state = "game"
-        user.action_time = current_time + timedelta(
-            hours=random.randint(0, 3), minutes=random.randint(15, 20)
+    if user.action is None:
+        user.action = UserAction(
+            "game",
+            current_time
+            + timedelta(hours=random.randint(0, 3), minutes=random.randint(15, 20)),
         )
+
         database.users.update(**user.to_dict())
-    elif user.state != "game":
+    elif user.action.type != "game":
         bot.answer_callback_query(call.id, "Ты занят чем то другим", show_alert=True)
         return
 
-    if user.action_time >= current_time:
-        time_left = user.action_time - current_time
+    if user.action.end >= current_time:
+        time_left = user.action.end - current_time
         mess = f"<b>🎮 Играешь</b>\n\nОсталось: {get_time_difference_string(time_left)}"
 
         bot.edit_message_text(
@@ -299,8 +298,7 @@ def game(call: CallbackQuery, user: UserModel):
     user.mood += random.randint(5, 10)
     if random.randint(1, 100) < user.luck:
         user.mood *= 2
-    user.state = None
-    user.action_time = utcnow()
+    user.action = None
 
     database.users.update(**user.to_dict())
     increment_achievement_progress(user, "игроман")
