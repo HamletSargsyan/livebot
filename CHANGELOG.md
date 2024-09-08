@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Новые поля в модели пользователя
 - Добавлены команды для модераторов [#38](https://github.com/HamletSargsyan/livebot/issues/38)
 
+### Изменено
+
+- Мобы теперь встретиться только спустя 15–20 минут с начала прогулки
+
 ## [7.1.0] - 2024-08-31
 
 ### Добавлено

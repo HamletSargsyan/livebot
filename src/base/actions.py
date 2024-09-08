@@ -51,7 +51,10 @@ def street(call: CallbackQuery, user: UserModel):
         time_left = user.action.end - current_time
         mess = f"<b>Улица</b>\n\nГуляешь\nОсталось: {get_time_difference_string(time_left)}"
 
-        if not user.met_mob:
+        walk_duration = current_time - user.action.start
+        if not user.met_mob and walk_duration >= timedelta(
+            minutes=random.randint(15, 20)
+        ):
             mob = generate_mob()
             if mob:
                 mob.init(user, call.message)
