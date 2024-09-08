@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [8.0.0] - 2024-09-08
+
 ### Добавлено
 
 - Добавлены правила. Каждый игрок обязан прочитать правила и согласится с ними чтобы продолжить использовать бота
