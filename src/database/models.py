@@ -121,6 +121,7 @@ class Violation:
     type: Literal["warn", "mute", "ban", "permanent-ban"]
     date: datetime = field(default_factory=_utcnow)
     is_permanent: bool = False
+    until_date: Optional[datetime] = None
 
     def __post_init__(self):
         if self.type == "permanent-ban":

@@ -347,3 +347,22 @@ def only_admin(func: Callable[[Message, UserModel], None]):
             return func(message, user)
 
     return wrapper
+
+
+def parse_time_duration(time_str: str) -> timedelta:
+    """
+    Parse time duration in the format like 2d, 3h, 15m and return the timedelta.
+    """
+    value = int(time_str[:-1])
+    unit = time_str[-1]
+
+    if unit == "d":
+        return timedelta(days=value)
+    elif unit == "h":
+        return timedelta(hours=value)
+    elif unit == "m":
+        return timedelta(minutes=value)
+    else:
+        raise ValueError(
+            "Неверный формат времени. Используйте {d,h,m} для дней, часов, минут."
+        )
