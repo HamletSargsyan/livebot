@@ -4,9 +4,11 @@ import argparse
 import telebot
 from telebot.types import BotCommand
 
+
 import bot as _  # noqa: F401
 from threads.check import check
 from threads.notification import notification
+from database.funcs import database
 from config import bot, config, logger
 from middlewares import middlewares
 
@@ -68,6 +70,11 @@ def main(args: argparse.Namespace):
     init_middlewares()
     if not args.without_threads:
         start_threads()
+
+    for id in config.telegram.owners:
+        user = database.users.get(id=id)
+        user.is_admin = True
+        database.users.update(**user.to_dict())
 
     bot.infinity_polling(timeout=500, skip_pending=True)
 

@@ -48,6 +48,7 @@ from base.player import (
 from base.weather import get_weather
 
 import base.user_input  # noqa
+from . import admin  # noqa
 
 from database.funcs import database
 from database.models import ItemModel, PromoModel
@@ -1048,6 +1049,28 @@ def rules_cmd(message: Message):
     )
 
     bot.reply_to(message, mess, reply_markup=markup)
+
+
+@bot.message_handler(commands=["violations"])
+def violations_cmd(message: Message):
+    user = database.users.get(id=message.from_user.id)
+
+    if len(user.violations) == 0:
+        bot.reply_to(message, "У тебя нет нарушений")
+        return
+
+    mess = "<b>Нарушения</b>\n\n"
+
+    for i, violation in enumerate(user.violations, start=1):
+        until = (
+            f" | осталось {get_time_difference_string(violation.until_date - utcnow())}"
+            if violation.until_date
+            else ""
+        )
+        mess += f"{i}. {violation.type}{until}\n"
+        mess += f"    <i>{violation.reason}</i>\n\n"
+
+    bot.reply_to(message, mess)
 
 
 # ---------------------------------------------------------------------------- #

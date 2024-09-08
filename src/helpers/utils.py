@@ -1,13 +1,13 @@
 import logging
-from datetime import UTC, datetime, timedelta
 import random
 import statistics
-from typing import Callable, NoReturn, Union
-from typing_extensions import deprecated
-
+from typing import NoReturn, Union
+from datetime import UTC, datetime, timedelta
 
 import httpx
 from semver import Version
+from typing_extensions import deprecated
+
 from telebot.types import Message, ReplyParameters, InlineKeyboardButton, User
 from telebot.util import antiflood, escape, split_string, quick_markup
 
@@ -338,17 +338,6 @@ def achievement_status(user: UserModel, achievement: Achievement) -> int:
         return 1  # Не начато
 
 
-def only_admin(func: Callable[[Message, UserModel], None]):
-    from database.funcs import database
-
-    def wrapper(message: Message):
-        user = database.users.get(id=message.from_user.id)
-        if user.is_admin or user.id in config.telegram.owners:
-            return func(message, user)
-
-    return wrapper
-
-
 def parse_time_duration(time_str: str) -> timedelta:
     """
     Parse time duration in the format like 2d, 3h, 15m and return the timedelta.
@@ -366,3 +355,7 @@ def parse_time_duration(time_str: str) -> timedelta:
         raise ValueError(
             "Неверный формат времени. Используйте {d,h,m} для дней, часов, минут."
         )
+
+
+def pretty_datetime(d: datetime) -> str:
+    return d.strftime("%H:%M %d.%m.%Y")

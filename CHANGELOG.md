@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Добавлены правила. Каждый игрок обязан прочитать правила и согласится с ними чтобы продолжить использовать бота
 - Новые поля в модели пользователя
+- Добавлены команды для модераторов [#38](https://github.com/HamletSargsyan/livebot/issues/38)
 
 ## [7.1.0] - 2024-08-31
 

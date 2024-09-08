@@ -4,6 +4,7 @@ from dataclasses import asdict, dataclass, field
 
 from bson import ObjectId, Int64
 from dacite import from_dict as _from_dict
+from dateutil.relativedelta import relativedelta
 
 from helpers.enums import ItemType, Locations
 
@@ -126,6 +127,8 @@ class Violation:
     def __post_init__(self):
         if self.type == "permanent-ban":
             self.is_permanent = True
+        elif self.type == "warn" and not self.until_date:
+            self.until_date = _utcnow() + relativedelta(months=3)
 
 
 @dataclass
