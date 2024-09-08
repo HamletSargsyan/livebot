@@ -4,7 +4,7 @@ from telebot.util import quick_markup
 from database.funcs import database
 from database.models import UserModel, Violation
 from helpers.utils import get_user_tag, only_admin, parse_time_duration, utcnow
-from config import bot
+from config import bot, config
 
 
 @bot.message_handler(commands=["warn"])
@@ -45,7 +45,7 @@ def mute_cmd(message: Message, user: UserModel):
     Usage:
         /mute time{d,h,m} [reason]
     """
-    if not message.reply_to_message:
+    if not message.reply_to_message or message.chat.id != config.telegram.chat_id:
         return
     reply_user = database.users.get(id=message.reply_to_message.from_user.id)
 
@@ -80,6 +80,96 @@ def mute_cmd(message: Message, user: UserModel):
 
     mess = (
         f"{get_user_tag(reply_user)} получил мут до {mute_end_time!s} по UTC.\n\n"
+        f"<b>Причина</b>\n"
+        f"<i>{reason}</i>"
+    )
+    markup = quick_markup(
+        {"Правила": {"url": "https://hamletsargsyan.github.io/livebot/rules"}}
+    )
+
+    bot.send_message(message.chat.id, mess, reply_markup=markup)
+
+
+@bot.message_handler(commands=["ban"])
+@only_admin
+def ban_cmd(message: Message, user: UserModel):
+    """
+    Usage:
+        /ban time{d,h,m} [reason]
+    """
+    if not message.reply_to_message or message.chat.id != config.telegram.chat_id:
+        return
+    reply_user = database.users.get(id=message.reply_to_message.from_user.id)
+
+    args = message.text.strip().split(" ")[1:]
+
+    if not args:
+        return
+
+    time_str = args[0]
+    reason = " ".join(args[1:]) if len(args) > 1 else "Без причины"
+
+    try:
+        ban_duration = parse_time_duration(time_str)
+    except ValueError as e:
+        bot.send_message(message.chat.id, f"Ошибка: {str(e)}")
+        return
+
+    ban_end_time = utcnow() + ban_duration
+
+    reply_user.violations.append(Violation(reason, "ban", until_date=ban_end_time))
+
+    database.users.update(**reply_user.to_dict())
+
+    bot.restrict_chat_member(
+        message.chat.id,
+        reply_user.id,
+        ban_end_time,
+        permissions=ChatPermissions(
+            can_send_messages=False,
+        ),
+    )
+
+    bot.ban_chat_member(message.chat.id, reply_user.id, ban_end_time)
+
+    mess = (
+        f"{get_user_tag(reply_user)} получил бан до {ban_end_time!s} по UTC.\n\n"
+        f"<b>Причина</b>\n"
+        f"<i>{reason}</i>"
+    )
+    markup = quick_markup(
+        {"Правила": {"url": "https://hamletsargsyan.github.io/livebot/rules"}}
+    )
+
+    bot.send_message(message.chat.id, mess, reply_markup=markup)
+
+
+@bot.message_handler(commands=["pban"])
+@only_admin
+def pban_cmd(message: Message, user: UserModel):
+    """
+    Usage:
+        /pban time{d,h,m} [reason]
+    """
+    if not message.reply_to_message or message.chat.id != config.telegram.chat_id:
+        return
+    reply_user = database.users.get(id=message.reply_to_message.from_user.id)
+
+    args = message.text.strip().split(" ")[1:]
+
+    if not args:
+        return
+
+    reason = " ".join(args[1:]) if len(args) > 1 else "Без причины"
+
+    reply_user.violations.append(Violation(reason, "permanent-ban"))
+
+    database.users.update(**reply_user.to_dict())
+
+    bot.ban_chat_member(message.chat.id, reply_user.id)
+
+    mess = (
+        f"{get_user_tag(reply_user)} получил перманентный бан.\n\n"
         f"<b>Причина</b>\n"
         f"<i>{reason}</i>"
     )
