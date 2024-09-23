@@ -1,4 +1,4 @@
-pyTelegramBotAPI==4.22.1
+pyTelegramBotAPI==4.23.0
 pymongo==4.9.1
 transliterate==1.10.2
 redis==5.0.8
