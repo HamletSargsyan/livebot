@@ -1,5 +1,5 @@
 pyTelegramBotAPI==4.23.0
-pymongo==4.9.1
+pymongo==4.10.0
 transliterate==1.10.2
 redis==5.0.8
 toml==0.10.2
