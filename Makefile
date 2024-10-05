@@ -22,4 +22,4 @@ dev-setup: dev-install
 
 clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} +
-	rm -rf nohup.out .pid site .*_cache release_body.md
+	rm -rf nohup.out .pid site .*_cache release_body.md *.log

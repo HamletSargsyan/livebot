@@ -1,4 +1,3 @@
-import logging
 import random
 import statistics
 from typing import NoReturn, Union
@@ -10,6 +9,8 @@ from typing_extensions import deprecated
 
 from telebot.types import Message, ReplyParameters, InlineKeyboardButton, User
 from telebot.util import antiflood, escape, split_string, quick_markup
+
+from tinylogging import Record, Level
 
 from base.achievements import ACHIEVEMENTS
 from config import (
@@ -29,28 +30,27 @@ def utcnow() -> datetime:
     return datetime.now(UTC)
 
 
-def log(log_text: str, log_level: str, record: logging.LogRecord) -> None:
+def log(record: Record) -> None:
     emoji_dict = {
-        "debug": "👾",
-        "info": "ℹ️",
-        "warn": "⚠️",
-        "warning": "⚠️",
-        "error": "🛑",
-        "critical": "⛔",
+        Level.DEBUG: "👾",
+        Level.INFO: "ℹ️",
+        Level.WARNING: "⚠️",
+        Level.ERROR: "🛑",
+        Level.CRITICAL: "⛔",
     }
-    current_time = utcnow().strftime("%d.%m.%Y %H:%M:%S")
+    current_time = datetime.now(UTC).strftime("%d.%m.%Y %H:%M:%S")
     log_template = (
-        f'<b>{emoji_dict.get(log_level.lower(), "")} {log_level.upper()}</b>\n\n'
+        f'<b>{emoji_dict.get(record.level, "")} {record.level.name}</b>\n\n'
         f"{current_time}\n\n"
-        f"<b>Логгер:</b> <code>{record.name}</code>\n"
-        #    f"<b>Модуль:</b> <code>{record.module}</code>\n"
-        f"<b>Путь к файлу:</b> <code>{record.pathname}</code>\n"
-        f"<b>Файл</b>: <code>{record.filename}</code>\n"
-        f"<b>Строка:</b> {record.lineno}\n\n"
+        f"<b>Логгер:</b> <code>{record.name}</code>\n"  # cspell: disable-line
+        # f"<b>Модуль:</b> <code>{record.module}</code>\n"
+        # f"<b>Путь к файлу:</b> <code>{record.pathname}</code>\n"
+        # f"<b>Файл</b>: <code>{record.filename}</code>\n"
+        # f"<b>Строка:</b> {record.lineno}\n\n"
         '<pre><code class="language-shell">{text}</code></pre>'
     )
 
-    for text in split_string(log_text, 3000):
+    for text in split_string(record.message, 3000):
         try:
             antiflood(
                 bot.send_message,
@@ -59,8 +59,8 @@ def log(log_text: str, log_level: str, record: logging.LogRecord) -> None:
                 message_thread_id=config.telegram.log_thread_id,
             )
         except Exception as e:
-            logger.exception(e)
-            logger.log(record.levelno, text)
+            print(e)
+            print(text)
 
 
 def remove_not_allowed_symbols(text: str) -> str:

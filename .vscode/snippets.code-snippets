@@ -25,18 +25,6 @@
 			"\t$0"
 		]
 	},
-	"Init file": {
-		"scope": "python",
-		"prefix": "inif",
-		"body": [
-			"from telebot.types import Message$1\n",
-			"from database.models import UserModel$2",
-			"from database.funcs import database\n",
-			"from helpers.utils import get_user_tag$3",
-			"from config import bot$4\n\n",
-			"$0"
-		]
-	},
 
 	"Issue link": {
 		"scope": "markdown",
