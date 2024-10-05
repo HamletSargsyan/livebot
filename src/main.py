@@ -6,7 +6,7 @@ from telebot.types import BotCommand
 
 from tinylogging import Level
 
-import bot as _  # noqa: F401
+import handlers as _  # noqa: F401
 from threads.check import check
 from threads.notification import notification
 from database.funcs import database
