@@ -1,6 +1,7 @@
 version: 2
 updates:
-  - package-ecosystem: pip
+  - package-ecosystem: "pip"
     directory: "/"
+    target-branch: "dev"
     schedule:
-      interval: daily
+      interval: "daily"
