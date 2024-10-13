@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Добавлена новая зависимость: `tinylogging`
 
+### Изменено
+
+- Каталог `bot` был переименован в `handlers`
+- Файл `handlers.py` был переименован в `message.py`
+
 ## [8.0.0] - 2024-09-08
 
 ### Добавлено
