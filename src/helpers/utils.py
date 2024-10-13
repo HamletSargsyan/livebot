@@ -1,3 +1,4 @@
+import json
 import random
 import statistics
 from typing import NoReturn, Union
@@ -7,7 +8,7 @@ import httpx
 from semver import Version
 from typing_extensions import deprecated
 
-from telebot.types import Message, ReplyParameters, InlineKeyboardButton, User
+from telebot.types import Message, InlineKeyboardButton, User
 from telebot.util import antiflood, escape, split_string, quick_markup
 
 from tinylogging import Record, Level
@@ -134,16 +135,22 @@ class Loading:
         self.message = message
 
     def __enter__(self):
-        sticker_id = "CAACAgEAAxkBAAEpskNl2JfOUfS1vL2nDBb_rqz40YJKsAACjQQAApbcoUZgQGLo1I2DijQE"  # cspell:ignore CAAC, Epsk, YJKs, Apbco
+        with open("src/base/hints.json") as f:
+            hints: list[dict[str, str]] = json.load(f)
+
+        hint = random.choice(hints)
+
+        if "url" in hint:
+            markup = quick_markup({"Тык": {"url": hint["url"]}})
+        else:
+            markup = None
+
+        mess = f"<b>Загрузка...</b>\n\n<i>{hint['message']}</i>"
 
         try:
-            msg = bot.send_sticker(
-                self.message.chat.id,
-                sticker_id,
-                reply_parameters=ReplyParameters(self.message.id),
-            )
+            msg = bot.reply_to(self.message, mess, reply_markup=markup)
         except Exception:
-            msg = bot.send_sticker(self.message.chat.id, sticker_id)
+            msg = bot.send_message(self.message.chat.id, mess, reply_markup=markup)
         self.loading_message = msg
 
     def __exit__(self, exc_type, exc_value, traceback):
