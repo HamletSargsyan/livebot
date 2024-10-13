@@ -1,6 +1,7 @@
 import random
 from typing import Any, Callable, NoReturn, TypedDict, Union, List
 from datetime import timedelta
+from typing_extensions import deprecated
 
 from telebot.types import (
     Message,
@@ -13,7 +14,7 @@ from helpers.enums import ItemRarity, ItemType
 from .items import items_list
 
 
-from helpers.exceptions import ItemIsCoin, NoResult
+from helpers.exceptions import NoResult
 from helpers.utils import (
     Loading,
     award_user_achievement,
@@ -55,14 +56,8 @@ def level_up(user: UserModel, chat_id: Union[str, int, None] = None):
     if not chat_id:
         chat_id = user.id
 
-    box = get_or_add_user_item(user, "бокс")
+    user.inventory.add_by_name("бокс")
 
-    if box.quantity < 0:
-        box.quantity = 0
-
-    box.quantity += 1
-
-    database.items.update(**box.to_dict())
     bot.send_sticker(
         chat_id,
         "CAACAgIAAxkBAAEpjItl0i05sChI02Gz_uGnAtLyPBcJwgACXhIAAuyZKUl879mlR_dkOzQE",  # cSpell:ignore CAAC
@@ -219,15 +214,16 @@ def get_available_crafts(user: UserModel) -> list[AvailableCraftItem]:
         required_resources: List[CraftResource] = []
 
         for craft_item_name, craft_item_count in craft.items():
-            user_item = get_or_add_user_item(user, craft_item_name)
-            if (user_item.quantity <= 0) or (user_item.quantity < craft_item_count):
+            user_item_quantity = len(user.inventory.find(craft_item_name))
+
+            if (user_item_quantity <= 0) or (user_item_quantity < craft_item_count):
                 can_craft = False
                 break
             required_resources.append(
                 {
                     "item_name": craft_item_name,
                     "item_count": craft_item_count,
-                    "user_item_quantity": user_item.quantity,
+                    "user_item_quantity": user_item_quantity,
                 }
             )
 
@@ -278,13 +274,13 @@ def generate_exchanger(user: UserModel):
 
 def get_available_items_for_use(user: UserModel) -> List[ItemModel]:
     available_items = []
-    items = database.items.get_all(**{"owner": user._id})
-    for user_item in items:
+
+    for user_item in user.inventory:
         item = get_item(user_item.name)
-        if item and item.is_consumable and user_item.quantity > 0:
+        if item and item.is_consumable:
             available_items.append(user_item)
 
-    return sorted(available_items, key=lambda item: item.quantity, reverse=True)
+    return available_items
 
 
 def use_item(message: Message, name: str):
@@ -308,13 +304,9 @@ def use_item(message: Message, name: str):
             )
             return
 
-        user_item = get_or_add_user_item(user, item.name)
+        user_item = user.inventory.find_one(item.name)
 
         if not user_item:
-            bot.reply_to(message, f"У тебя нет {item.name} {item.emoji}")
-            return
-
-        if user_item.quantity <= 0:
             bot.reply_to(message, f"У тебя нет {item.name} {item.emoji}")
             return
 
@@ -325,14 +317,14 @@ def use_item(message: Message, name: str):
                     message,
                     f"Поел {item.emoji}\n- {item.effect} голода",
                 )
-                user_item.quantity -= 1
+                user.inventory.remove(user_item)
             case "буст":
                 xp = random.randint(100, 150)
                 user.xp += xp
                 bot.reply_to(
                     message, f"{get_item_emoji(name)} Юзнул буст\n+ {xp} опыта"
                 )
-                user_item.quantity -= 1
+                user.inventory.remove(user_item)
             case "бокс":
                 mess = "Ты открыл бокс и получил\n---------\n"
                 num_items_to_get = random.randint(1, 3)
@@ -350,12 +342,9 @@ def use_item(message: Message, name: str):
                     if item_.name == "бабло":
                         user.coin += quantity
                     else:
-                        _item = get_or_add_user_item(user, item_.name)
+                        user.inventory.add_by_name(item_.name)
 
-                        _item.quantity += quantity
-                        database.items.update(**_item.to_dict())
-
-                user_item.quantity -= 1
+                user.inventory.remove(user_item)
 
                 bot.reply_to(message, mess)
             case "энергос" | "чай":
@@ -364,14 +353,14 @@ def use_item(message: Message, name: str):
                     message,
                     f"{item.emoji} юзнул {item.name}\n- {item.effect} усталости",
                 )
-                user_item.quantity -= 1
+                user.inventory.remove(user_item)
             case "пилюля":
                 bot.reply_to(message, f"{item.emoji} в разработке")
                 return
             case "хелп":
                 user.health += item.effect  # pyright: ignore
                 bot.reply_to(message, f"{item.effect} юзнул хелп")
-                user_item.quantity -= 1
+                user.inventory.remove(user_item)
             case "фиксоманчик":
                 bot.reply_to(message, f"{item.emoji} в разработке")
                 return
@@ -379,7 +368,7 @@ def use_item(message: Message, name: str):
                 user.fatigue = 0
                 user.health -= item.effect  # pyright: ignore
                 bot.reply_to(message, f"{item.emoji} юзнул водку")
-                user_item.quantity -= 1
+                user.inventory.remove(user_item)
             case "велик":
                 if not user.action or user.action.type != "street":
                     bot.reply_to(message, "Ты не гуляешь")
@@ -390,86 +379,49 @@ def use_item(message: Message, name: str):
                     message,
                     f"{item.emoji} юзнул велик и сократил время прогулки на {minutes} минут",
                 )
-                user_item.quantity -= 1
+                user.inventory.remove(user_item)
             case "клевер-удачи":
                 user.luck += item.effect  # type: ignore
-                user_item.quantity -= 1
+                user.inventory.remove(user_item)
                 bot.reply_to(message, f"{item.emoji} Увеличил удачу на 1")
 
         database.users.update(**user.to_dict())
-        database.items.update(**user_item.to_dict())
         check_user_stats(user, message.chat.id)
 
 
+@deprecated("use `UserModel.inventory.get_or_add` instant")
 def get_or_add_user_item(user: UserModel, name: str) -> Union[ItemModel, NoReturn]:
-    item = get_item(name)
+    return user.inventory.get_or_add(name)
 
-    if item.type != ItemType.COUNTABLE:
-        raise ValueError  # TODO: add message
-    if item.name == "бабло":
-        raise ItemIsCoin
 
-    try:
-        item = database.items.get(owner=user._id, name=item.name)
-    except NoResult:
-        item = ItemModel(owner=user._id, name=item.name)
-        id = database.items.add(**item.to_dict()).inserted_id
-        item._id = id
-
+@deprecated("use `UserModel.inventory.add_by_name` instant")
+def add_user_usage_item(user: UserModel, name: str, usage: float = 0) -> ItemModel:
+    item = user.inventory.add_by_name(name)
+    item.usage = usage
     return item
 
 
-def add_user_usage_item(
-    user: UserModel, name: str, usage: float = 0
-) -> Union[ItemModel, NoReturn]:
-    _item = get_item(name)
-
-    if _item.type != ItemType.USABLE:
-        raise ValueError  # TODO: add message
-
-    item = ItemModel(owner=user._id, name=_item.name, usage=usage)
-    id = database.items.add(**item.to_dict()).inserted_id
-    item._id = id
-
-    return item
-
-
+@deprecated("use `UserModel.inventory.add_by_name` instant")
 def get_or_add_user_usable_items(
     user: UserModel, name: str, usage: float = 0
-) -> Union[list[ItemModel], NoReturn]:
-    item = get_item(name)
+) -> list[ItemModel]:
+    items = list(
+        filter(lambda i: get_item(i.name).is_consumable, user.inventory.find(name))
+    )
 
-    if item.type != ItemType.USABLE:
-        raise ValueError  # TODO: add message
-
-    try:
-        items = database.items.get_all(owner=user._id, name=item.name)
-        if len(items) == 0:
-            raise NoResult
-    except NoResult:
+    if not items:
         items = [add_user_usage_item(user, name, usage)]
-
     return items
 
 
-def transfer_usable_item(from_user_item: ItemModel, to_user: UserModel):
-    from_user_item.owner = to_user._id
-    database.items.update(**from_user_item.to_dict())
+@deprecated("use `UserModel.inventory.transfer` instant")
+def transfer_usable_item(from_user_item: ItemModel, to_user: UserModel): ...
 
 
+@deprecated("use `UserModel.inventory.transfer` instant")
 def transfer_countable_item(
     from_user_item: ItemModel, quantity: int, to_user: UserModel
-):
-    to_user_item = get_or_add_user_item(to_user, from_user_item.name)
-
-    if from_user_item.quantity < quantity:
-        raise  # TODO
-
-    from_user_item.quantity -= quantity
-    to_user_item.quantity += quantity
-
-    database.items.update(**from_user_item.to_dict())
-    database.items.update(**to_user_item.to_dict())
+): ...
 
 
 def get_top(

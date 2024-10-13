@@ -7,6 +7,7 @@ from dacite import from_dict as _from_dict  # cspell: disable-line
 from dateutil.relativedelta import relativedelta  # cspell: disable-line
 
 from helpers.enums import ItemType, Locations
+from helpers.exceptions import NoResult
 
 
 def _utcnow():
@@ -31,29 +32,23 @@ class BaseModel:
         return _from_dict(cls, dict_data)
 
 
-@dataclass
+@dataclass(init=False)
 class ItemModel(BaseModel):
     name: str
+
+
+@dataclass
+class CountableItemModel(ItemModel):
     quantity: int = 0
-    usage: Optional[float] = None
+
+
+@dataclass
+class UsableItemModel(ItemModel):
     is_equipped: bool = False
-    _id: ObjectId = field(default_factory=ObjectId)
-    owner: ObjectId = field(default_factory=ObjectId)
+    usage: float = 100.0
 
-    def __post_init__(self):
-        from helpers.utils import get_item
 
-        _item = get_item(self.name)
-        if _item.type == ItemType.USABLE and self.quantity > 1:
-            raise ValueError(
-                "Quantity must be 0 or 1 for items with type `ItemType.USABLE`"
-            )
-        if _item.type == ItemType.COUNTABLE and self.usage is not None:
-            raise ValueError(
-                "Usage must be `None` for items with type `ItemType.COUNTABLE`"
-            )
-        if not _item.can_equip and self.is_equipped:
-            raise ValueError(f"Item {self.name} cannot be equipped")
+ItemModelType = CountableItemModel | UsableItemModel
 
 
 @dataclass
@@ -139,6 +134,89 @@ class UserAction:
 
 
 @dataclass
+class ItemStorage:
+    items: list[ItemModelType] = field(default_factory=list)
+
+    def add(self, item: ItemModelType):
+        self.items.append(item)
+
+    def add_by_name(self, name: str) -> ItemModelType:
+        from helpers.utils import get_item
+
+        if get_item(name).type == ItemType.COUNTABLE:
+            if self.check_exists(name):
+                return self.find_one(name)
+            item = CountableItemModel(name)
+        else:
+            item = UsableItemModel(name)
+
+        self.add(item)
+        return item
+
+    def update(self, *items: ItemModelType):
+        for item in items:
+            self.add(item)
+
+    def find(self, name: str, *, limit: Optional[int] = None):
+        items = [item for item in self.items if item.name == name]
+
+        if limit is not None:
+            return items[:limit]
+        return items
+
+    def find_one(self, name: str) -> ItemModelType:
+        items = self.find(name, limit=1)
+        if items:
+            return items[0]
+        raise NoResult(name)
+
+    def get_or_add(self, name: str) -> ItemModelType:
+        if item := self.find_one(name):
+            return item
+
+        from helpers.utils import get_item
+
+        if get_item(name).type == ItemType.COUNTABLE:
+            item = CountableItemModel(name)
+        else:
+            item = UsableItemModel(name)
+
+        self.add(item)
+        return item
+
+    def remove(self, item: ItemModelType) -> bool:
+        self.items.remove(item)
+        return True
+
+    def remove_by_name(self, name: str) -> bool:
+        if item := self.find_one(name):
+            return self.remove(item)
+        return False
+
+    def check_exists(self, name: str) -> bool:
+        return self.find_one(name) is not None
+
+    def transfer(
+        self, item: ItemModelType, from_user: "UserModel", to_user: "UserModel"
+    ):
+        from_user.inventory.remove(item)
+        to_user.inventory.add(item)
+
+    def transfer_by_name(self, name: str, to_user: "UserModel"):
+        if item := self.find_one(name):
+            to_user.inventory.add(item)
+            self.remove(item)
+            return True
+        return False
+
+    def __iter__(self):
+        return iter(self.items)
+
+    def __len__(self) -> int:
+        return len(self.items)
+
+
+@dataclass
 class UserModel(BaseModel):
     id: int
     name: str
@@ -167,6 +245,7 @@ class UserModel(BaseModel):
     last_active_time: datetime = field(default_factory=_utcnow)
     achievement_progress: dict = field(default_factory=dict)
     accepted_rules: bool = False
+    inventory: ItemStorage = field(default_factory=ItemStorage)
 
 
 @dataclass

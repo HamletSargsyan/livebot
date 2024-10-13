@@ -35,6 +35,13 @@ def name_state(call: CallbackQuery):
     if data[-1] != str(call.from_user.id):
         return
 
+    if True:
+        bot.answer_callback_query(
+            call.id,
+            "Временно новые предметы нельзя добавлять",
+        )
+        return
+
     item = get_item(data[1])
 
     if item.type == ItemType.USABLE:
@@ -48,11 +55,11 @@ def name_state(call: CallbackQuery):
         data["name"] = item.name
 
     user = database.users.get(id=call.from_user.id)
-    user_item = database.items.get(name=item.name, owner=user._id)
+    user_item_quantity = user.inventory.find_one(item.name)
 
     markup = InlineMarkup.delate_state(user)
     bot.edit_message_text(
-        f"<b>Продажа предмета {item.emoji}</b>\nВведи кол-во ({user_item.quantity})",
+        f"<b>Продажа предмета {item.emoji}</b>\nВведи кол-во ({user_item_quantity})",
         call.message.chat.id,
         call.message.id,
         reply_markup=markup,
@@ -108,12 +115,13 @@ def price_state(message: Message):
     user = database.users.get(id=from_user(message).id)
     with bot.retrieve_data(from_user(message).id, message.chat.id) as data:  # type: ignore
         try:
-            user_item = database.items.get(owner=user._id, name=data["name"])
+            user_item_quantity = len(user.inventory.find(data["name"]))
+
         except NoResult:
             bot.reply_to(message, "У тебя нет такого предмета")
             return
 
-        if user_item.quantity < data["quantity"]:
+        if user_item_quantity < data["quantity"]:
             bot.reply_to(message, "У тебя нет столько")
             return
 
@@ -126,8 +134,7 @@ def price_state(message: Message):
 
     bot.delete_state(user.id, message.chat.id)
     database.market_items.add(**item.to_dict())
-    user_item.quantity -= item.quantity
-    database.items.update(**user_item.to_dict())
+    user_item.quantity -= item.quantity  # type: ignore  # TODO
 
     call_message_id = redis_cache.get(f"{from_user(message).id}_item_add_message")
 

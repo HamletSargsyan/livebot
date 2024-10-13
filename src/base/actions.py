@@ -4,7 +4,7 @@ from telebot.types import CallbackQuery
 
 from base.mobs import generate_mob
 from base.weather import get_weather
-from base.player import check_user_stats, get_or_add_user_item
+from base.player import check_user_stats
 
 from database.funcs import database
 from database.models import UserAction, UserModel
@@ -130,9 +130,7 @@ def street(call: CallbackQuery, user: UserModel):
                 user.coin += quantity
                 database.users.update(**user.to_dict())
             else:
-                user_item = get_or_add_user_item(user, item_[0])
-                user_item.quantity += quantity
-                database.items.update(**user_item.to_dict())
+                user.inventory.add_by_name(item_[0])
 
     if dog:
         dog.hunger += random.randint(0, 5)
