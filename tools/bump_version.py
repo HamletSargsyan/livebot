@@ -7,7 +7,8 @@ from semver import Version
 
 
 with open("version") as f:
-    version = Version.parse(f.read())
+    old_version = Version.parse(f.read())
+    version = old_version
 
 
 def usage():
@@ -39,6 +40,13 @@ match sys.argv[1].lower():
         print(f"Unknown arg `{arg}`")
         usage()
         sys.exit(1)
+
+
+print(f"{old_version} -> {version}")
+choice = input("Сделать релиз? [N/y] ").lower()
+
+if choice != "y":
+    sys.exit(0)
 
 with open("version", "w") as f:
     f.write(str(version))
@@ -77,8 +85,18 @@ with open("release_body.md", "w") as f:
     f.write(content)
 
 
-os.system('git commit -a -m "bump version" && git push')
+os.system("make fix && make lint && make format")
+r = os.system('git commit -a -m "bump version" && git push')
 
-os.system(
+if r != 0:
+    sys.exit(1)
+
+r = os.system(
     f'gh release create v{version} --notes-file release_body.md {"-p" if prerelease else ""} --title v{version}'
 )
+
+if r != 0:
+    sys.exit(1)
+
+os.system("git fetch --tags")
+print("Релиз успешно опубликован")

@@ -1,13 +1,17 @@
 {
     "python.analysis.autoImportCompletions": true,
-    "python.analysis.extraPaths": ["src"],
+    "python.analysis.extraPaths": [
+        "src"
+    ],
     "python.analysis.typeCheckingMode": "basic",
     "ruff.enable": true,
     "mypy.enabled": false,
     "cSpell.language": "en,ru",
     "cSpell.words": [
+        "ачивки",
         "бабла",
         "буст",
+        "бусте",
         "гайдом",
         "енергос",
         "Забанен",
@@ -35,7 +39,6 @@
         "стейтов",
         "тако",
         "Троллинг",
-        "удачы",
         "Ухтыы",
         "фиксоманчик",
         "фича",
@@ -46,15 +49,15 @@
         "энергос",
         "юзай",
         "юзнул",
-        "aiohttp",
         "altnames",
         "antiflood",
         "apihelper",
         "argparse",
         "bson",
+        "dataclass",
         "dotenv",
         "funcs",
-        "GRAMADS",
+        "httpx",
         "levelname",
         "levelno",
         "levelup",
@@ -63,7 +66,18 @@
         "pymongo",
         "setex",
         "telebot",
+        "termux",
         "translit"
     ],
+    "yaml.schemas": {
+        "https://squidfunk.github.io/mkdocs-material/schema.json": "mkdocs.yml"
+    },
+    "yaml.customTags": [
+        "!ENV scalar",
+        "!ENV sequence",
+        "!relative scalar",
+        "tag:yaml.org,2002:python/name:material.extensions.emoji.to_svg",
+        "tag:yaml.org,2002:python/name:material.extensions.emoji.twemoji",
+        "tag:yaml.org,2002:python/name:pymdownx.superfences.fence_code_format"
+    ]
 }
-

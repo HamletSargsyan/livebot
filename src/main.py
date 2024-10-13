@@ -1,12 +1,15 @@
 from threading import Thread
 
 import argparse
+import telebot
 from telebot.types import BotCommand
+
 
 import bot as _  # noqa: F401
 from threads.check import check
 from threads.notification import notification
-from config import bot, event_open, logger
+from database.funcs import database
+from config import bot, config, logger
 from middlewares import middlewares
 
 
@@ -23,6 +26,7 @@ def configure_bot_commands():
         BotCommand("exchanger", "Обменник"),
         BotCommand("transfer", "Перекидка предметов"),
         BotCommand("shop", "Магазин"),
+        BotCommand("achievements", "Достижения"),
         BotCommand("weather", "Погода"),
         BotCommand("items", "Информация о всех приметах"),
         BotCommand("casino", "Казино"),
@@ -32,7 +36,7 @@ def configure_bot_commands():
         BotCommand("help", "Помощь"),
     ]
 
-    if event_open:
+    if config.event.open:
         commands.insert(0, BotCommand("event", "Ивент"))
 
     bot.set_my_commands(commands)
@@ -52,15 +56,13 @@ def start_threads():
         thread.start()
 
 
-def main(args):
+def main(args: argparse.Namespace):
     logger.info("Бот включен")
 
     if args.debug:
-        import config
-
-        config.DEBUG = True
-        config.telebot.logger.setLevel(10)
-        config.logger.setLevel(10)
+        config.general.debug = True
+        logger.setLevel(10)
+        telebot.logger.setLevel(10)
         logger.warning("Бот работает в режиме DEBUG")
 
     configure_bot_commands()
@@ -68,6 +70,11 @@ def main(args):
     init_middlewares()
     if not args.without_threads:
         start_threads()
+
+    for id in config.telegram.owners:
+        user = database.users.get(id=id)
+        user.is_admin = True
+        database.users.update(**user.to_dict())
 
     bot.infinity_polling(timeout=500, skip_pending=True)
 
@@ -80,8 +87,5 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-
-    if args.debug:
-        DEBUG = True
 
     main(args)

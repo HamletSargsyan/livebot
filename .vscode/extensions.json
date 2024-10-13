@@ -8,5 +8,8 @@
         "charliermarsh.ruff",
         "streetsidesoftware.code-spell-checker",
         "editorconfig.editorconfig"
+    ],
+    "unwantedRecommendations": [
+        "matangover.mypy"
     ]
 }

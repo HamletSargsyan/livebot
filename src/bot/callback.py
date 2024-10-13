@@ -24,27 +24,33 @@ from base.player import (
     level_top,
     use_item,
     get_available_items_for_use,
+)
+from base.actions import (
     game,
     sleep,
     street,
     work,
 )
+
 from base.items import items_list
 from helpers.utils import (
+    achievement_progress,
     check_user_subscription,
+    get_achievement,
     get_item_count_for_rarity,
     get_item_emoji,
     get_middle_item_price,
     get_time_difference_string,
     get_item,
     get_user_tag,
+    increment_achievement_progress,
     utcnow,
 )
 
 from database.models import DogModel
 from database.funcs import database
 
-from config import bot
+from config import bot, logger
 
 
 @bot.callback_query_handler(lambda c: c.data.startswith("dog"))
@@ -92,7 +98,7 @@ def dog_callback(call: CallbackQuery):
             )
             return
 
-        dog = DogModel(user=user)
+        dog = DogModel(owner=user._id)
         dog.name = f"Собачка-{user.id}"
         database.dogs.add(**dog.to_dict())
 
@@ -642,12 +648,15 @@ def market_callback(call: CallbackQuery):
             user_item = get_or_add_user_item(user, market_item.name)
             user_item.quantity += market_item.quantity
         else:
-            user_item = add_user_usage_item(user, market_item.name, market_item.usage)
+            user_item = add_user_usage_item(user, market_item.name, market_item.usage)  # type: ignore
             user_item.quantity = market_item.quantity
 
         database.items.update(**user_item.to_dict())
         database.users.update(**user.to_dict())
         database.users.update(**item_owner.to_dict())
+
+        increment_achievement_progress(user, "богач", market_item.price)
+        increment_achievement_progress(item_owner, "продавец")
 
         usage = f" ({int(market_item.usage)}%)" if market_item.usage else ""
 
@@ -868,10 +877,72 @@ def transfer_callback(call: CallbackQuery):
     mess = (
         f"{user.name} подарил {reply_user.name}\n"
         "----------------\n"
-        f"{get_item_emoji(item.name)} {item.name} ({int(item.usage)}%)"
+        f"{get_item_emoji(item.name)} {item.name} ({int(item.usage)}%)"  # type: ignore
     )
 
     database.users.update(**user.to_dict())
     database.users.update(**reply_user.to_dict())
 
     bot.send_message(call.message.chat.id, mess)
+
+
+@bot.callback_query_handler(lambda c: c.data.startswith("achievements"))
+def achievements_callback(call: CallbackQuery):
+    data = call.data.split(" ")
+
+    if data[-1] != str(call.from_user.id):
+        return
+
+    user = database.users.get(id=call.from_user.id)
+
+    if data[1] == "view":
+        ach = get_achievement(data[2])
+        mess = f"<b>{ach.emoji} {ach.name}</b>\n\n"
+        mess += f"<i>{ach.desc}</i>\n\n"
+        mess += f"{achievement_progress(user, ach.name)}"
+
+        logger.debug(user.achievement_progress)
+
+        markup = quick_markup(
+            {"Назад": {"callback_data": f"achievements main {user.id}"}}
+        )
+
+        bot.edit_message_text(
+            mess, call.message.chat.id, call.message.id, reply_markup=markup
+        )
+    elif data[1] == "main":
+        mess = "Достижения"
+
+        markup = InlineMarkup.achievements(user)
+
+        bot.edit_message_text(
+            mess, call.message.chat.id, call.message.id, reply_markup=markup
+        )
+
+    elif data[1] == "filter":
+        filter = data[2]
+        markup = InlineMarkup.achievements_view(user, filter)  # type: ignore
+
+        bot.edit_message_reply_markup(
+            call.message.chat.id, call.message.id, reply_markup=markup
+        )
+
+
+@bot.callback_query_handler(lambda c: c.data.startswith("accept_rules"))
+def accept_rules_callback(call: CallbackQuery):
+    data = call.data.split(" ")
+
+    if data[-1] != str(call.from_user.id):
+        return
+
+    user = database.users.get(id=call.from_user.id)
+    user.accepted_rules = True
+    database.users.update(**user.to_dict())
+
+    bot.answer_callback_query(
+        call.id,
+        "Теперь можешь спокойно пользовался ботом",
+        show_alert=True,
+    )
+
+    bot.delete_message(call.message.chat.id, call.message.id)  # type: ignore

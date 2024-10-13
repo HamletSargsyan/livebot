@@ -24,17 +24,24 @@ def notification():
                     user_notification._id = id
 
                 user = database.users.get(_id=user._id)
+                if not user.action:
+                    continue
                 try:
                     current_time = utcnow()
-                    if user.action_time <= current_time:
-                        if user.state == "street" and not user_notification.walk:
+                    if user.action.end <= current_time:
+                        if user.action.type == "street" and not user_notification.walk:
                             user_notification.walk = True
                             mess = "Ты закончил прогулку"
-                        elif user.state == "work" and not user_notification.work:
+                        elif user.action.type == "work" and not user_notification.work:
                             user_notification.work = True
                             mess = "Ты закончил работу"
-                        elif user.state == "sleep" and not user_notification.sleep:
+                        elif (
+                            user.action.type == "sleep" and not user_notification.sleep
+                        ):
                             user_notification.sleep = True
+                            mess = "Ты проснулся"
+                        elif user.action.type == "game" and not user_notification.game:
+                            user_notification.game = True
                             mess = "Ты проснулся"
                         else:
                             continue

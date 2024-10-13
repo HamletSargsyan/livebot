@@ -2,4 +2,4 @@
 
 find . -type d -name "__pycache__" -exec rm -rf {} +
 
-rm -rf .ruff_cache nohup.out .pid site .mypy_cache
+rm -rf .*_cache nohup.out .pid site release_body.md

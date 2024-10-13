@@ -1,15 +1,18 @@
 repos:
   - repo: local
-    hooks:   
+    hooks:
     - id: lint
       name: lint
       entry: make lint
       language: system
       types: [python]
       pass_filenames: false
+      exclude: "src/\\*test\\*.py"
     - id: format
       name: format
       entry: make format
       language: system
       types: [python]
       pass_filenames: false
+      exclude: "src/\\*test\\*.py"
+
