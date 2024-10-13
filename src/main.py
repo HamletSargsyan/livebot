@@ -1,17 +1,14 @@
 from threading import Thread
+import importlib
 
 import argparse
-import telebot
 from telebot.types import BotCommand
 
-from tinylogging import Level
-
-import handlers as _  # noqa: F401
+import bot as _  # noqa: F401
 from threads.check import check
+from config import bot, event_open, logger
 from threads.notification import notification
-from database.funcs import database
-from config import bot, config, logger
-from middlewares import middlewares
+from middlewares.register import RegisterMiddleware
 
 
 def configure_bot_commands():
@@ -23,13 +20,12 @@ def configure_bot_commands():
         BotCommand("quest", "Квест"),
         BotCommand("craft", "Верстак"),
         BotCommand("market", "Рынок"),
-        BotCommand("use", "Юз предметов"),
+        BotCommand("use", "Юз придметов"),
         BotCommand("exchanger", "Обменник"),
-        BotCommand("transfer", "Перекидка предметов"),
+        BotCommand("transfer", "Перекидка придметов"),
         BotCommand("shop", "Магазин"),
-        BotCommand("achievements", "Достижения"),
         BotCommand("weather", "Погода"),
-        BotCommand("items", "Информация о всех приметах"),
+        BotCommand("items", "Информация о всех придметах"),
         BotCommand("casino", "Казино"),
         BotCommand("top", "Топ"),
         BotCommand("ref", "Реферальная система"),
@@ -37,15 +33,14 @@ def configure_bot_commands():
         BotCommand("help", "Помощь"),
     ]
 
-    if config.event.open:
+    if event_open:
         commands.insert(0, BotCommand("event", "Ивент"))
 
     bot.set_my_commands(commands)
 
 
 def init_middlewares():
-    for middleware in middlewares:
-        bot.setup_middleware(middleware())
+    bot.setup_middleware(RegisterMiddleware())
 
 
 def start_threads():
@@ -57,13 +52,30 @@ def start_threads():
         thread.start()
 
 
-def main(args: argparse.Namespace):
+def reload_modules():
+    import base
+    import bot
+    import database
+    import helpers
+    import middlewares
+    import threads
+
+    modules = [base, bot, database, helpers, middlewares, threads]
+
+    for module in modules:
+        importlib.reload(module)
+
+
+def main(args):
     logger.info("Бот включен")
 
     if args.debug:
-        config.general.debug = True
-        logger.level = Level.DEBUG
-        telebot.logger.setLevel(10)
+        import config
+
+        config.DEBUG = True
+        config.telebot.logger.setLevel(10)
+        config.logger.setLevel(10)
+        reload_modules()
         logger.warning("Бот работает в режиме DEBUG")
 
     configure_bot_commands()
@@ -71,11 +83,6 @@ def main(args: argparse.Namespace):
     init_middlewares()
     if not args.without_threads:
         start_threads()
-
-    for id in config.telegram.owners:
-        user = database.users.get(id=id)
-        user.is_admin = True
-        database.users.update(**user.to_dict())
 
     bot.infinity_polling(timeout=500, skip_pending=True)
 
@@ -88,5 +95,8 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
+
+    if args.debug:
+        DEBUG = True
 
     main(args)

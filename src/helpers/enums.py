@@ -1,4 +1,4 @@
-from enum import Enum, auto
+from enum import Enum
 
 
 class Locations(Enum):
@@ -11,11 +11,6 @@ class ItemRarity(Enum):
     RARE = "Редкий"
     EPIC = "Эпический"
     LEGENDARY = "Легендарный"
-
-
-class ItemType(Enum):
-    USABLE = auto()
-    COUNTABLE = auto()
 
 
 class WeatherType(Enum):

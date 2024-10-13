@@ -23,13 +23,16 @@ exclude = [
     "buck-out",
     "build",
     "dist",
+    "node_modules",
+    "site-packages",
+    "venv",
 ]
 
 # Same as Black.
 line-length = 88
 indent-width = 4
 
-target-version = "py312"
+target-version = "py311"
 
 [lint]
 # Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.
@@ -56,14 +59,14 @@ indent-style = "space"
 skip-magic-trailing-comma = false
 
 # Like Black, automatically detect the appropriate line ending.
-line-ending = "lf"
+line-ending = "auto"
 
 # Enable auto-formatting of code examples in docstrings. Markdown,
 # reStructuredText code/literal blocks and doctests are all supported.
 #
 # This is currently disabled by default, but it is planned for this
 # to be opt-out in the future.
-docstring-code-format = true
+docstring-code-format = false
 
 # Set the line length limit used when formatting code snippets in
 # docstrings.

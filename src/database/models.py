@@ -1,214 +1,215 @@
-from datetime import datetime, timedelta, UTC
-from typing import Any, Literal, Optional
-from dataclasses import asdict, dataclass, field
+from typing import TypeVar, Generic, Type, Any
+from datetime import datetime, timedelta
+from bson import ObjectId
 
-from bson import ObjectId, Int64
-from dacite import from_dict as _from_dict  # cspell: disable-line
-from dateutil.relativedelta import relativedelta  # cspell: disable-line
-
-from helpers.enums import ItemType, Locations
+from helpers.enums import Locations
 
 
-def _utcnow():
-    return datetime.now(UTC)
-
-
-@dataclass
-class BaseModel:
+class DictSerializable:
     def to_dict(self) -> dict:
-        result = {}
-        for key, value in asdict(self).items():
-            if isinstance(value, bool):
-                result[key] = value
-            elif isinstance(value, int):
-                result[key] = Int64(value)
-            else:
-                result[key] = value
-        return result
+        return self.__dict__
 
     @classmethod
-    def from_dict(cls, dict_data: dict[str, Any]):
-        return _from_dict(cls, dict_data)
+    def from_dict(cls, dict_data: dict):
+        instance = cls()
+        instance.__dict__.update(dict_data)
+        return instance
 
 
-@dataclass
+T = TypeVar("T")
+
+
+class Field(Generic[T]):
+    def __init__(
+        self,
+        type: Type[T],
+        default: T | None = None,
+        required: bool = False,
+        nullable: bool = False,
+    ) -> None:
+        self._type = type
+        self._default = default
+        self._required = required
+        self._nullable = nullable
+
+    def __get__(self, instance: Any, owner: Type) -> T:
+        if instance is None:
+            return self  # type: ignore
+        return instance.__dict__.get(self._name, self._default)
+
+    def __set__(self, instance: Any, value: T) -> None:
+        if not self._nullable and value is None:
+            raise ValueError(f"{self._name} cannot be None")
+        if value is not None and not isinstance(value, self._type):
+            raise ValueError(
+                f"Invalid type. Expected {self._type}, got {type(value)} for field {self._name}"
+            )
+        instance.__dict__[self._name] = value
+
+    def __set_name__(self, owner: Type, name: str) -> None:
+        self._name = name
+
+    def __str__(self) -> str:
+        return f"<Field type={self._type}, default={self._default}, required={self._required}, nullable={self._nullable}>"
+
+
+class BaseModel(DictSerializable):
+    def __init__(self, __exclude: list[str] = [], **kwargs) -> None:
+        for k, v in kwargs.items():
+            if k in __exclude:
+                continue
+            elif k in ["_id", "owner"]:
+                setattr(self, k, ObjectId(v))
+            else:
+                field = getattr(self.__class__, k, None)
+                if field and isinstance(field, Field):
+                    expected_type = field._type
+                    if not isinstance(v, expected_type) and not (
+                        field._nullable and v is None
+                    ):
+                        try:
+                            v = expected_type(v)
+                        except (ValueError, TypeError):
+                            raise ValueError(
+                                f"Invalid type. Expected {expected_type}, got {type(v)} for field {k}"
+                            )
+                setattr(self, k, v)
+
+
 class ItemModel(BaseModel):
-    name: str
-    quantity: int = 0
-    usage: Optional[float] = None
-    is_equipped: bool = False
-    _id: ObjectId = field(default_factory=ObjectId)
-    owner: ObjectId = field(default_factory=ObjectId)
+    _id = Field(ObjectId)
+    name = Field(str)
+    quantity = Field(int, default=0)
+    is_equiped = Field(bool, default=False)
+    owner = Field(ObjectId)
 
-    def __post_init__(self):
-        from helpers.utils import get_item
-
-        _item = get_item(self.name)
-        if _item.type == ItemType.USABLE and self.quantity > 1:
-            raise ValueError(
-                "Quantity must be 0 or 1 for items with type `ItemType.USABLE`"
-            )
-        if _item.type == ItemType.COUNTABLE and self.usage is not None:
-            raise ValueError(
-                "Usage must be `None` for items with type `ItemType.COUNTABLE`"
-            )
-        if not _item.can_equip and self.is_equipped:
-            raise ValueError(f"Item {self.name} cannot be equipped")
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
 
 
-@dataclass
 class PromoModel(BaseModel):
-    name: str
-    is_used: bool = False
-    usage_count: int = 1
-    description: Optional[str] = None
-    items: dict = field(default_factory=dict)
-    users: list = field(default_factory=list)
-    created_at: datetime = field(default_factory=_utcnow)
-    _id: ObjectId = field(default_factory=ObjectId)
+    _id = Field(ObjectId)
+    name = Field(str)
+    is_used = Field(bool, default=False)
+    usage_count = Field(int, default=1)
+    description = Field(str, nullable=True)
+    items = Field(dict, default={})
+    users = Field(list, default=[])
+    created_at = Field(datetime, default=datetime.utcnow())
+
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
 
 
-@dataclass
 class QuestModel(BaseModel):
-    name: str
-    quantity: int = 1
-    start_time: datetime = field(default_factory=_utcnow)
-    xp: float = 1.0
-    reward: int = 1
-    owner: ObjectId = field(default_factory=ObjectId)
-    _id: ObjectId = field(default_factory=ObjectId)
+    _id = Field(ObjectId)
+    name = Field(str)
+    quantity = Field(int, default=1)
+    start_time = Field(datetime, default=datetime.utcnow())
+    xp = Field(float, default=1.0)
+    reward = Field(int, default=1)
+    owner = Field(ObjectId)
+
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
 
 
-@dataclass
 class ExchangerModel(BaseModel):
-    item: str
-    price: int
-    expires: datetime
-    _id: ObjectId = field(default_factory=ObjectId)
-    owner: ObjectId = field(default_factory=ObjectId)
+    _id = Field(ObjectId)
+    expires = Field(datetime, default=datetime.utcnow() + timedelta(days=1))
+    item = Field(str)
+    price = Field(int)
+    owner = Field(ObjectId)
+
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
 
 
-@dataclass
 class DogModel(BaseModel):
-    _id: ObjectId = field(default_factory=ObjectId)
-    name: str = "Песик"
-    level: int = 1
-    xp: float = 0.0
-    max_xp: int = 100
-    health: int = 100
-    hunger: int = 0
-    fatigue: int = 0
-    sleep_time: datetime = field(default_factory=_utcnow)
-    owner: ObjectId = field(default_factory=ObjectId)
+    _id = Field(ObjectId)
+    name = Field(str, default="Песик")
+    level = Field(int, default=1)
+    xp = Field(float, default=0.0)
+    max_xp = Field(int)
+    health = Field(int, default=100)
+    hunger = Field(int, default=0)
+    fatigue = Field(int, default=0)
+    sleep_time = Field(datetime, default=datetime.utcnow())
+    owner = Field(ObjectId)
+
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
 
 
-@dataclass
 class NotificationModel(BaseModel):
-    _id: ObjectId = field(default_factory=ObjectId)
-    owner: ObjectId = field(default_factory=ObjectId)
-    walk: bool = False
-    work: bool = False
-    sleep: bool = False
-    game: bool = False
-    health: bool = False
-    mood: bool = False
-    hunger: bool = False
-    fatigue: bool = False
+    _id = Field(ObjectId)
+    owner = Field(ObjectId)
+    walk = Field(bool, default=False)
+    work = Field(bool, default=False)
+    sleep = Field(bool, default=False)
+    game = Field(bool, default=False)
+
+    health = Field(bool, default=False)
+    mood = Field(bool, default=False)
+    hunger = Field(bool, default=False)
+    fatigue = Field(bool, default=False)
+
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
 
 
-@dataclass
-class Violation:
-    reason: str
-    type: Literal["warn", "mute", "ban", "permanent-ban"]
-    date: datetime = field(default_factory=_utcnow)
-    is_permanent: bool = False
-    until_date: Optional[datetime] = None
-
-    def __post_init__(self):
-        if self.type == "permanent-ban":
-            self.is_permanent = True
-        elif self.type == "warn" and not self.until_date:
-            self.until_date = _utcnow() + relativedelta(months=3)
-
-
-@dataclass
-class UserAction:
-    type: Literal["street", "work", "sleep", "game"]
-    end: datetime
-    start: datetime = field(default_factory=_utcnow)
-
-
-@dataclass
 class UserModel(BaseModel):
-    id: int
-    name: str
-    _id: ObjectId = field(default_factory=ObjectId)
-    registered_at: datetime = field(default_factory=_utcnow)
-    level: int = 1
-    xp: float = 0.0
-    max_xp: int = 155
-    is_admin: bool = False
-    is_banned: bool = False
-    met_mob: bool = False
-    violations: list[Violation] = field(default_factory=list)
-    coin: int = 0
-    health: int = 100
-    mood: int = 100
-    hunger: int = 0
-    fatigue: int = 0
-    location: str = Locations.HOME.value
-    action: Optional[UserAction] = None
-    casino_win: int = 0
-    casino_loose: int = 0
-    new_quest_coin_quantity: int = 2
-    max_items_count_in_market: int = 4
-    luck: int = 1
-    adverts_count: int = 0
-    last_active_time: datetime = field(default_factory=_utcnow)
-    achievement_progress: dict = field(default_factory=dict)
-    accepted_rules: bool = False
+    _id = Field(ObjectId)
+    id = Field(int)
+    name = Field(str)
+    registered_at = Field(datetime, default=datetime.utcnow())
+    level = Field(int, default=1)
+    xp = Field(float, default=0.0)
+    max_xp = Field(int, default=155)
+    is_admin = Field(bool, default=False)
+    is_banned = Field(bool, default=False)
+    met_mob = Field(bool, default=False)
+    ban_reason = Field(str, nullable=True)
+    ban_time = Field(datetime, nullable=True)
+    is_infinity_ban = Field(bool, nullable=True)
+    coin = Field(int, default=0)
+    health = Field(int, default=100)
+    mood = Field(int, default=100)
+    hunger = Field(int, default=0)
+    fatigue = Field(int, default=0)
+    location = Field(str, default=Locations.HOME.value)
+    action_time = Field(datetime, default=datetime.utcnow())
+    state = Field(str, nullable=True)
+    casino_win = Field(int, default=0)
+    casino_loose = Field(int, default=0)
+    new_quest_coin_quantity = Field(int, default=2)
+    max_items_count_in_market = Field(int, default=4)
+    luck = Field(int, default=1)
+
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
 
 
-@dataclass
 class MarketItemModel(BaseModel):
-    name: str
-    price: int
-    _id: ObjectId = field(default_factory=ObjectId)
-    quantity: int = 0
-    usage: Optional[float] = None
-    published_at: datetime = field(default_factory=_utcnow)
-    owner: ObjectId = field(default_factory=ObjectId)
+    _id = Field(ObjectId)
+    name = Field(str)
+    price = Field(int, default=0)
+    quantity = Field(int, default=0)
+    published_at = Field(datetime, default=datetime.utcnow())
+    owner = Field(ObjectId)
 
-    def __post_init__(self):
-        from helpers.utils import get_item
-
-        _item = get_item(self.name)
-        if _item.type == ItemType.USABLE and self.quantity > 1:
-            raise ValueError(
-                "Quantity must be 0 or 1 for items with type `ItemType.USABLE`"
-            )
-        if _item.type == ItemType.COUNTABLE and self.usage is not None:
-            raise ValueError(
-                "Usage must be `None` for items with type `ItemType.COUNTABLE`"
-            )
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
 
 
-@dataclass
 class DailyGiftModel(BaseModel):
-    _id: ObjectId = field(default_factory=ObjectId)
-    owner: ObjectId = field(default_factory=ObjectId)
-    last_claimed_at: Optional[datetime] = None
-    next_claimable_at: datetime = field(
-        default_factory=lambda: _utcnow() + timedelta(days=1)
-    )
-    is_claimed: bool = False
-    items: list = field(default_factory=list)
-    streak: int = 0
+    _id = Field(ObjectId)
+    owner = Field(ObjectId)
+    last_claimed_at = Field(datetime, nullable=True)
+    next_claimable_at = Field(datetime, default=datetime.utcnow() + timedelta(days=1))
+    is_claimed = Field(bool, default=False)
+    items = Field(list)
+    streak = Field(int, default=0)
 
-
-@dataclass
-class AchievementModel(BaseModel):
-    name: str
-    _id: ObjectId = field(default_factory=ObjectId)
-    owner: ObjectId = field(default_factory=ObjectId)
-    created_at: datetime = field(default_factory=_utcnow)
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)

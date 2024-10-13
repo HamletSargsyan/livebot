@@ -1,169 +1,110 @@
+from datetime import datetime
+import os
+import sys
 import json
-from dns import resolver
-from dataclasses import dataclass
-from typing import Final, Optional
-from datetime import UTC, datetime
+import logging
+from typing import Final
 
-import toml
+from dotenv import load_dotenv
 from redis import Redis
-from semver import Version
-
-from tinylogging import Logger, Level, BaseHandler, FileHandler, LoggingAdapterHandler
 
 import telebot
-from telebot import ExceptionHandler
 from telebot.storage import StateRedisStorage
 from telebot.custom_filters import StateFilter, IsDigitFilter
 
 
-TELEGRAM_ID: Final = 777000
+load_dotenv()
 
-# ---------------------------------------------------------------------------- #
-#                                 config types                                 #
-# ---------------------------------------------------------------------------- #
+DEBUG = False
 
+TOKEN = os.getenv("BOT_TOKEN", "")
+DB_URL = os.getenv("DB_URL", "")
+REDIS_URL = os.getenv("REDIS_URL", "")
+DB_NAME = os.getenv("DB_NAME", "livebot")
+OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API", "")
 
-@dataclass
-class GeneralConfig:
-    debug: bool = False
-
-
-@dataclass
-class DatabaseConfig:
-    url: str
-    name: str = "livebot"
-
-
-@dataclass
-class RedisConfig:
-    url: str
-
-
-@dataclass
-class TelegramConfig:
-    token: str
-    owners: list[int]
-    channel_id: str
-    chat_id: str
-    log_chat_id: str
-    log_thread_id: Optional[int] = None
-
-
-@dataclass
-class WeatherConfig:
-    api_key: str
-    region: str
-
-
-@dataclass
-class EventConfig:
-    start_time: datetime
-    end_time: datetime
-
-    def __init__(self, start_time: str, end_time: str):
-        self.start_time = datetime.fromisoformat(start_time)
-        self.end_time = datetime.fromisoformat(end_time)
-
-    @property
-    def open(self) -> bool:
-        return self.start_time < datetime.now(UTC) < self.end_time
-
-
-@dataclass
-class Config:
-    general: GeneralConfig
-    database: DatabaseConfig
-    redis: RedisConfig
-    telegram: TelegramConfig
-    weather: WeatherConfig
-    event: EventConfig
-
-    @staticmethod
-    def from_toml(file_path: str) -> "Config":
-        config_data = toml.load(file_path)
-
-        general = GeneralConfig(**config_data.get("general", {}))
-        database = DatabaseConfig(**config_data.get("database", {}))
-        redis = RedisConfig(**config_data.get("redis", {}))
-        telegram = TelegramConfig(**config_data.get("telegram", {}))
-        weather = WeatherConfig(**config_data.get("weather", {}))
-        event = EventConfig(**config_data.get("event", {}))
-
-        return Config(
-            general=general,
-            database=database,
-            redis=redis,
-            telegram=telegram,
-            weather=weather,
-            event=event,
-        )
-
-
-# ---------------------------------------------------------------------------- #
-
-config: Final = Config.from_toml("config.toml")
-
-# NOTE: Это для termux
-resolver.default_resolver = resolver.Resolver(configure=False)
-resolver.default_resolver.nameservers = ["8.8.8.8"]
-
-
-with open("version") as f:
-    version: Final = Version.parse(f.read())
-
-
-logger = Logger("Bot", Level.DEBUG if config.general.debug else Level.INFO)
-
-
-class TelegramLogsHandler(BaseHandler):
-    def emit(self, record):
-        if record.level <= Level.DEBUG and record.name == telebot.logger.name:
-            return
-        from helpers.utils import log
-
-        log(record)
-
-
-logger.handlers.add(TelegramLogsHandler())
-logger.handlers.add(FileHandler("bot.log"))
-
-
-telebot.logger.handlers = []
-
-for handler in logger.handlers:
-    telebot.logger.addHandler(LoggingAdapterHandler(handler))
-
-telebot.logger.setLevel("DEBUG" if config.general.debug else "INFO")
+if not TOKEN:
+    raise ValueError
+elif not DB_URL:
+    raise ValueError
+elif not DB_NAME:
+    raise ValueError
+elif not OPENWEATHER_API_KEY:
+    raise ValueError
 
 
 class RedisStorage(StateRedisStorage):
     def set_record(self, key, value):
         connection = Redis(connection_pool=self.redis)
+
         connection.setex(self.prefix + str(key), 120, json.dumps(value))
         connection.close()
         return True
 
 
-state_storage = RedisStorage(redis_url=config.redis.url)
-
-
-class ErrorHandler(ExceptionHandler):
-    def handle(self, exception: Exception) -> bool:  # pyright: ignore
-        logger.error(str(exception))
-        return True
-
+state_storage = RedisStorage(redis_url=REDIS_URL)
 
 bot = telebot.TeleBot(
-    config.telegram.token,
+    TOKEN,
     parse_mode="html",
     skip_pending=True,
     num_threads=10,
     disable_web_page_preview=True,
     use_class_middlewares=True,
     state_storage=state_storage,
-    exception_handler=ErrorHandler(),
 )
 
 
 bot.add_custom_filter(StateFilter(bot))
 bot.add_custom_filter(IsDigitFilter())
+
+TELEGRAM_ID: Final = 777000
+
+
+log_chat_id = "-1002110527910"
+log_thread_id = 2
+
+weather_region: Final = "Сыктывкар"
+
+timezone: Final = datetime.utcnow().tzinfo
+
+event_end_time: Final = datetime(2024, 6, 1, 0, 0, 0, tzinfo=timezone)
+event_open: Final = False
+
+channel_id: Final = "-1002081230318"
+chat_id: Final = "-1001869913117"
+
+GUIDE_FILE_PATH: Final = "guide.toml"
+
+
+bot_owners = [5161392463]  # type: list[int]
+
+logger = logging.Logger("Bot")
+
+
+class TelegramLogsHandler(logging.Handler):
+    def __init__(self):
+        super().__init__()
+
+    def emit(self, record):
+        if record.levelno == 10 and record.name == "TeleBot":
+            return
+        from helpers.utils import log
+
+        log_entry = self.format(record)
+        log(log_entry, record.levelname, record)
+        del log
+
+
+logger.addHandler(TelegramLogsHandler())
+
+formatter = logging.Formatter(
+    '%(asctime)s (%(filename)s:%(lineno)d %(threadName)s) %(levelname)s - %(name)s: "%(message)s"'
+)
+
+console_output_handler = logging.StreamHandler(sys.stderr)
+console_output_handler.setFormatter(formatter)
+logger.addHandler(console_output_handler)
+
+telebot.logger.addHandler(TelegramLogsHandler())
+telebot.logger.setLevel(20)
