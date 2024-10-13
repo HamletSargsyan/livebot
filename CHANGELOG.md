@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Добавлено
+
+- Добавлена новая зависимость: `tinylogging`
+
 ## [8.0.0] - 2024-09-08
 
 ### Добавлено
