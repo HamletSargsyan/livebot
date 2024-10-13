@@ -1,9 +1,7 @@
-from typing import Any, Optional
+from typing import Dict, List, Tuple, Union
 
 import transliterate
-
-from database.models import UserModel
-from helpers.enums import ItemRarity, ItemType, WeatherType
+from helpers.enums import ItemRarity, WeatherType
 
 # ---------------------------------- Weather --------------------------------- #
 
@@ -92,7 +90,7 @@ class SysInfo:
 
 
 class WeatherData:
-    def __init__(self, data: dict[str, Any]):
+    def __init__(self, data: dict):
         self.data: dict = data
         self.coord: Coordinates = Coordinates(data.get("coord", {}))
         self.weather: Weather = Weather(data.get("weather", [{}])[0])
@@ -120,18 +118,17 @@ class Item:
         emoji: str,
         desc: str,
         rarity: ItemRarity,
-        type: ItemType = ItemType.COUNTABLE,
         is_task_item: bool = False,
         can_exchange: bool = False,
-        is_consumable: bool = False,
-        altnames: Optional[list[str]] = None,
-        craft: Optional[dict[str, int]] = None,
-        effect: Optional[int] = None,
-        price: Optional[int] = None,
-        task_coin: Optional[tuple[int, int]] = None,
-        exchange_price: Optional[tuple[int, int]] = None,
-        strength: Optional[float] = None,
-        strength_reduction: Optional[tuple[float, float]] = None,
+        is_usable: bool = False,
+        altnames: Union[List[str], None] = None,
+        craft: Union[Dict[str, int], None] = None,
+        effect: Union[int, None] = None,
+        price: Union[int, None] = None,
+        task_coin: Union[Tuple[int, int], None] = None,
+        exchange_price: Union[Tuple[int, int], None] = None,
+        strength: Union[float, None] = None,
+        strength_reduction: Union[tuple[float, float], None] = None,
         can_equip: bool = False,
     ):
         self.name = name
@@ -140,7 +137,7 @@ class Item:
         self.craft = craft
         self.effect = effect
         self.price = price
-        self.is_consumable = is_consumable
+        self.is_usable = is_usable
         self.altnames = altnames
         self.rarity = rarity
         self.is_task_item = is_task_item
@@ -150,46 +147,12 @@ class Item:
         self.strength = strength
         self.strength_reduction = strength_reduction
         self.can_equip = can_equip
-        self.type = type
 
     def __repr__(self) -> str:
-        return f"(Item {self.name})"
+        return f"<Item {self.name}>"
 
     def __str__(self) -> str:
         return self.__repr__()
 
-    def translit(self) -> str:
+    def translit(self):
         return transliterate.translit(self.name, reversed=True)
-
-
-# ------------------------------- achievements ------------------------------- #
-
-
-class Achievement:
-    def __init__(
-        self,
-        /,
-        name: str,
-        emoji: str,
-        desc: str,
-        need: int,
-        reward: dict[str, int],
-    ) -> None:
-        self.name = name
-        self.emoji = emoji
-        self.desc = desc
-        self.need = need
-        self.key = name.strip().replace(" ", "-")
-        self.reward = reward
-
-    def __str__(self) -> str:
-        return f"{self.name}"
-
-    def check(self, user: UserModel):
-        progress = user.achievement_progress.get(self.key, 0)
-        if progress >= self.need:
-            return True
-        return False
-
-    def translit(self) -> str:
-        return transliterate.translit(self.key, reversed=True)

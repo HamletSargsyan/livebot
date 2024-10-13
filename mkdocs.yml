@@ -1,32 +1,11 @@
 site_name: Livebot
 repo_url: https://github.com/HamletSargsyan/livebot
 edit_uri: blob/main/docs/
-
-plugins:
-  - git-revision-date-localized:
-      enable_creation_date: true
-      timezone: UTC
-      locale: ru
-      type: timeago
-      exclude:
-        - index.md
-
-markdown_extensions:
-  - tables
-  - admonition
-  - pymdownx.details
-  - pymdownx.superfences
-  - toc:
-      slugify: !!python/object/apply:pymdownx.slugs.slugify
-        kwds:
-          case: lower
 theme:
-  features:
-    - content.code.copy
-    - navigation.instant
   name: material
   language: ru
   palette:
+    # Palette toggle for light mode
     - media: "(prefers-color-scheme: light)"
       scheme: default
       primary: teal
@@ -34,6 +13,7 @@ theme:
         icon: material/weather-sunny
         name: Switch to dark mode
 
+    # Palette toggle for dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
       primary: teal

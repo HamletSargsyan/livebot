@@ -7,9 +7,8 @@ from pymongo.collection import Collection
 import redis
 
 from helpers.exceptions import NoResult
-from config import config
+from config import DB_NAME, DB_URL, REDIS_URL
 from database.models import (
-    AchievementModel,
     MarketItemModel,
     NotificationModel,
     UserModel,
@@ -22,15 +21,15 @@ from database.models import (
 )
 
 
-client = MongoClient(config.database.url, tz_aware=True)
+client = MongoClient(DB_URL)
 
-if config.database.name == "test":
-    choice = input(f"Drop database `{config.database.name}`? [N/y] ")
+if DB_NAME == "test":
+    choice = input(f"Drop database `{DB_NAME}`? [N/y] ")
     if choice == "y":
-        client.drop_database(config.database.name)
+        client.drop_database(DB_NAME)
         del choice
 
-db = client.get_database(config.database.name)
+db = client.get_database(DB_NAME)
 
 users = db.get_collection("users")
 items = db.get_collection("items")
@@ -41,7 +40,6 @@ dogs = db.get_collection("dogs")
 notifications = db.get_collection("notifications")
 market_items = db.get_collection("market_items")
 daily_gifts = db.get_collection("daily_gifts")
-achievements = db.get_collection("achievements")
 
 
 T = TypeVar(
@@ -55,7 +53,6 @@ T = TypeVar(
     NotificationModel,
     MarketItemModel,
     DailyGiftModel,
-    AchievementModel,
 )
 
 
@@ -73,17 +70,17 @@ class BaseDB(Generic[T]):
     def update(self, _id: ObjectId, **data):
         return self.collection.update_one({"_id": _id}, {"$set": data})
 
-    def get(self, **data) -> T:
+    def get(self, **data):
         obj = self.collection.find_one(data)
         if not obj:
             raise NoResult
-        return self.model.from_dict(obj)
+        return self.model(**obj)
 
-    def get_all(self, **data) -> list[T]:
+    def get_all(self, **data):
         obj = self.collection.find(data)
         if not obj:
             raise NoResult
-        return [self.model.from_dict(attrs) for attrs in obj]
+        return [self.model(**attrs) for attrs in obj]
 
     def check_exists(self, **data) -> bool:
         try:
@@ -103,8 +100,7 @@ class DataBase:
         self.notifications = BaseDB(notifications, NotificationModel)
         self.market_items = BaseDB(market_items, MarketItemModel)
         self.daily_gifts = BaseDB(daily_gifts, DailyGiftModel)
-        self.achievements = BaseDB(achievements, AchievementModel)
 
 
 database = DataBase()
-redis_cache = redis.from_url(config.redis.url)
+cache = redis.from_url(REDIS_URL)

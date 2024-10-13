@@ -16,7 +16,3 @@ class ItemIsCoin(Exception):
 
 class QuestNotFound(Exception):
     pass
-
-
-class AchievementNotFoundError(Exception):
-    pass
