@@ -1,9 +1,14 @@
 name: Checks
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
+    paths:
+      - "**.py"
+      - ".github/workflows/check.yml"
+
 
 jobs:
   init:
@@ -11,13 +16,17 @@ jobs:
 
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
+
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
 
     - name: Install requirements
       run: pip install -r requirements.txt
 
     - name: Install dev requitements
-      run: pip install ruff
-    
-    - name: Ruff
-      run: ruff check .
+      run: make dev-install
+
+    - name: lint
+      run: make lint

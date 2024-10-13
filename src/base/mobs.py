@@ -42,7 +42,7 @@ class BaseMob(ABC):
 
 class Dog(BaseMob):
     def __init__(self) -> None:
-        super().__init__("псина", 6.3)
+        super().__init__("псина", 7.3)
 
         self.quantity = random.randint(4, 10)
 
@@ -67,7 +67,7 @@ class Dog(BaseMob):
 
 class Trader(BaseMob):
     def __init__(self):
-        super().__init__("торговец", 2.2)
+        super().__init__("торговец", 5.2)
         self.items = [item for item in items_list if item.rarity == ItemRarity.COMMON]
         while True:
             self.item = random.choice(self.items)
@@ -81,7 +81,7 @@ class Trader(BaseMob):
             return
         mess = (
             "<b>👳‍♂️ Торговец</b>\n\n"
-            "Эй дружок, у меня для тебя есть выгодное придложение\n"
+            "Эй дружок, у меня для тебя есть выгодное предложение\n"
             f"Даю {self.quantity} {self.item.emoji} {self.item.name} за {self.price} {get_item_emoji('бабло')}"
         )
 
@@ -90,7 +90,7 @@ class Trader(BaseMob):
                 "Обменять": {
                     "callback_data": f"trader trade {self.item.translit()} {self.quantity} {self.price} {self.user.id}"
                 },
-                "Отказатся": {"callback_data": f"trader leave {self.user.id}"},
+                "Отказаться": {"callback_data": f"trader leave {self.user.id}"},
             }
         )
 
@@ -101,7 +101,7 @@ class Trader(BaseMob):
 
 class Chest(BaseMob):
     def __init__(self):
-        super().__init__("сундук", 8.2)
+        super().__init__("сундук", 1.3)
 
     def on_meet(self):
         if not self.user or not self.message:
@@ -136,5 +136,5 @@ def generate_mob():
     mob = random.choice(mob_types)()
     chance = random.uniform(1, 10)
 
-    if chance <= mob.chance:
+    if mob.chance <= chance:
         return mob

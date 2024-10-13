@@ -1,12 +1,17 @@
-from datetime import datetime
+from copy import deepcopy
+from typing import Literal
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from telebot.util import quick_markup, chunks
 
+from base.achievements import ACHIEVEMENTS
 from base.items import items_list
 from helpers.utils import (
+    achievement_status,
     get_item_emoji,
     get_pager_controllers,
     get_time_difference_string,
+    is_completed_achievement,
+    utcnow,
 )
 from database.models import DailyGiftModel, MarketItemModel, UserModel
 from database.funcs import database
@@ -23,21 +28,21 @@ class InlineMarkup:
 
     @classmethod
     def actions_choice(cls, user: UserModel) -> InlineKeyboardMarkup:
-        def active_state_emoji(name):
-            return "🔹" if user.state == name else ""
+        def active_action_emoji(name):
+            return "🔹" if user.action and user.action.type == name else ""
 
         markup = quick_markup(
             {
-                f"Прогулка {active_state_emoji('street')}": {
+                f"Прогулка {active_action_emoji('street')}": {
                     "callback_data": f"actions street {user.id}"
                 },
-                f"Работа {active_state_emoji('work')}": {
+                f"Работа {active_action_emoji('work')}": {
                     "callback_data": f"actions work {user.id}"
                 },
-                f"Спать {active_state_emoji('sleep')}": {
+                f"Спать {active_action_emoji('sleep')}": {
                     "callback_data": f"actions sleep {user.id}"
                 },
-                f"Играть {active_state_emoji('game')}": {
+                f"Играть {active_action_emoji('game')}": {
                     "callback_data": f"actions game {user.id}"
                 },
             }
@@ -96,6 +101,7 @@ class InlineMarkup:
             pass
 
         markup = InlineKeyboardMarkup(row_width=1)
+        buttons.reverse()
         markup.add(*buttons)
         pager_controllers = get_pager_controllers("market", pos=index, user_id=user.id)
         pager_controllers.insert(
@@ -159,7 +165,7 @@ class InlineMarkup:
 
         markup.add(
             InlineKeyboardButton("🗄️", callback_data=f"open bag {user.id}"),
-            InlineKeyboardButton("🎒", callback_data=f"open equiped_items {user.id}"),
+            InlineKeyboardButton("🎒", callback_data=f"open equipped_items {user.id}"),
         )
         return markup
 
@@ -190,9 +196,99 @@ class InlineMarkup:
     ) -> InlineKeyboardMarkup:
         def get_text():
             if daily_gift.is_claimed:
-                return f"🕐 {get_time_difference_string(daily_gift.next_claimable_at - datetime.utcnow())}"
+                return f"🕐 {get_time_difference_string(daily_gift.next_claimable_at - utcnow())}"
             return "🔹  Получить"
 
         return quick_markup(
             {f"{get_text()}": {"callback_data": f"daily_gift claim {user.id}"}}
+        )
+
+    @classmethod
+    def transfer_usable_items(
+        cls, user: UserModel, to_user: UserModel, item_name: str
+    ) -> InlineKeyboardMarkup:
+        from base.player import get_or_add_user_usable_items
+
+        markup = InlineKeyboardMarkup(row_width=3)
+        buttons = []
+
+        items = get_or_add_user_usable_items(user, item_name)
+        items = list(filter(lambda i: i.usage > 0 and i.quantity > 0, items))  # type: ignore
+        items.sort(key=lambda i: i.usage)  # type: ignore
+
+        for item in items:
+            buttons.append(
+                InlineKeyboardButton(
+                    f"{get_item_emoji(item.name)} ({item.usage}%)",
+                    callback_data=f"transfer {item._id} {to_user.id} {user.id}",
+                )
+            )
+
+        markup.add(*buttons)
+        return markup
+
+    @classmethod
+    def achievements_view(
+        cls,
+        user: UserModel,
+        status: Literal["all", "in_progress", "completed", "not_started"] = "all",
+    ) -> InlineKeyboardMarkup:
+        markup = InlineKeyboardMarkup(row_width=1)
+        buttons = []
+
+        achievements = deepcopy(ACHIEVEMENTS)
+        if status == "in_progress":
+            achievements = [a for a in achievements if achievement_status(user, a) == 0]
+        elif status == "not_started":
+            achievements = [a for a in achievements if achievement_status(user, a) == 1]
+        elif status == "completed":
+            achievements = [a for a in achievements if achievement_status(user, a) == 2]
+
+        else:
+            achievements.sort(key=lambda a: achievement_status(user, a))
+
+        for achievement in achievements:
+            progress = user.achievement_progress.get(achievement.key, 0)
+            is_completed = is_completed_achievement(user, achievement.name)
+            emoji = ""
+
+            if status == "all":
+                if progress > 0 and not is_completed:
+                    emoji = "⏳"
+                elif is_completed:
+                    emoji = "✅"
+                else:
+                    emoji = "❌"
+
+            buttons.append(
+                InlineKeyboardButton(
+                    text=f"{emoji} {achievement.name} {achievement.emoji}",
+                    callback_data=f"achievements view {achievement.translit()} {user.id}",
+                )
+            )
+
+        markup.add(*buttons)
+        markup.row(
+            InlineKeyboardButton("Назад", callback_data=f"achievements main {user.id}")
+        )
+
+        return markup
+
+    @classmethod
+    def achievements(cls, user: UserModel) -> InlineKeyboardMarkup:
+        return quick_markup(
+            {
+                "Все достижения": {
+                    "callback_data": f"achievements filter all {user.id}"
+                },
+                "В прогрессе": {
+                    "callback_data": f"achievements filter in_progress {user.id}"
+                },
+                "Не начатие": {
+                    "callback_data": f"achievements filter not_started {user.id}"
+                },
+                "Получение": {
+                    "callback_data": f"achievements filter completed {user.id}"
+                },
+            }
         )
