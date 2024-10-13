@@ -3,8 +3,8 @@ from typing import Any, Literal, Optional
 from dataclasses import asdict, dataclass, field
 
 from bson import ObjectId, Int64
-from dacite import from_dict as _from_dict
-from dateutil.relativedelta import relativedelta
+from dacite import from_dict as _from_dict  # cspell: disable-line
+from dateutil.relativedelta import relativedelta  # cspell: disable-line
 
 from helpers.enums import ItemType, Locations
 

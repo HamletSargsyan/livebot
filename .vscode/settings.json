@@ -60,6 +60,7 @@
         "livebot",
         "OPENWEATHER",
         "pymongo",
+        "relativedelta",
         "setex",
         "telebot",
         "termux",
