@@ -1,6 +1,4 @@
-import sys
 import json
-import logging
 from dns import resolver
 from dataclasses import dataclass
 from typing import Final, Optional
@@ -10,6 +8,8 @@ import toml
 from redis import Redis
 from semver import Version
 
+from tinylogging import Logger, Level, BaseHandler, FileHandler, LoggingAdapterHandler
+
 import telebot
 from telebot import ExceptionHandler
 from telebot.storage import StateRedisStorage
@@ -17,6 +17,10 @@ from telebot.custom_filters import StateFilter, IsDigitFilter
 
 
 TELEGRAM_ID: Final = 777000
+
+# ---------------------------------------------------------------------------- #
+#                                 config types                                 #
+# ---------------------------------------------------------------------------- #
 
 
 @dataclass
@@ -95,7 +99,9 @@ class Config:
         )
 
 
-config = Config.from_toml("config.toml")
+# ---------------------------------------------------------------------------- #
+
+config: Final = Config.from_toml("config.toml")
 
 # NOTE: Это для termux
 resolver.default_resolver = resolver.Resolver(configure=False)
@@ -106,31 +112,28 @@ with open("version") as f:
     version: Final = Version.parse(f.read())
 
 
-logger = logging.Logger("Bot")
+logger = Logger("Bot", Level.DEBUG if config.general.debug else Level.INFO)
 
 
-class TelegramLogsHandler(logging.Handler):
-    def __init__(self):
-        super().__init__()
-
+class TelegramLogsHandler(BaseHandler):
     def emit(self, record):
-        if record.levelno == 10 and record.name == telebot.logger.name:
+        if record.level <= Level.DEBUG and record.name == telebot.logger.name:
             return
         from helpers.utils import log
 
-        log_entry = self.format(record)
-        log(log_entry, record.levelname, record)
-        del log
+        log(record)
 
 
-console_output_handler = logging.StreamHandler(sys.stderr)
-console_output_handler.setFormatter(telebot.formatter)
+logger.handlers.add(TelegramLogsHandler())
+logger.handlers.add(FileHandler("bot.log"))
 
-logger.addHandler(console_output_handler)
-logger.addHandler(TelegramLogsHandler())
 
-telebot.logger.addHandler(TelegramLogsHandler())
-telebot.logger.setLevel(20)
+telebot.logger.handlers = []
+
+for handler in logger.handlers:
+    telebot.logger.addHandler(LoggingAdapterHandler(handler))
+
+telebot.logger.setLevel("DEBUG" if config.general.debug else "INFO")
 
 
 class RedisStorage(StateRedisStorage):
@@ -145,8 +148,8 @@ state_storage = RedisStorage(redis_url=config.redis.url)
 
 
 class ErrorHandler(ExceptionHandler):
-    def handle(self, exception: Exception):
-        logger.exception(exception)
+    def handle(self, exception: Exception) -> bool:  # pyright: ignore
+        logger.error(str(exception))
         return True
 
 

@@ -901,7 +901,7 @@ def achievements_callback(call: CallbackQuery):
         mess += f"<i>{ach.desc}</i>\n\n"
         mess += f"{achievement_progress(user, ach.name)}"
 
-        logger.debug(user.achievement_progress)
+        logger.debug(str(user.achievement_progress))
 
         markup = quick_markup(
             {"Назад": {"callback_data": f"achievements main {user.id}"}}
