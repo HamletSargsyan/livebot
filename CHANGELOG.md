@@ -10,12 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Добавлено
 
 - Добавлена новая зависимость: `tinylogging`
-- В место стикера теперь полезные подсказки [#60](https://github.com/HamletSargsyan/livebot/issues/60)
+- В место стикера теперь полезные подсказки [#60](https://github.com/HamletSargsyan/livebot/issues/60) <!-- cspell: disable-line -->
 
 ### Изменено
 
 - Каталог `bot` был переименован в `handlers`
 - Файл `handlers.py` был переименован в `message.py`
+
+### Удалено
+
+- Поле `adverts_count` из класса `UserModel`
 
 ## [8.0.0] - 2024-09-08
 
