@@ -8,7 +8,7 @@ import toml
 from redis import Redis
 from semver import Version
 
-from tinylogging import Logger, Level, BaseHandler, FileHandler, LoggingAdapterHandler
+from tinylogging import Logger, Level, BaseHandler, LoggingAdapterHandler
 
 import telebot
 from telebot import ExceptionHandler
@@ -125,7 +125,6 @@ class TelegramLogsHandler(BaseHandler):
 
 
 logger.handlers.add(TelegramLogsHandler())
-logger.handlers.add(FileHandler("bot.log"))
 
 
 telebot.logger.handlers = []
