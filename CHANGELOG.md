@@ -7,12 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Добавлено
+
+- Сообщение о входе и выходе участника из чата
+
 ## [9.0.0] - 2024-10-14
 
 ### Добавлено
 
 - Добавлена новая зависимость: `tinylogging`
-- В место стикера теперь полезные подсказки [#60](https://github.com/HamletSargsyan/livebot/issues/60) 
+- В место стикера теперь полезные подсказки [#60](https://github.com/HamletSargsyan/livebot/issues/60)
 
 ### Изменено
 
