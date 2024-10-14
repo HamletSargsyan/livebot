@@ -368,4 +368,18 @@ items_list = [
         is_consumable=True,
         effect=1,
     ),
+    Item(
+        name="конфета",
+        emoji="🍬",
+        desc="",  # TODO: Добавить описание
+        rarity=ItemRarity.EPIC,
+        is_task_item=True,
+        task_coin=(300, 500),
+        can_exchange=True,
+        exchange_price=(150, 300),
+        effect=40,
+    ),
+    Item(
+        name="тыква", emoji="🎃", desc="Ивентовый предмет", rarity=ItemRarity.LEGENDARY
+    ),
 ]

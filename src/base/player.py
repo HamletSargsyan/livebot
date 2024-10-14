@@ -395,6 +395,15 @@ def use_item(message: Message, name: str):
                 user.luck += item.effect  # type: ignore
                 user_item.quantity -= 1
                 bot.reply_to(message, f"{item.emoji} Увеличил удачу на 1")
+            case "конфета":
+                user.hunger -= item.effect  # type: ignore
+                user.fatigue -= item.effect  # type: ignore
+
+                mess = f"{item.emoji} юзнул конфету\n\n"
+                mess += f"-{item.effect}% голод\n"
+                mess += f"-{item.effect}% усталость\n"
+
+                bot.reply_to(message, mess)
 
         database.users.update(**user.to_dict())
         database.items.update(**user_item.to_dict())

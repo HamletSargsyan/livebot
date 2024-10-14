@@ -503,28 +503,28 @@ def event_cmd(message: Message):
         time_left = get_time_difference_string(time_difference)
 
         mess = (
-            "<b>Ивент 🦋</b>\n\n"
-            "Собирай 🦋 и побеждай\n\n"
-            "Бабочек можно получать во время прогулки, в боксе и в сундуке\n\n"
+            "<b>Ивент 🎃</b>\n\n"
+            "Собирай 🍬 и побеждай\n\n"
+            "Конфеты можно получать во время прогулки и в боксе\n\n"
             f"<b>До окончания осталось:</b> {time_left}\n\n"
-            "<b>Топ 10 по 🦋</b>\n\n"
+            "<b>Топ 10 по 🍬</b>\n\n"
         )
 
-        butterflies = [
-            get_or_add_user_item(user, "бабочка") for user in database.users.get_all()
+        items = [
+            get_or_add_user_item(user, "конфета") for user in database.users.get_all()
         ]
-        sorted_butterflies: List[ItemModel] = sorted(
-            butterflies, key=lambda butterfly: butterfly.quantity, reverse=True
+        sorted_items: List[ItemModel] = sorted(
+            items, key=lambda item: item.quantity, reverse=True
         )
-        for index, butterfly in enumerate(sorted_butterflies, start=1):
-            if butterfly.quantity > 0:
-                owner = database.users.get(**{"_id": butterfly.owner})
-                mess += f"{index}. {owner.name or '<i>неопознанный персонаж</i>'} - {butterfly.quantity}\n"
+        for index, item in enumerate(sorted_items, start=1):
+            if item.quantity > 0:
+                owner = database.users.get(**{"_id": item.owner})
+                mess += f"{index}. {owner.name or '<i>неопознанный персонаж</i>'} - {item.quantity}\n"
             if index == 10:
                 break
 
-        butterfly = get_or_add_user_item(user, "бабочка")
-        mess += f"\n\nТы собрал: {butterfly.quantity}"
+        item: ItemModel = get_or_add_user_item(user, "конфета")
+        mess += f"\n\nТы собрал: {item.quantity}"
         bot.reply_to(message, mess)
 
 
