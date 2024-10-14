@@ -1086,7 +1086,25 @@ def new_chat_member(message: Message):
     for new_member in message.new_chat_members:
         if str(message.chat.id) == config.telegram.chat_id:
             mess = f"Привет {user_link(new_member)}, добро пожаловать в официальный чат по лайвботу 💙\n\n"
-            bot.send_message(message.chat.id, mess, reply_markup=markup)
+        else:
+            mess = f"👋 {user_link(new_member)} присоединился к чату"
+        bot.send_message(message.chat.id, mess, reply_markup=markup)
+
+
+@bot.message_handler(content_types=["left_chat_member"])
+def left_chat_member(message: Message):
+    if not message.left_chat_member:
+        return
+
+    markup = quick_markup(
+        {"Правила": {"url": "https://hamletsargsyan.github.io/livebot/rules"}}
+    )
+
+    if str(message.chat.id) == config.telegram.chat_id:
+        mess = f"Привет {user_link(message.left_chat_member)}, добро пожаловать в официальный чат по лайвботу 💙\n\n"
+    else:
+        mess = f"👋 {user_link(message.left_chat_member)} присоединился к чату"
+    bot.send_message(message.chat.id, mess, reply_markup=markup)
 
 
 @bot.message_handler(content_types=["text"])

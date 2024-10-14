@@ -1,4 +1,4 @@
-from typing import Generic, Type, TypeVar
+from typing import Final, Generic, Type, TypeVar
 
 from bson import ObjectId
 from pymongo import MongoClient
@@ -106,5 +106,5 @@ class DataBase:
         self.achievements = BaseDB(achievements, AchievementModel)
 
 
-database = DataBase()
-redis_cache = redis.from_url(config.redis.url)
+database: Final = DataBase()
+redis_cache: Final = redis.from_url(config.redis.url)
