@@ -3,8 +3,8 @@ from typing import Any, Literal, Optional
 from dataclasses import asdict, dataclass, field
 
 from bson import ObjectId, Int64
-from dacite import from_dict as _from_dict
-from dateutil.relativedelta import relativedelta
+from dacite import from_dict as _from_dict  # cspell: disable-line
+from dateutil.relativedelta import relativedelta  # cspell: disable-line
 
 from helpers.enums import ItemType, Locations
 
@@ -163,7 +163,6 @@ class UserModel(BaseModel):
     new_quest_coin_quantity: int = 2
     max_items_count_in_market: int = 4
     luck: int = 1
-    adverts_count: int = 0
     last_active_time: datetime = field(default_factory=_utcnow)
     achievement_progress: dict = field(default_factory=dict)
     accepted_rules: bool = False

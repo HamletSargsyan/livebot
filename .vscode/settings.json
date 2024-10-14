@@ -1,9 +1,5 @@
 {
     "python.analysis.autoImportCompletions": true,
-    "python.analysis.extraPaths": [
-        "src"
-    ],
-    "python.analysis.typeCheckingMode": "basic",
     "ruff.enable": true,
     "mypy.enabled": false,
     "cSpell.language": "en,ru",
@@ -64,9 +60,11 @@
         "livebot",
         "OPENWEATHER",
         "pymongo",
+        "relativedelta",
         "setex",
         "telebot",
         "termux",
+        "tinylogging",
         "translit"
     ],
     "yaml.schemas": {

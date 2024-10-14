@@ -4,8 +4,9 @@ import argparse
 import telebot
 from telebot.types import BotCommand
 
+from tinylogging import Level
 
-import bot as _  # noqa: F401
+import handlers as _  # noqa: F401
 from threads.check import check
 from threads.notification import notification
 from database.funcs import database
@@ -61,7 +62,7 @@ def main(args: argparse.Namespace):
 
     if args.debug:
         config.general.debug = True
-        logger.setLevel(10)
+        logger.level = Level.DEBUG
         telebot.logger.setLevel(10)
         logger.warning("Бот работает в режиме DEBUG")
 

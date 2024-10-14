@@ -1,4 +1,4 @@
-import logging
+import json
 import random
 import statistics
 from typing import NoReturn, Union
@@ -8,8 +8,10 @@ import httpx
 from semver import Version
 from typing_extensions import deprecated
 
-from telebot.types import Message, ReplyParameters, InlineKeyboardButton, User
+from telebot.types import Message, InlineKeyboardButton, User
 from telebot.util import antiflood, escape, split_string, quick_markup
+
+from tinylogging import Record, Level
 
 from base.achievements import ACHIEVEMENTS
 from config import (
@@ -29,28 +31,27 @@ def utcnow() -> datetime:
     return datetime.now(UTC)
 
 
-def log(log_text: str, log_level: str, record: logging.LogRecord) -> None:
+def log(record: Record) -> None:
     emoji_dict = {
-        "debug": "👾",
-        "info": "ℹ️",
-        "warn": "⚠️",
-        "warning": "⚠️",
-        "error": "🛑",
-        "critical": "⛔",
+        Level.DEBUG: "👾",
+        Level.INFO: "ℹ️",
+        Level.WARNING: "⚠️",
+        Level.ERROR: "🛑",
+        Level.CRITICAL: "⛔",
     }
-    current_time = utcnow().strftime("%d.%m.%Y %H:%M:%S")
+    current_time = datetime.now(UTC).strftime("%d.%m.%Y %H:%M:%S")
     log_template = (
-        f'<b>{emoji_dict.get(log_level.lower(), "")} {log_level.upper()}</b>\n\n'
+        f'<b>{emoji_dict.get(record.level, "")} {record.level.name}</b>\n\n'
         f"{current_time}\n\n"
-        f"<b>Логгер:</b> <code>{record.name}</code>\n"
-        #    f"<b>Модуль:</b> <code>{record.module}</code>\n"
-        f"<b>Путь к файлу:</b> <code>{record.pathname}</code>\n"
-        f"<b>Файл</b>: <code>{record.filename}</code>\n"
-        f"<b>Строка:</b> {record.lineno}\n\n"
+        f"<b>Логгер:</b> <code>{record.name}</code>\n"  # cspell: disable-line
+        # f"<b>Модуль:</b> <code>{record.module}</code>\n"
+        # f"<b>Путь к файлу:</b> <code>{record.pathname}</code>\n"
+        # f"<b>Файл</b>: <code>{record.filename}</code>\n"
+        # f"<b>Строка:</b> {record.lineno}\n\n"
         '<pre><code class="language-shell">{text}</code></pre>'
     )
 
-    for text in split_string(log_text, 3000):
+    for text in split_string(record.message, 3000):
         try:
             antiflood(
                 bot.send_message,
@@ -59,8 +60,8 @@ def log(log_text: str, log_level: str, record: logging.LogRecord) -> None:
                 message_thread_id=config.telegram.log_thread_id,
             )
         except Exception as e:
-            logger.exception(e)
-            logger.log(record.levelno, text)
+            print(e)
+            print(text)
 
 
 def remove_not_allowed_symbols(text: str) -> str:
@@ -134,16 +135,22 @@ class Loading:
         self.message = message
 
     def __enter__(self):
-        sticker_id = "CAACAgEAAxkBAAEpskNl2JfOUfS1vL2nDBb_rqz40YJKsAACjQQAApbcoUZgQGLo1I2DijQE"  # cspell:ignore CAAC, Epsk, YJKs, Apbco
+        with open("src/base/hints.json") as f:
+            hints: list[dict[str, str]] = json.load(f)
+
+        hint = random.choice(hints)
+
+        if "url" in hint:
+            markup = quick_markup({"Тык": {"url": hint["url"]}})
+        else:
+            markup = None
+
+        mess = f"<b>Загрузка...</b>\n\n<i>{hint['message']}</i>"
 
         try:
-            msg = bot.send_sticker(
-                self.message.chat.id,
-                sticker_id,
-                reply_parameters=ReplyParameters(self.message.id),
-            )
+            msg = bot.reply_to(self.message, mess, reply_markup=markup)
         except Exception:
-            msg = bot.send_sticker(self.message.chat.id, sticker_id)
+            msg = bot.send_message(self.message.chat.id, mess, reply_markup=markup)
         self.loading_message = msg
 
     def __exit__(self, exc_type, exc_value, traceback):
