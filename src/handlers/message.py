@@ -487,14 +487,18 @@ def transfer_cmd(message: Message):
 def event_cmd(message: Message):
     with Loading(message):
         user = database.users.get(id=from_user(message).id)
+        markup = quick_markup(
+            {"Гайд": {"url": "https://hamletsargsyan.github.io/livebot/guide/#ивент"}}
+        )
 
         if config.event.open is False:
             if config.event.start_time < utcnow():
-                bot.reply_to(message, "Ивент закончился")
+                bot.reply_to(message, "Ивент закончился", reply_markup=markup)
             else:
                 bot.reply_to(
                     message,
                     f"До начала ивента осталось {get_time_difference_string(config.event.start_time - utcnow())}",
+                    reply_markup=markup,
                 )
             return
 
@@ -524,7 +528,7 @@ def event_cmd(message: Message):
 
         item = get_or_add_user_item(user, "конфета")
         mess += f"\n\nТы собрал: {item.quantity}"
-        bot.reply_to(message, mess)
+        bot.reply_to(message, mess, reply_markup=markup)
 
 
 @bot.message_handler(commands=["top"])
