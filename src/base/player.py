@@ -547,12 +547,13 @@ def generate_daily_gift(user: UserModel):
         daily_gift._id = id
 
     items = list(filter(lambda i: i.rarity == ItemRarity.COMMON, items_list))
+
+    if config.event.open:
+        items.append(get_item("конфета"))
+
     items = random.choices(items, k=random.randint(1, 3))
 
     daily_gift.items = [item.name for item in items]
-
-    if config.event.open:
-        daily_gift.items.append("конфета")
 
     daily_gift.is_claimed = False
     daily_gift.next_claimable_at = utcnow() + timedelta(days=1)

@@ -5,7 +5,7 @@ import transliterate
 from database.models import UserModel
 from helpers.enums import ItemRarity, ItemType, WeatherType
 
-# ---------------------------------- Weather --------------------------------- #
+# ---------------------------------- weather --------------------------------- #
 
 weather_types = {
     "1": WeatherType.THUNDERSTORM,
@@ -109,7 +109,7 @@ class WeatherData:
         self.cod: int = data.get("cod", 0)
 
 
-# ----------------------------------- Item ----------------------------------- #
+# ----------------------------------- item ----------------------------------- #
 
 
 class Item:
@@ -162,7 +162,7 @@ class Item:
         return transliterate.translit(self.name, reversed=True)
 
 
-# ------------------------------- achievements ------------------------------- #
+# ------------------------------- achievement ------------------------------- #
 
 
 class Achievement:
