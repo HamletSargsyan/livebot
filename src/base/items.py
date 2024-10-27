@@ -371,7 +371,7 @@ items_list = [
     Item(
         name="конфета",
         emoji="🍬",
-        desc="",  # TODO: Добавить описание
+        desc="Уменьшает голод и усталость",
         rarity=ItemRarity.EPIC,
         is_task_item=True,
         task_coin=(300, 500),
@@ -380,6 +380,9 @@ items_list = [
         effect=40,
     ),
     Item(
-        name="тыква", emoji="🎃", desc="Ивентовый предмет", rarity=ItemRarity.LEGENDARY
+        name="тыква",
+        emoji="🎃",
+        desc="Ивентовый предмет",
+        rarity=ItemRarity.LEGENDARY,
     ),
 ]

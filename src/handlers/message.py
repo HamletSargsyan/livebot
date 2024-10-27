@@ -1,6 +1,5 @@
 import random
 import string
-from typing import List
 
 from telebot.types import (
     Message,
@@ -513,7 +512,7 @@ def event_cmd(message: Message):
         items = [
             get_or_add_user_item(user, "конфета") for user in database.users.get_all()
         ]
-        sorted_items: List[ItemModel] = sorted(
+        sorted_items: list[ItemModel] = sorted(
             items, key=lambda item: item.quantity, reverse=True
         )
         for index, item in enumerate(sorted_items, start=1):
@@ -523,7 +522,7 @@ def event_cmd(message: Message):
             if index == 10:
                 break
 
-        item: ItemModel = get_or_add_user_item(user, "конфета")
+        item = get_or_add_user_item(user, "конфета")
         mess += f"\n\nТы собрал: {item.quantity}"
         bot.reply_to(message, mess)
 
