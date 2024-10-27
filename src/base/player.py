@@ -38,7 +38,7 @@ from database.models import (
 
 from helpers.datatypes import Item
 
-from config import bot
+from config import bot, config
 
 
 def level_up(user: UserModel, chat_id: Union[str, int, None] = None):
@@ -548,7 +548,12 @@ def generate_daily_gift(user: UserModel):
 
     items = list(filter(lambda i: i.rarity == ItemRarity.COMMON, items_list))
     items = random.choices(items, k=random.randint(1, 3))
+
     daily_gift.items = [item.name for item in items]
+
+    if config.event.open:
+        daily_gift.items.append("конфета")
+
     daily_gift.is_claimed = False
     daily_gift.next_claimable_at = utcnow() + timedelta(days=1)
     database.daily_gifts.update(**daily_gift.to_dict())
