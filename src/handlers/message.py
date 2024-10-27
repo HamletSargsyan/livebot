@@ -53,7 +53,7 @@ from . import admin  # noqa
 from database.funcs import database
 from database.models import ItemModel, PromoModel
 
-from config import bot, config, version
+from config import bot, config, VERSION
 
 
 START_MARKUP = ReplyKeyboardMarkup(resize_keyboard=True)
@@ -1012,11 +1012,11 @@ def daily_gift_cmd(message: Message):
 
 @bot.message_handler(commands=["version"])
 def version_cmd(message: Message):
-    mess = f"<b>Версия бота</b>: <code>{version}</code> | <i>{check_version()}</i>\n"
+    mess = f"<b>Версия бота</b>: <code>{VERSION}</code> | <i>{check_version()}</i>\n"
     markup = quick_markup(
         {
             "Релиз": {
-                "url": f"https://github.com/HamletSargsyan/livebot/releases/tag/v{version}"
+                "url": f"https://github.com/HamletSargsyan/livebot/releases/tag/v{VERSION}"
             }
         }
     )

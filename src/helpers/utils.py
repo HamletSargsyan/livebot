@@ -1,12 +1,11 @@
 import json
 import random
 import statistics
-from typing import NoReturn, Union
+from typing import Callable, NoReturn, Optional, ParamSpec, TypeVar, Union
 from datetime import UTC, datetime, timedelta
 
 import httpx
 from semver import Version
-from typing_extensions import deprecated
 
 from telebot.types import Message, InlineKeyboardButton, User
 from telebot.util import antiflood, escape, split_string, quick_markup
@@ -18,13 +17,33 @@ from config import (
     bot,
     logger,
     config,
-    version,
+    VERSION,
 )
 from database.models import AchievementModel, UserModel
 from helpers.datatypes import Achievement, Item
 from helpers.exceptions import AchievementNotFoundError, ItemNotFoundError, NoResult
 from base.items import items_list
 from helpers.enums import ItemRarity
+
+
+T = TypeVar("T")
+P = ParamSpec("P")
+
+
+def deprecated(remove_version: Version, message: Optional[str] = None):
+    def decorator(func: Callable[P, T]) -> Callable[P, T]:
+        def wrapper(*args: P.args, **kwargs: P.kwargs):
+            msg = f"функция `{func.__name__}` помечена как устаревшая и будет удалена в версии {remove_version}, (текущая версия: {VERSION})"
+
+            if message:
+                msg += f" | {message}"
+
+            logger.warning(msg)
+            return func(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
 
 
 def utcnow() -> datetime:
@@ -225,7 +244,7 @@ def check_version() -> str:  # type: ignore
 
     latest_version = Version.parse(latest_release["tag_name"].replace("v", ""))
 
-    match version.compare(latest_version):
+    match VERSION.compare(latest_version):
         case -1:
             return "требуется обновление"
         case 0:
@@ -234,7 +253,12 @@ def check_version() -> str:  # type: ignore
             return "текущая версия бота больше чем в репозитории"
 
 
-@deprecated("Deprecated. Use `message.from_user` instead", category=DeprecationWarning)
+@deprecated(
+    Version(
+        15,
+    ),
+    "Use `message.from_user` instead",
+)
 def from_user(message: Message) -> User:
     """
     pyright hack

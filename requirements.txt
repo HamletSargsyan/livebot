@@ -6,7 +6,6 @@ redis==5.1.1
 toml==0.10.2
 argparse==1.4.0
 semver==3.0.2
-typing_extensions==4.12.2
 httpx==0.27.2
 cachetools==5.5.0
 dacite==1.8.1
