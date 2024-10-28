@@ -91,9 +91,8 @@ def remove_not_allowed_symbols(text: str) -> str:
 
 
 def get_time_difference_string(d: timedelta) -> str:
-    days = d.days
-    years, days_in_year = divmod(days, 365)
-    months, days_in_month = divmod(days_in_year, 30)
+    years, days_in_year = divmod(d.days, 365)
+    months, days = divmod(days_in_year, 30)
     hours, remainder = divmod(d.seconds, 3600)
     minutes, seconds = divmod(remainder, 60)
 
@@ -102,13 +101,15 @@ def get_time_difference_string(d: timedelta) -> str:
         data += f"{years} г. "
     if months > 0:
         data += f"{months} мес. "
-    if days_in_month > 0:
-        data += f"{days_in_month} д. "
+    if days > 0:
+        data += f"{days} д. "
     if hours > 0:
         data += f"{hours} ч. "
     if minutes > 0:
         data += f"{minutes} м. "
-    data += f"{seconds} с. "
+
+    if not any((years, months, days, hours, minutes)):
+        data += f"{seconds} с. "
     return data
 
 
@@ -255,14 +256,11 @@ def check_version() -> str:  # type: ignore
 
 @deprecated(
     Version(
-        15,
+        12,
     ),
     "Use `message.from_user` instead",
 )
 def from_user(message: Message) -> User:
-    """
-    pyright hack
-    """
     return message.from_user  # type: ignore
 
 
