@@ -1,3 +1,4 @@
+from functools import wraps
 import json
 import random
 import statistics
@@ -29,10 +30,20 @@ from helpers.enums import ItemRarity
 T = TypeVar("T")
 P = ParamSpec("P")
 
+_deprecated_funcs = set()
 
-def deprecated(remove_version: Version, message: Optional[str] = None):
+
+def deprecated(
+    remove_version: Version,
+    message: Optional[str] = None,
+    warn_once: bool = True,
+):
     def decorator(func: Callable[P, T]) -> Callable[P, T]:
-        def wrapper(*args: P.args, **kwargs: P.kwargs):
+        @wraps(func)
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+            if warn_once and func.__name__ in _deprecated_funcs:
+                return func(*args, **kwargs)
+            _deprecated_funcs.add(func.__name__)
             msg = f"функция `{func.__name__}` помечена как устаревшая и будет удалена в версии {remove_version}, (текущая версия: {VERSION})"
 
             if message:
