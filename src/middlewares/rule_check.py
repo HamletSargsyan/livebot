@@ -7,7 +7,7 @@ from helpers.utils import get_user_tag
 from database.funcs import database
 from database.models import UserModel
 
-from config import bot
+from config import TELEGRAM_ID, bot
 
 
 def send_rules_message(message: Message, user: UserModel):
@@ -30,7 +30,7 @@ class RuleCheckMiddleware(BaseMiddleware):
         self.update_types = ["message", "callback_query"]
 
     def pre_process(self, message: Message | CallbackQuery, data):
-        if message.from_user.is_bot:
+        if message.from_user.is_bot or message.from_user.id == TELEGRAM_ID:
             return CancelUpdate()
         user = database.users.get(id=message.from_user.id)
 

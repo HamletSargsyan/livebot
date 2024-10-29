@@ -1,6 +1,5 @@
 import random
 import string
-from typing import List
 
 from telebot.types import (
     Message,
@@ -53,7 +52,7 @@ from . import admin  # noqa
 from database.funcs import database
 from database.models import ItemModel, PromoModel
 
-from config import bot, config, version
+from config import bot, config, VERSION
 
 
 START_MARKUP = ReplyKeyboardMarkup(resize_keyboard=True)
@@ -488,14 +487,18 @@ def transfer_cmd(message: Message):
 def event_cmd(message: Message):
     with Loading(message):
         user = database.users.get(id=from_user(message).id)
+        markup = quick_markup(
+            {"Гайд": {"url": "https://hamletsargsyan.github.io/livebot/guide/#ивент"}}
+        )
 
         if config.event.open is False:
             if config.event.start_time < utcnow():
-                bot.reply_to(message, "Ивент закончился")
+                bot.reply_to(message, "Ивент закончился", reply_markup=markup)
             else:
                 bot.reply_to(
                     message,
                     f"До начала ивента осталось {get_time_difference_string(config.event.start_time - utcnow())}",
+                    reply_markup=markup,
                 )
             return
 
@@ -503,29 +506,29 @@ def event_cmd(message: Message):
         time_left = get_time_difference_string(time_difference)
 
         mess = (
-            "<b>Ивент 🦋</b>\n\n"
-            "Собирай 🦋 и побеждай\n\n"
-            "Бабочек можно получать во время прогулки, в боксе и в сундуке\n\n"
+            "<b>Ивент 🎃</b>\n\n"
+            "Собирай 🍬 и побеждай\n\n"
+            "Конфеты можно получать во время прогулки и в боксе\n\n"
             f"<b>До окончания осталось:</b> {time_left}\n\n"
-            "<b>Топ 10 по 🦋</b>\n\n"
+            "<b>Топ 10 по 🍬</b>\n\n"
         )
 
-        butterflies = [
-            get_or_add_user_item(user, "бабочка") for user in database.users.get_all()
+        items = [
+            get_or_add_user_item(user, "конфета") for user in database.users.get_all()
         ]
-        sorted_butterflies: List[ItemModel] = sorted(
-            butterflies, key=lambda butterfly: butterfly.quantity, reverse=True
+        sorted_items: list[ItemModel] = sorted(
+            items, key=lambda item: item.quantity, reverse=True
         )
-        for index, butterfly in enumerate(sorted_butterflies, start=1):
-            if butterfly.quantity > 0:
-                owner = database.users.get(**{"_id": butterfly.owner})
-                mess += f"{index}. {owner.name or '<i>неопознанный персонаж</i>'} - {butterfly.quantity}\n"
+        for index, item in enumerate(sorted_items, start=1):
+            if item.quantity > 0:
+                owner = database.users.get(**{"_id": item.owner})
+                mess += f"{index}. {owner.name or '<i>неопознанный персонаж</i>'} - {item.quantity}\n"
             if index == 10:
                 break
 
-        butterfly = get_or_add_user_item(user, "бабочка")
-        mess += f"\n\nТы собрал: {butterfly.quantity}"
-        bot.reply_to(message, mess)
+        item = get_or_add_user_item(user, "конфета")
+        mess += f"\n\nТы собрал: {item.quantity}"
+        bot.reply_to(message, mess, reply_markup=markup)
 
 
 @bot.message_handler(commands=["top"])
@@ -1012,11 +1015,11 @@ def daily_gift_cmd(message: Message):
 
 @bot.message_handler(commands=["version"])
 def version_cmd(message: Message):
-    mess = f"<b>Версия бота</b>: <code>{version}</code> | <i>{check_version()}</i>\n"
+    mess = f"<b>Версия бота</b>: <code>{VERSION}</code> | <i>{check_version()}</i>\n"
     markup = quick_markup(
         {
             "Релиз": {
-                "url": f"https://github.com/HamletSargsyan/livebot/releases/tag/v{version}"
+                "url": f"https://github.com/HamletSargsyan/livebot/releases/tag/v{VERSION}"
             }
         }
     )
@@ -1073,6 +1076,14 @@ def violations_cmd(message: Message):
     bot.reply_to(message, mess)
 
 
+@bot.message_handler(commands=["event_shop"])
+def event_shop_cmd(message: Message):
+    bot.reply_to(
+        message,
+        "Эта команда в разработка <a href='https://github.com/HamletSargsyan/livebot/issues/65'>#65</>",
+    )
+
+
 # ---------------------------------------------------------------------------- #
 
 
@@ -1086,7 +1097,25 @@ def new_chat_member(message: Message):
     for new_member in message.new_chat_members:
         if str(message.chat.id) == config.telegram.chat_id:
             mess = f"Привет {user_link(new_member)}, добро пожаловать в официальный чат по лайвботу 💙\n\n"
-            bot.send_message(message.chat.id, mess, reply_markup=markup)
+        else:
+            mess = f"👋 {user_link(new_member)} присоединился к чату"
+        bot.send_message(message.chat.id, mess, reply_markup=markup)
+
+
+@bot.message_handler(content_types=["left_chat_member"])
+def left_chat_member(message: Message):
+    if not message.left_chat_member:
+        return
+
+    markup = quick_markup(
+        {"Правила": {"url": "https://hamletsargsyan.github.io/livebot/rules"}}
+    )
+
+    if str(message.chat.id) == config.telegram.chat_id:
+        mess = f"Привет {user_link(message.left_chat_member)}, добро пожаловать в официальный чат по лайвботу 💙\n\n"
+    else:
+        mess = f"👋 {user_link(message.left_chat_member)} присоединился к чату"
+    bot.send_message(message.chat.id, mess, reply_markup=markup)
 
 
 @bot.message_handler(content_types=["text"])

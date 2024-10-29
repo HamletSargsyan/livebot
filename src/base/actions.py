@@ -107,7 +107,7 @@ def street(call: CallbackQuery, user: UserModel):
         ["гриб", (1, 3)],
         ["вода", (2 * water, 3 * water)],
         ["чаинка", (1, 3)],
-        ["бабочка", (5, 10)],
+        ["конфета", (1, 7)],
     ]
 
     if weather.main.temp < 0:
