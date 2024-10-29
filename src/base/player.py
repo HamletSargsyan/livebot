@@ -38,7 +38,7 @@ from database.models import (
 
 from helpers.datatypes import Item
 
-from config import bot
+from config import bot, config
 
 
 def level_up(user: UserModel, chat_id: Union[str, int, None] = None):
@@ -395,6 +395,15 @@ def use_item(message: Message, name: str):
                 user.luck += item.effect  # type: ignore
                 user_item.quantity -= 1
                 bot.reply_to(message, f"{item.emoji} Увеличил удачу на 1")
+            case "конфета":
+                user.hunger -= item.effect  # type: ignore
+                user.fatigue -= item.effect  # type: ignore
+
+                mess = f"{item.emoji} юзнул конфету\n\n"
+                mess += f"-{item.effect}% голод\n"
+                mess += f"-{item.effect}% усталость\n"
+
+                bot.reply_to(message, mess)
 
         database.users.update(**user.to_dict())
         database.items.update(**user_item.to_dict())
@@ -538,8 +547,14 @@ def generate_daily_gift(user: UserModel):
         daily_gift._id = id
 
     items = list(filter(lambda i: i.rarity == ItemRarity.COMMON, items_list))
+
+    if config.event.open:
+        items.append(get_item("конфета"))
+
     items = random.choices(items, k=random.randint(1, 3))
+
     daily_gift.items = [item.name for item in items]
+
     daily_gift.is_claimed = False
     daily_gift.next_claimable_at = utcnow() + timedelta(days=1)
     database.daily_gifts.update(**daily_gift.to_dict())

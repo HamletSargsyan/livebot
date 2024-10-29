@@ -162,7 +162,7 @@ class Item:
         return transliterate.translit(self.name, reversed=True)
 
 
-# ------------------------------- achievements ------------------------------- #
+# ------------------------------- achievement ------------------------------- #
 
 
 class Achievement:
