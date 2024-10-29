@@ -11,6 +11,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Сообщение о входе и выходе участника из чата
 - Добавлена команда `/event_shop` (реализация отсутствует) [#65](https://github.com/HamletSargsyan/livebot/issues/65)
+- Функция `deprecated`
+
+### Изменено
+
+- Переменная `version` переименована в `VERSION`
+- Обновлена зависимость `redis` до версии 5.2.0
+
+### Удалено
+
+- Зависимость `typing_extensions`
 
 ## [9.0.0] - 2024-10-14
 

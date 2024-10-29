@@ -1,12 +1,12 @@
+from functools import wraps
 import json
 import random
 import statistics
-from typing import NoReturn, Union
+from typing import Callable, NoReturn, Optional, ParamSpec, TypeVar, Union
 from datetime import UTC, datetime, timedelta
 
 import httpx
 from semver import Version
-from typing_extensions import deprecated
 
 from telebot.types import Message, InlineKeyboardButton, User
 from telebot.util import antiflood, escape, split_string, quick_markup
@@ -18,13 +18,43 @@ from config import (
     bot,
     logger,
     config,
-    version,
+    VERSION,
 )
 from database.models import AchievementModel, UserModel
 from helpers.datatypes import Achievement, Item
 from helpers.exceptions import AchievementNotFoundError, ItemNotFoundError, NoResult
 from base.items import items_list
 from helpers.enums import ItemRarity
+
+
+T = TypeVar("T")
+P = ParamSpec("P")
+
+_deprecated_funcs = set()
+
+
+def deprecated(
+    remove_version: Version,
+    message: Optional[str] = None,
+    warn_once: bool = True,
+):
+    def decorator(func: Callable[P, T]) -> Callable[P, T]:
+        @wraps(func)
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+            if warn_once and func.__name__ in _deprecated_funcs:
+                return func(*args, **kwargs)
+            _deprecated_funcs.add(func.__name__)
+            msg = f"функция `{func.__name__}` помечена как устаревшая и будет удалена в версии {remove_version}, (текущая версия: {VERSION})"
+
+            if message:
+                msg += f" | {message}"
+
+            logger.warning(msg)
+            return func(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
 
 
 def utcnow() -> datetime:
@@ -72,9 +102,8 @@ def remove_not_allowed_symbols(text: str) -> str:
 
 
 def get_time_difference_string(d: timedelta) -> str:
-    days = d.days
-    years, days_in_year = divmod(days, 365)
-    months, days_in_month = divmod(days_in_year, 30)
+    years, days_in_year = divmod(d.days, 365)
+    months, days = divmod(days_in_year, 30)
     hours, remainder = divmod(d.seconds, 3600)
     minutes, seconds = divmod(remainder, 60)
 
@@ -83,13 +112,15 @@ def get_time_difference_string(d: timedelta) -> str:
         data += f"{years} г. "
     if months > 0:
         data += f"{months} мес. "
-    if days_in_month > 0:
-        data += f"{days_in_month} д. "
+    if days > 0:
+        data += f"{days} д. "
     if hours > 0:
         data += f"{hours} ч. "
     if minutes > 0:
         data += f"{minutes} м. "
-    data += f"{seconds} с. "
+
+    if not any((years, months, days, hours, minutes)):
+        data += f"{seconds} с. "
     return data
 
 
@@ -225,7 +256,7 @@ def check_version() -> str:  # type: ignore
 
     latest_version = Version.parse(latest_release["tag_name"].replace("v", ""))
 
-    match version.compare(latest_version):
+    match VERSION.compare(latest_version):
         case -1:
             return "требуется обновление"
         case 0:
@@ -234,11 +265,13 @@ def check_version() -> str:  # type: ignore
             return "текущая версия бота больше чем в репозитории"
 
 
-@deprecated("Deprecated. Use `message.from_user` instead", category=DeprecationWarning)
+@deprecated(
+    Version(
+        12,
+    ),
+    "Use `message.from_user` instead",
+)
 def from_user(message: Message) -> User:
-    """
-    pyright hack
-    """
     return message.from_user  # type: ignore
 
 

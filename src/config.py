@@ -109,7 +109,7 @@ resolver.default_resolver.nameservers = ["8.8.8.8"]
 
 
 with open("version") as f:
-    version: Final = Version.parse(f.read())
+    VERSION: Final = Version.parse(f.read())
 
 
 logger = Logger("Bot", Level.DEBUG if config.general.debug else Level.INFO)
