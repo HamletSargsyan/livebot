@@ -18,6 +18,12 @@ def usage():
     sys.exit(0)
 
 
+def run_command(command: str):
+    if os.system(command):
+        print(f'\n\nКоманда "{command}" завершилась с ошибкой.')
+        sys.exit(1)
+
+
 prerelease = False
 
 if len(sys.argv) == 1:
@@ -47,6 +53,8 @@ choice = input("Сделать релиз? [N/y] ").lower()
 
 if choice != "y":
     sys.exit(0)
+
+run_command("git switch dev")
 
 with open("version", "w") as f:
     f.write(str(version))
@@ -85,18 +93,19 @@ with open("release_body.md", "w") as f:
     f.write(content)
 
 
-os.system("make fix && make lint && make format")
-r = os.system('git commit -a -m "bump version" && git push')
+run_command('git add . && git commit -a -m "bump version" && git push')
+run_command("git switch main")
+run_command("make fix && make lint && make format")
 
-if r != 0:
-    sys.exit(1)
-
-r = os.system(
-    f'gh release create v{version} --notes-file release_body.md {"-p" if prerelease else ""} --title v{version}'
+run_command(
+    f'gh pr create --base main --head dev --title "Release v{version}" --body "Автоматический PR для релиза версии {version}"'
+)
+run_command("gh pr merge dev")
+run_command(
+    f'gh release create v{version} --target main --notes-file release_body.md {"-p" if prerelease else ""} --title v{version}'
 )
 
-if r != 0:
-    sys.exit(1)
 
-os.system("git fetch --tags")
-print("Релиз успешно опубликован")
+print("\n\nРелиз успешно создан и опубликован.\n\n")
+run_command("git switch dev")
+run_command("git fetch --tags")
