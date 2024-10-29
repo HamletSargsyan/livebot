@@ -95,7 +95,7 @@ with open("release_body.md", "w") as f:
 
 run_command('git add . && git commit -a -m "bump version" && git push')
 run_command("git switch main")
-run_command("make fix && make lint && make format")
+run_command("task fix && task lint && task format")
 
 run_command(
     f'gh pr create --base main --head dev --title "Release v{version}" --body "Автоматический PR для релиза версии {version}"'

@@ -43,3 +43,8 @@ tasks:
   create-config:
     ignore_error: true
     cmd: python3 tools/create_config.py
+
+  docs-setup:
+    cmds:
+      - pip install --upgrade uv
+      - uv pip install mkdocs mkdocs-material mkdocs-git-revision-date-localized-plugin

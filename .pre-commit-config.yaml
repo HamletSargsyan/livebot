@@ -3,14 +3,14 @@ repos:
     hooks:
     - id: lint
       name: lint
-      entry: make lint
+      entry: task lint
       language: system
       types: [python]
       pass_filenames: false
       exclude: "src/\\*test\\*.py"
     - id: format
       name: format
-      entry: make format
+      entry: task format
       language: system
       types: [python]
       pass_filenames: false
