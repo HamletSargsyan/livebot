@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Добавлено
 
 - Сообщение о входе и выходе участника из чата
+- Добавлена команда `/event_shop` (реализация отсутствует) [#65](https://github.com/HamletSargsyan/livebot/issues/65)
 
 ## [9.0.0] - 2024-10-14
 

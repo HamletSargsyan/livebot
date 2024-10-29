@@ -1076,6 +1076,14 @@ def violations_cmd(message: Message):
     bot.reply_to(message, mess)
 
 
+@bot.message_handler(commands=["event_shop"])
+def event_shop_cmd(message: Message):
+    bot.reply_to(
+        message,
+        "Эта команда в разработка <a href='https://github.com/HamletSargsyan/livebot/issues/65'>#65</>",
+    )
+
+
 # ---------------------------------------------------------------------------- #
 
 
