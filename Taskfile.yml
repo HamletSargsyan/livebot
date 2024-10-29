@@ -1,0 +1,45 @@
+version: "3"
+
+tasks:
+  default:
+    - task: lint
+    - task: fix
+    - task: format
+
+  run:
+    cmd: bash ./run.sh
+
+  stop:
+    cmds:
+      - kill $(cat .pid)
+      - rm .pid
+
+  lint:
+    cmd: ruff check --respect-gitignore src tools
+
+  format:
+    cmd: ruff format --respect-gitignore src tools
+
+  fix:
+    cmd: ruff check --respect-gitignore --fix src tools
+
+  dev-install:
+    cmds:
+      - pip install --upgrade uv
+      - uv pip install --upgrade ruff pyright pre-commit
+
+  dev-setup:
+    deps:
+      - dev-install
+      - create-config
+    cmds:
+      - pre-commit install
+
+  clean:
+    cmds:
+      - find . -type d -name "__pycache__" -exec rm -rf {} +
+      - rm -rf nohup.out .pid site .*_cache release_body.md *.log
+
+  create-config:
+    ignore_error: true
+    cmd: python3 tools/create_config.py
