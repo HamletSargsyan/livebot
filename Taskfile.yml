@@ -10,6 +10,7 @@ tasks:
     cmd: bash ./run.sh
 
   stop:
+    ignore_error: true
     cmds:
       - kill $(cat .pid)
       - rm .pid
