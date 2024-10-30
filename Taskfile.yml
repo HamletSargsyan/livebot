@@ -16,7 +16,9 @@ tasks:
       - rm .pid
 
   lint:
-    cmd: ruff check --respect-gitignore src tools
+    cmds:
+      - ruff check --respect-gitignore src tools
+      - pyright src tools
 
   format:
     cmd: ruff format --respect-gitignore src tools
