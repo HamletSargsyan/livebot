@@ -7,6 +7,7 @@ from telebot.types import BotCommand
 from tinylogging import Level
 
 import handlers as _  # noqa: F401
+from helpers.exceptions import NoResult
 from threads.check import check
 from threads.notification import notification
 from database.funcs import database
@@ -67,13 +68,16 @@ def main(args: argparse.Namespace):
         logger.warning("Бот работает в режиме DEBUG")
 
     configure_bot_commands()
-
     init_middlewares()
+
     if not args.without_threads:
         start_threads()
 
     for id in config.telegram.owners:
-        user = database.users.get(id=id)
+        try:
+            user = database.users.get(id=id)
+        except NoResult:
+            continue
         user.is_admin = True
         database.users.update(**user.to_dict())
 
