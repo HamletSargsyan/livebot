@@ -513,9 +513,7 @@ def event_cmd(message: Message):
             "<b>Топ 10 по 🍬</b>\n\n"
         )
 
-        items = [
-            get_or_add_user_item(user, "конфета") for user in database.users.get_all()
-        ]
+        items = database.items.get_all(name="конфета")
         sorted_items: list[ItemModel] = sorted(
             items, key=lambda item: item.quantity, reverse=True
         )
