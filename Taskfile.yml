@@ -28,8 +28,7 @@ tasks:
 
   dev-install:
     cmds:
-      - pip install --upgrade uv
-      - uv pip install --upgrade ruff pyright pre-commit
+      - pip install --upgrade ruff pyright pre-commit
 
   dev-setup:
     deps:
@@ -49,5 +48,4 @@ tasks:
 
   docs-setup:
     cmds:
-      - pip install --upgrade uv
-      - uv pip install mkdocs mkdocs-material mkdocs-git-revision-date-localized-plugin
+      - pip install mkdocs mkdocs-material mkdocs-git-revision-date-localized-plugin
