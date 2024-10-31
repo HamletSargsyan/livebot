@@ -22,6 +22,7 @@ def run_command(command: str):
     if os.system(command):
         print(f'\n\nКоманда "{command}" завершилась с ошибкой.')
         os.system("git switch dev")
+        os.system("git reset --hard HEAD~1")
         sys.exit(1)
 
 
