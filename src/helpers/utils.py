@@ -119,8 +119,7 @@ def get_time_difference_string(d: timedelta) -> str:
     if minutes > 0:
         data += f"{minutes} м. "
 
-    if not any((years, months, days, hours, minutes)):
-        data += f"{seconds} с. "
+    data += f"{seconds} с. "
     return data
 
 

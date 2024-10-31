@@ -68,8 +68,8 @@ def main(args: argparse.Namespace):
         logger.warning("Бот работает в режиме DEBUG")
 
     configure_bot_commands()
-
     init_middlewares()
+
     if not args.without_threads:
         start_threads()
 
