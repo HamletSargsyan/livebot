@@ -109,5 +109,8 @@ run_command(
 
 
 print("\n\nРелиз успешно создан и опубликован.\n\n")
+
+run_command("git switch main")
+run_command("git pull")
 run_command("git switch dev")
 run_command("git fetch --tags")
