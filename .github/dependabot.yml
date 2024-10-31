@@ -4,4 +4,6 @@ updates:
     directory: "/"
     target-branch: "dev"
     schedule:
+      time: "09:00"
+      timezone: "Asia/Yerevan"
       interval: "daily"
