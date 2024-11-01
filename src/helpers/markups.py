@@ -7,6 +7,7 @@ from base.achievements import ACHIEVEMENTS
 from base.items import items_list
 from helpers.utils import (
     achievement_status,
+    get_item,
     get_item_emoji,
     get_pager_controllers,
     get_time_difference_string,
@@ -292,3 +293,30 @@ class InlineMarkup:
                 },
             }
         )
+
+    @classmethod
+    def event_shop(cls, user: UserModel) -> InlineKeyboardMarkup:
+        markup = InlineKeyboardMarkup(row_width=1)
+        items: dict[str, int] = {
+            "чай": 15,
+            "суп": 20,
+            "энергос": 25,
+            "велик": 30,
+            "ключ": 40,
+            "пилюля": 50,
+            "водка": 70,
+            "буст": 80,
+            "бокс": 100,
+            "клевер-удачи": 120,
+        }
+
+        for name, quantity in items.items():
+            item = get_item(name)
+            text = f"{get_item_emoji('конфета')} {quantity} -> 1 {name} {get_item_emoji(name)}"
+            markup.row(
+                InlineKeyboardButton(
+                    text,
+                    callback_data=f"event_shop buy {item.translit()} {quantity} {user.id}",
+                )
+            )
+        return markup

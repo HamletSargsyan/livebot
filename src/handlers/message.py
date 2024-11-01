@@ -1076,10 +1076,17 @@ def violations_cmd(message: Message):
 
 @bot.message_handler(commands=["event_shop"])
 def event_shop_cmd(message: Message):
-    bot.reply_to(
-        message,
-        "Эта команда в разработка <a href='https://github.com/HamletSargsyan/livebot/issues/65'>#65</>",
-    )
+    user = database.users.get(id=message.from_user.id)
+    user_event_item = get_or_add_user_item(user, "конфета")
+
+    item = get_item(user_event_item.name)
+
+    mess = "<b>Ивентовый магазин</b>\n\n"
+    mess += f"У тебя {user_event_item.quantity} {item.emoji}"
+
+    markup = InlineMarkup.event_shop(user)
+
+    bot.reply_to(message, mess, reply_markup=markup)
 
 
 # ---------------------------------------------------------------------------- #
