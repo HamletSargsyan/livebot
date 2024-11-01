@@ -946,3 +946,47 @@ def accept_rules_callback(call: CallbackQuery):
     )
 
     bot.delete_message(call.message.chat.id, call.message.id)  # type: ignore
+
+
+@bot.callback_query_handler(lambda c: c.data.startswith("event_shop"))
+def event_shop_callback(call: CallbackQuery):
+    data = call.data.split(" ")
+
+    if data[-1] != str(call.from_user.id):
+        return
+
+    if data[1] != "buy":
+        return
+
+    user = database.users.get(id=call.from_user.id)
+
+    candy = get_or_add_user_item(user, "конфета")
+
+    item = get_item(data[2])
+    quantity = int(data[3])
+
+    if candy.quantity < quantity:
+        bot.answer_callback_query(call.id, "Недостаточно конфет", show_alert=True)
+        return
+
+    user_item = get_or_add_user_item(user, item.name)
+    user_item.quantity += 1
+    candy.quantity -= quantity
+
+    database.items.update(**user_item.to_dict())
+    database.items.update(**candy.to_dict())
+
+    mess = "<b>Ивентовый магазин</b>\n\n"
+    mess += f"У тебя {candy.quantity} {get_item_emoji(candy.name)}"
+
+    markup = InlineMarkup.event_shop(user)
+
+    bot.edit_message_text(
+        mess, call.message.chat.id, call.message.id, reply_markup=markup
+    )
+
+    bot.answer_callback_query(
+        call.id,
+        f"Ты купил 1 {item.emoji} за {quantity} {get_item_emoji(candy.name)}",
+        show_alert=True,
+    )
