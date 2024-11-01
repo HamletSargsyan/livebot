@@ -7,10 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [10.1.0] - 2024-11-01
+
 ### Добавлено
 
 - Добавлена реализация команды `/event_shop` [#65](https://github.com/HamletSargsyan/livebot/issues/65)
-
 
 ## [10.0.1] - 2024-10-31
 
