@@ -40,6 +40,7 @@ def configure_bot_commands():
 
     if config.event.open:
         commands.insert(0, BotCommand("event", "Ивент"))
+        commands.insert(1, BotCommand("event_shop", "Ивентовый магазин"))
 
     bot.set_my_commands(commands)
 
