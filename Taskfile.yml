@@ -21,6 +21,7 @@ tasks:
       # - pyright src tools
 
   format:
+    ignore_error: true
     cmd: ruff format --respect-gitignore src tools
 
   fix:
