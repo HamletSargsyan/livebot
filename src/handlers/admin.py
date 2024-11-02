@@ -1,9 +1,20 @@
+import random
+import string
 from telebot.types import Message, ChatPermissions
 from telebot.util import quick_markup
 
 from database.funcs import database
-from database.models import Violation
-from helpers.utils import get_user_tag, parse_time_duration, pretty_datetime, utcnow
+from database.models import PromoModel, Violation
+from helpers.exceptions import NoResult
+from helpers.utils import (
+    Loading,
+    from_user,
+    get_item,
+    get_user_tag,
+    parse_time_duration,
+    pretty_datetime,
+    utcnow,
+)
 from config import bot
 
 
@@ -198,3 +209,60 @@ def unban_cmd(message: Message):
     bot.unban_chat_member(message.chat.id, reply_user.id, only_if_banned=True)
 
     bot.send_message(message.chat.id, f"{get_user_tag(reply_user)} разбанен")
+
+
+@bot.message_handler(commands=["add_promo"])
+def add_promo(message: Message):
+    with Loading(message):
+        user = database.users.get(id=from_user(message).id)
+
+        if not user.is_admin:
+            return
+
+        chars = string.digits + string.ascii_letters
+        promo = "".join(random.choices(chars, k=6))
+        try:
+            promo_code = database.promos.get(name=promo)
+        except NoResult:
+            promo_code = None
+
+        if promo_code:
+            promo = "".join(random.choices(chars, k=6))
+        mess = "<b>Новый промокод</b>\n\n" f"<b>Код:</b> <code>{promo}</code>\n"
+
+        items = {}
+        usage_count = 1
+        description = None
+
+        line_num = 0
+        for line in message.text.split("\n"):
+            if line_num == 0:
+                try:
+                    usage_count = int(line.split(" ")[-1])
+                except ValueError:
+                    usage_count = 1
+                mess += f"<b>Кол-во использований:</b> <code>{usage_count}</code>\n"
+            elif line_num == 1:
+                description = None if line in ["None", "none"] else line
+                if description:
+                    mess += f"<b>Описание:</b> <i>{description}</i>\n\n"
+            elif line_num == 2:
+                for item in line.split(", "):
+                    name = item.split(" ")[0]
+                    quantity = int(item.split(" ")[1])
+                    name = name.lower()
+                    if get_item(name):
+                        items[name] = quantity
+                        mess += (
+                            f"{quantity} {get_item(name).name} {get_item(name).emoji}\n"
+                        )
+
+            line_num += 1
+
+        code = PromoModel(
+            name=promo, usage_count=usage_count, description=description, items=items
+        )
+
+        database.promos.add(**code.to_dict())
+
+        bot.reply_to(message, mess)
