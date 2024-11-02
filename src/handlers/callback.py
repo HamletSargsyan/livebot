@@ -32,7 +32,7 @@ from base.actions import (
     work,
 )
 
-from base.items import items_list
+from base.items import ITEMS
 from helpers.utils import (
     achievement_progress,
     check_user_subscription,
@@ -327,7 +327,7 @@ def item_info_main_callback(call: CallbackQuery):
         user = database.users.get(id=call.from_user.id)
         action = call.data.split(" ")[1]
         pos = int(call.data.split(" ")[2])
-        max_pos = len(list(chunks(items_list, 6))) - 1
+        max_pos = len(list(chunks(ITEMS, 6))) - 1
 
         if action == "next":
             pos += 1
@@ -478,7 +478,7 @@ def chest_callback(call: CallbackQuery):
             item = random.choice(
                 [
                     item
-                    for item in items_list
+                    for item in ITEMS
                     if item.rarity == rarity and item.name != "бабло"
                 ]
             )

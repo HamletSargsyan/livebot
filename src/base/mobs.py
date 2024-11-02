@@ -8,7 +8,7 @@ from telebot.util import quick_markup
 
 from helpers.utils import get_item_emoji
 
-from .items import items_list
+from .items import ITEMS
 
 from config import bot
 from database.models import UserModel
@@ -68,7 +68,7 @@ class Dog(BaseMob):
 class Trader(BaseMob):
     def __init__(self):
         super().__init__("торговец", 5.2)
-        self.items = [item for item in items_list if item.rarity == ItemRarity.COMMON]
+        self.items = [item for item in ITEMS if item.rarity == ItemRarity.COMMON]
         while True:
             self.item = random.choice(self.items)
             if self.item.price:

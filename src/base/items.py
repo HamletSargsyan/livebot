@@ -9,7 +9,7 @@ rarity_weights = {
     ItemRarity.LEGENDARY: 1,
 }
 
-items_list = [
+ITEMS = [
     Item(
         name="бабло",
         emoji="🪙",

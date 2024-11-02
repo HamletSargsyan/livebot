@@ -18,7 +18,7 @@ from telebot.util import (
 
 from helpers.enums import ItemType
 from helpers.exceptions import ItemNotFoundError, NoResult
-from base.items import items_list
+from base.items import ITEMS
 from helpers.markups import InlineMarkup
 from helpers.utils import (
     check_user_subscription,
@@ -194,7 +194,7 @@ def bag_cmd(message: Message):
 @bot.message_handler(commands=["items"])
 def items_cmd(message: Message):
     with Loading(message):
-        mess = f"<b>Предметы</b>\n\n1 / {len(list(chunks(items_list, 6)))}"
+        mess = f"<b>Предметы</b>\n\n1 / {len(list(chunks(ITEMS, 6)))}"
         user = database.users.get(id=from_user(message).id)
         markup = markup = InlineMarkup.items_pager(user=user)
 
@@ -207,7 +207,7 @@ def shop_cmd(message: Message):
         args = message.text.split(" ")
 
         if len(args) != 3:
-            items = list(filter(lambda item: item.price, items_list))
+            items = list(filter(lambda item: item.price, ITEMS))
             items.sort(key=lambda item: item.price, reverse=True)  # type: ignore
             mess = "<b>🛍Магазин🛍</b>\n\n"
             for item in items:

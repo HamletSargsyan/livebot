@@ -23,7 +23,7 @@ from config import (
 from database.models import AchievementModel, UserModel
 from helpers.datatypes import Achievement, Item
 from helpers.exceptions import AchievementNotFoundError, ItemNotFoundError, NoResult
-from base.items import items_list
+from base.items import ITEMS
 from helpers.enums import ItemRarity
 
 
@@ -128,7 +128,7 @@ def get_user_tag(user: UserModel):
 
 
 def get_item(name: str) -> Union[Item, NoReturn]:
-    for item in items_list:
+    for item in ITEMS:
         item.name = item.name.lower()
         if item.name == name:
             return item

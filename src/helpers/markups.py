@@ -4,7 +4,7 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from telebot.util import quick_markup, chunks
 
 from base.achievements import ACHIEVEMENTS
-from base.items import items_list
+from base.items import ITEMS
 from helpers.utils import (
     achievement_status,
     get_item,
@@ -65,7 +65,7 @@ class InlineMarkup:
 
     @classmethod
     def items_pager(cls, user: UserModel, index: int = 0) -> InlineKeyboardMarkup:
-        items = list(chunks(items_list, 6))
+        items = list(chunks(ITEMS, 6))
         buttons = []
 
         for item in items[index]:
