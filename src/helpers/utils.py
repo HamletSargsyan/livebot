@@ -75,9 +75,9 @@ def log(record: Record) -> None:
         f"{current_time}\n\n"
         f"<b>Логгер:</b> <code>{record.name}</code>\n"  # cspell: disable-line
         # f"<b>Модуль:</b> <code>{record.module}</code>\n"
-        # f"<b>Путь к файлу:</b> <code>{record.pathname}</code>\n"
-        # f"<b>Файл</b>: <code>{record.filename}</code>\n"
-        # f"<b>Строка:</b> {record.lineno}\n\n"
+        f"<b>Путь к файлу:</b> <code>{record.filename}</code>\n"
+        f"<b>Файл</b>: <code>{record.relpath}</code>\n"
+        f"<b>Строка:</b> {record.line}\n\n"
         '<pre><code class="language-shell">{text}</code></pre>'
     )
 
