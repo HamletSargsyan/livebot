@@ -52,4 +52,4 @@ tasks:
       - pip install mkdocs mkdocs-material mkdocs-git-revision-date-localized-plugin
 
   release:
-    cmd: python3 tools/release.py {{.CLI_ARGS}}
+    cmd: python3 tools/bump_version.py {{.CLI_ARGS}}
