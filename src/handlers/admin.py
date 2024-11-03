@@ -1,13 +1,17 @@
+from functools import partial
 import random
 import string
+import time
 from telebot.types import Message, ChatPermissions
-from telebot.util import quick_markup
+from telebot.util import quick_markup, antiflood
+from telebot.apihelper import ApiTelegramException
 
-from database.funcs import database
+from database.funcs import database, redis_cache
 from database.models import PromoModel, Violation
 from helpers.exceptions import NoResult
 from helpers.utils import (
     Loading,
+    MessageEditor,
     from_user,
     get_item,
     get_user_tag,
@@ -15,7 +19,7 @@ from helpers.utils import (
     pretty_datetime,
     utcnow,
 )
-from config import bot
+from config import bot, logger
 
 
 @bot.message_handler(commands=["warn"])
@@ -266,3 +270,44 @@ def add_promo(message: Message):
         database.promos.add(**code.to_dict())
 
         bot.reply_to(message, mess)
+
+
+@bot.message_handler(commands=["broadcast"])
+def broadcast_cmd(message: Message):
+    user = database.users.get(id=message.from_user.id)
+
+    if not user.is_admin:
+        return
+
+    if redis_cache.get("broadcast"):
+        antiflood(bot.reply_to, message, "На данный момент уже идет бродкаст")
+        return
+
+    mess = message.html_text.removeprefix("/broadcast")
+
+    with MessageEditor(message, title="Бродкаст") as msg:
+        redis_cache.set("broadcast", 1)
+        msg.exit_funcs.add(partial(redis_cache.delete, "broadcast"))
+
+        start_time = time.monotonic()
+        users = database.users.get_all()
+
+        total_count = len(users)
+        success_count = 0
+        fatal_count = 0
+
+        msg.write(f"Кол-во пользователей: {total_count}")
+
+        for user in users:
+            try:
+                antiflood(bot.send_message, user.id, mess)
+                success_count += 1
+            except ApiTelegramException as e:
+                fatal_count += 1
+                logger.error(str(e))
+
+        total_time = time.monotonic() - start_time
+        msg.write("Бродкаст закончился")
+        msg.write(f"Время: {total_time:_.2f} с.")
+        msg.write(f"Кол-во юзеров получивших сообщение: {success_count}")
+        msg.write(f"Кол-во ошибок: {fatal_count}")
