@@ -2,7 +2,15 @@ from functools import wraps
 import json
 import random
 import statistics
-from typing import Callable, NoReturn, Optional, ParamSpec, TypeVar, Union
+from typing import (
+    Callable,
+    NoReturn,
+    Optional,
+    ParamSpec,
+    Self,
+    TypeVar,
+    Union,
+)
 from datetime import UTC, datetime, timedelta
 
 import httpx
@@ -23,7 +31,7 @@ from config import (
 from database.models import AchievementModel, UserModel
 from helpers.datatypes import Achievement, Item
 from helpers.exceptions import AchievementNotFoundError, ItemNotFoundError, NoResult
-from base.items import items_list
+from base.items import ITEMS
 from helpers.enums import ItemRarity
 
 
@@ -75,9 +83,9 @@ def log(record: Record) -> None:
         f"{current_time}\n\n"
         f"<b>Логгер:</b> <code>{record.name}</code>\n"  # cspell: disable-line
         # f"<b>Модуль:</b> <code>{record.module}</code>\n"
-        # f"<b>Путь к файлу:</b> <code>{record.pathname}</code>\n"
-        # f"<b>Файл</b>: <code>{record.filename}</code>\n"
-        # f"<b>Строка:</b> {record.lineno}\n\n"
+        f"<b>Путь к файлу:</b> <code>{record.filename}</code>\n"
+        f"<b>Файл</b>: <code>{record.relpath}</code>\n"
+        f"<b>Строка:</b> {record.line}\n\n"
         '<pre><code class="language-shell">{text}</code></pre>'
     )
 
@@ -128,7 +136,7 @@ def get_user_tag(user: UserModel):
 
 
 def get_item(name: str) -> Union[Item, NoReturn]:
-    for item in items_list:
+    for item in ITEMS:
         item.name = item.name.lower()
         if item.name == name:
             return item
@@ -398,3 +406,33 @@ def parse_time_duration(time_str: str) -> timedelta:
 
 def pretty_datetime(d: datetime) -> str:
     return d.strftime("%H:%M %d.%m.%Y")
+
+
+class MessageEditor:
+    def __init__(
+        self,
+        user_message: Message,
+        *,
+        title: str,
+    ):
+        self.user_message = user_message
+        self.message: Message
+
+        self.title = title
+        self._mess = f"<b>{self.title}</b>"
+        self.exit_funcs: set[Callable] = set()
+
+    def __enter__(self) -> Self:
+        self.message = antiflood(bot.reply_to, self.user_message, self._mess)
+
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        for func in self.exit_funcs:
+            func()
+
+    def write(self, new_text: str):
+        self._mess = text = f"{self._mess}\n<b>*</b>  {new_text}"
+        self.message = antiflood(
+            bot.edit_message_text, text, self.message.chat.id, self.message.id
+        )

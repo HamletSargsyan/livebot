@@ -21,6 +21,7 @@ tasks:
       # - pyright src tools
 
   format:
+    ignore_error: true
     cmd: ruff format --respect-gitignore src tools
 
   fix:
@@ -49,3 +50,6 @@ tasks:
   docs-setup:
     cmds:
       - pip install mkdocs mkdocs-material mkdocs-git-revision-date-localized-plugin
+
+  release:
+    cmd: python3 tools/bump_version.py {{.CLI_ARGS}}

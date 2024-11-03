@@ -10,7 +10,7 @@ from telebot.types import (
 
 from helpers.enums import ItemRarity, ItemType
 
-from .items import items_list
+from .items import ITEMS
 
 
 from helpers.exceptions import ItemIsCoin, NoResult
@@ -165,7 +165,7 @@ def check_user_stats(user: UserModel, chat_id: Union[str, int, None] = None):
 def generate_quest(user: UserModel):
     allowed_items = []
 
-    for item in items_list:
+    for item in ITEMS:
         if item.is_task_item:
             allowed_items.append(item)
 
@@ -210,7 +210,7 @@ class AvailableCraftItem(TypedDict):
 def get_available_crafts(user: UserModel) -> list[AvailableCraftItem]:
     available_crafts: list[AvailableCraftItem] = []
 
-    for item in items_list:
+    for item in ITEMS:
         if not item.craft:
             continue
 
@@ -254,7 +254,7 @@ def generate_exchanger(user: UserModel):
         pass
 
     allowed_items: List[Item] = []
-    for item in items_list:
+    for item in ITEMS:
         if item.can_exchange:
             allowed_items.append(item)
 
@@ -338,7 +338,7 @@ def use_item(message: Message, name: str):
                 num_items_to_get = random.randint(1, 3)
 
                 items_to_get = random.choices(
-                    items_list,
+                    ITEMS,
                     k=num_items_to_get,
                 )
                 for item_ in items_to_get:
@@ -546,7 +546,7 @@ def generate_daily_gift(user: UserModel):
         id = database.daily_gifts.add(**daily_gift.to_dict()).inserted_id
         daily_gift._id = id
 
-    items = list(filter(lambda i: i.rarity == ItemRarity.COMMON, items_list))
+    items = list(filter(lambda i: i.rarity == ItemRarity.COMMON, ITEMS))
 
     if config.event.open:
         items.append(get_item("конфета"))

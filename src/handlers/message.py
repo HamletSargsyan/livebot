@@ -1,5 +1,4 @@
 import random
-import string
 
 from telebot.types import (
     Message,
@@ -18,7 +17,7 @@ from telebot.util import (
 
 from helpers.enums import ItemType
 from helpers.exceptions import ItemNotFoundError, NoResult
-from base.items import items_list
+from base.items import ITEMS
 from helpers.markups import InlineMarkup
 from helpers.utils import (
     check_user_subscription,
@@ -50,7 +49,7 @@ import base.user_input  # noqa
 from . import admin  # noqa
 
 from database.funcs import database
-from database.models import ItemModel, PromoModel
+from database.models import ItemModel
 
 from config import bot, config, VERSION
 
@@ -194,7 +193,7 @@ def bag_cmd(message: Message):
 @bot.message_handler(commands=["items"])
 def items_cmd(message: Message):
     with Loading(message):
-        mess = f"<b>Предметы</b>\n\n1 / {len(list(chunks(items_list, 6)))}"
+        mess = f"<b>Предметы</b>\n\n1 / {len(list(chunks(ITEMS, 6)))}"
         user = database.users.get(id=from_user(message).id)
         markup = markup = InlineMarkup.items_pager(user=user)
 
@@ -207,7 +206,7 @@ def shop_cmd(message: Message):
         args = message.text.split(" ")
 
         if len(args) != 3:
-            items = list(filter(lambda item: item.price, items_list))
+            items = list(filter(lambda item: item.price, ITEMS))
             items.sort(key=lambda item: item.price, reverse=True)  # type: ignore
             mess = "<b>🛍Магазин🛍</b>\n\n"
             for item in items:
@@ -586,63 +585,6 @@ def ref(message: Message):
             "Ты по адресу, пригласи друзей и получи от 5к до 15к бабла\n"
             f"Вот твоя ссылочка: https://t.me/{bot.get_me().username}?start={user.id}"
         )
-        bot.reply_to(message, mess)
-
-
-@bot.message_handler(commands=["add_promo"])
-def add_promo(message: Message):
-    with Loading(message):
-        user = database.users.get(id=from_user(message).id)
-
-        if not user.is_admin:
-            return
-
-        chars = string.digits + string.ascii_letters
-        promo = "".join(random.choices(chars, k=6))
-        try:
-            promo_code = database.promos.get(name=promo)
-        except NoResult:
-            promo_code = None
-
-        if promo_code:
-            promo = "".join(random.choices(chars, k=6))
-        mess = "<b>Новый промокод</b>\n\n" f"<b>Код:</b> <code>{promo}</code>\n"
-
-        items = {}
-        usage_count = 1
-        description = None
-
-        line_num = 0
-        for line in message.text.split("\n"):
-            if line_num == 0:
-                try:
-                    usage_count = int(line.split(" ")[-1])
-                except ValueError:
-                    usage_count = 1
-                mess += f"<b>Кол-во использований:</b> <code>{usage_count}</code>\n"
-            elif line_num == 1:
-                description = None if line in ["None", "none"] else line
-                if description:
-                    mess += f"<b>Описание:</b> <i>{description}</i>\n\n"
-            elif line_num == 2:
-                for item in line.split(", "):
-                    name = item.split(" ")[0]
-                    quantity = int(item.split(" ")[1])
-                    name = name.lower()
-                    if get_item(name):
-                        items[name] = quantity
-                        mess += (
-                            f"{quantity} {get_item(name).name} {get_item(name).emoji}\n"
-                        )
-
-            line_num += 1
-
-        code = PromoModel(
-            name=promo, usage_count=usage_count, description=description, items=items
-        )
-
-        database.promos.add(**code.to_dict())
-
         bot.reply_to(message, mess)
 
 
