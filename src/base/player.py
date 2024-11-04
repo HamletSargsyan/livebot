@@ -177,11 +177,9 @@ def generate_quest(user: UserModel):
 
     try:
         old_quest = database.quests.get(**{"owner": user._id})
-    except NoResult:
-        old_quest = None
-
-    if old_quest:
         database.quests.delete(**old_quest.to_dict())
+    except NoResult:
+        pass
 
     quest = QuestModel(
         name=item.name,
