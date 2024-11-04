@@ -151,7 +151,7 @@ def street(call: CallbackQuery, user: UserModel):
     increment_achievement_progress(user, "бродяга")
 
     try:
-        user_notification = database.notifications.get(**{"owner": user._id})
+        user_notification = database.notifications.get(owner=user._id)
         user_notification.walk = False
         database.notifications.update(**user_notification.to_dict())
     except NoResult:
@@ -219,7 +219,7 @@ def work(call: CallbackQuery, user: UserModel):
     increment_achievement_progress(user, "работяга")
 
     try:
-        user_notification = database.notifications.get(**{"owner": user._id})
+        user_notification = database.notifications.get(owner=user._id)
         user_notification.work = False
         database.notifications.update(**user_notification.to_dict())
     except NoResult:
@@ -256,6 +256,13 @@ def sleep(call: CallbackQuery, user: UserModel):
     user.fatigue -= fatigue
     user.xp += random.uniform(1.5, 2.0)
     user.action = None
+
+    try:
+        user_notification = database.notifications.get(owner=user._id)
+        user_notification.sleep = False
+        database.notifications.update(**user_notification.to_dict())
+    except NoResult:
+        pass
 
     database.users.update(**user.to_dict())
     increment_achievement_progress(user, "сонный")
@@ -302,6 +309,13 @@ def game(call: CallbackQuery, user: UserModel):
     if random.randint(1, 100) < user.luck:
         user.mood *= 2
     user.action = None
+
+    try:
+        user_notification = database.notifications.get(owner=user._id)
+        user_notification.game = False
+        database.notifications.update(**user_notification.to_dict())
+    except NoResult:
+        pass
 
     database.users.update(**user.to_dict())
     increment_achievement_progress(user, "игроман")
