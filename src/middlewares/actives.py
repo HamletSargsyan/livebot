@@ -3,7 +3,7 @@ from telebot import BaseMiddleware, CancelUpdate
 from telebot.types import Message, CallbackQuery
 
 from database.funcs import database
-from helpers.utils import utcnow
+from helpers.utils import increment_achievement_progress, utcnow
 
 
 class ActiveMiddleware(BaseMiddleware):
@@ -19,3 +19,6 @@ class ActiveMiddleware(BaseMiddleware):
         user = database.users.get(id=user_id)
         user.last_active_time = utcnow()
         database.users.update(**user.to_dict())
+
+        if (utcnow() - user.registered_at).days >= 7:
+            increment_achievement_progress(user, "новичок")

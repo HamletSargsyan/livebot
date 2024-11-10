@@ -489,6 +489,7 @@ def chest_callback(call: CallbackQuery):
             user_item = get_or_add_user_item(user, item.name)
             user_item.quantity += quantity
             database.items.update(**user_item.to_dict())
+        increment_achievement_progress(user, "сундук-собиратель")
         bot.delete_message(call.message.chat.id, call.message.id)
         if call.message.reply_to_message:
             bot.reply_to(call.message.reply_to_message, mess)

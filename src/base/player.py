@@ -163,6 +163,12 @@ def check_user_stats(user: UserModel, chat_id: Union[str, int, None] = None):
 
 
 def generate_quest(user: UserModel):
+    try:
+        old_quest = database.quests.get(**{"owner": user._id})
+        database.quests.delete(**old_quest.to_dict())
+    except NoResult:
+        pass
+
     allowed_items = []
 
     for item in ITEMS:
@@ -174,12 +180,6 @@ def generate_quest(user: UserModel):
     xp = random.uniform(5.0, 15.0) * user.level
     task_coin = item.task_coin
     reward = random.randint(min(task_coin), max(task_coin)) * quantity  # pyright: ignore
-
-    try:
-        old_quest = database.quests.get(**{"owner": user._id})
-        database.quests.delete(**old_quest.to_dict())
-    except NoResult:
-        pass
 
     quest = QuestModel(
         name=item.name,
