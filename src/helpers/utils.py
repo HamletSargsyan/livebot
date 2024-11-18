@@ -420,7 +420,7 @@ class MessageEditor:
 
         self.title = title
         self._mess = f"<b>{self.title}</b>"
-        self.exit_funcs: set[Callable] = set()
+        self.exit_funcs: set[Callable[[], None]] = set()
 
     def __enter__(self) -> Self:
         self.message = antiflood(bot.reply_to, self.user_message, self._mess)
