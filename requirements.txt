@@ -2,7 +2,7 @@ changelog-parser @ git+https://github.com/HamletSargsyan/changelog-parser@main
 pyTelegramBotAPI==4.25.0
 pymongo==4.10.1
 transliterate==1.10.2
-redis==5.2.0
+redis==5.2.1
 toml==0.10.2
 argparse==1.4.0
 semver==3.0.2
