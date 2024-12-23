@@ -1,8 +1,10 @@
+from contextlib import suppress
 from functools import wraps
 import json
 import random
 import statistics
 from typing import (
+    Any,
     Callable,
     NoReturn,
     Optional,
@@ -34,7 +36,6 @@ from helpers.exceptions import AchievementNotFoundError, ItemNotFoundError, NoRe
 from base.items import ITEMS
 from helpers.enums import ItemRarity
 
-
 T = TypeVar("T")
 P = ParamSpec("P")
 
@@ -42,7 +43,9 @@ _deprecated_funcs = set()
 
 
 def deprecated(
-    remove_version: Version,
+    *,
+    remove_in: Version,
+    deprecated_in: Version,
     message: Optional[str] = None,
     warn_once: bool = True,
 ):
@@ -52,7 +55,7 @@ def deprecated(
             if warn_once and func.__name__ in _deprecated_funcs:
                 return func(*args, **kwargs)
             _deprecated_funcs.add(func.__name__)
-            msg = f"функция `{func.__name__}` помечена как устаревшая и будет удалена в версии {remove_version}, (текущая версия: {VERSION})"
+            msg = f"начиная с версии {deprecated_in} функция `{func.__name__}` помечена как устаревшая и будет удалена в версии {remove_in}, (текущая версия: {VERSION})"
 
             if message:
                 msg += f" | {message}"
@@ -273,10 +276,9 @@ def check_version() -> str:  # type: ignore
 
 
 @deprecated(
-    Version(
-        12,
-    ),
-    "Use `message.from_user` instead",
+    remove_in=Version(major=12),
+    deprecated_in=Version(major=10),
+    message="Use `message.from_user` instead",
 )
 def from_user(message: Message) -> User:
     return message.from_user  # type: ignore
@@ -420,7 +422,7 @@ class MessageEditor:
 
         self.title = title
         self._mess = f"<b>{self.title}</b>"
-        self.exit_funcs: set[Callable[[], None]] = set()
+        self.exit_funcs: set[Callable[[], None | Any]] = set()
 
     def __enter__(self) -> Self:
         self.message = antiflood(bot.reply_to, self.user_message, self._mess)
@@ -436,3 +438,8 @@ class MessageEditor:
         self.message = antiflood(
             bot.edit_message_text, text, self.message.chat.id, self.message.id
         )
+
+
+def safe(func: Callable[P, T], *args: P.args, **kwargs: P.kwargs) -> Optional[T]:
+    with suppress(BaseException):
+        return func(*args, **kwargs)

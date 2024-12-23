@@ -29,6 +29,7 @@ from helpers.utils import (
     get_item,
     Loading,
     increment_achievement_progress,
+    safe,
     send_channel_subscribe_message,
     utcnow,
 )
@@ -112,13 +113,15 @@ def start(message: Message):
                 database.users.update(**ref_user.to_dict())
                 increment_achievement_progress(ref_user, "друзья навеки")
 
-                bot.send_message(
+                safe(
+                    bot.send_message,
                     ref_user.id,
                     (
                         f"{user.name} присоединился к игре благодаря твой реферальной ссылке\n"
                         f"Ты получил {coin} бабла {get_item_emoji('бабло')}"
                     ),
                 )
+
                 return
 
         if message.chat.type != "private":
