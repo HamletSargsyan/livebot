@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [10.3.0] - 2024-12-24
+
+### Добавлено
+
+- Новые ачивки
+
+### Исправлено
+
+- Отправка уведомлений для действий
+- Баг при покупке предмета из рынка ([#84](https://github.com/HamletSargsyan/livebot/issues/84))
+
 ## [10.2.0] - 2024-11-03
 
 ### Добавлено

@@ -44,6 +44,7 @@ from helpers.utils import (
     get_item,
     get_user_tag,
     increment_achievement_progress,
+    safe,
     utcnow,
 )
 
@@ -489,6 +490,7 @@ def chest_callback(call: CallbackQuery):
             user_item = get_or_add_user_item(user, item.name)
             user_item.quantity += quantity
             database.items.update(**user_item.to_dict())
+        increment_achievement_progress(user, "сундук-собиратель")
         bot.delete_message(call.message.chat.id, call.message.id)
         if call.message.reply_to_message:
             bot.reply_to(call.message.reply_to_message, mess)
@@ -654,6 +656,7 @@ def market_callback(call: CallbackQuery):
         database.items.update(**user_item.to_dict())
         database.users.update(**user.to_dict())
         database.users.update(**item_owner.to_dict())
+        database.market_items.delete(**market_item.to_dict())
 
         increment_achievement_progress(user, "богач", market_item.price)
         increment_achievement_progress(item_owner, "продавец")
@@ -661,14 +664,14 @@ def market_callback(call: CallbackQuery):
         usage = f" ({int(market_item.usage)}%)" if market_item.usage else ""
 
         mess = f"{get_user_tag(user)} купил {market_item.quantity} {get_item_emoji(market_item.name)}{usage}"
-        bot.send_message(call.message.chat.id, mess)
+        safe(bot.send_message, call.message.chat.id, mess)
 
-        bot.send_message(
+        safe(
+            bot.send_message,
             item_owner.id,
             f"{get_user_tag(user)} купил у тебя {market_item.quantity} {get_item_emoji(market_item.name)}{usage}",
         )
 
-        database.market_items.delete(**market_item.to_dict())
 
         mess = "<b>Рынок</b>\n\n"
         market_items = database.market_items.get_all()
