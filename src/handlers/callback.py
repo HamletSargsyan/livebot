@@ -672,7 +672,6 @@ def market_callback(call: CallbackQuery):
             f"{get_user_tag(user)} купил у тебя {market_item.quantity} {get_item_emoji(market_item.name)}{usage}",
         )
 
-
         mess = "<b>Рынок</b>\n\n"
         market_items = database.market_items.get_all()
         markup = InlineMarkup.market_pager(user)

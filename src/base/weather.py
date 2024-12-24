@@ -1,12 +1,8 @@
 import httpx
 
-from cachetools import TTLCache
-
+from database.funcs import cache
 from helpers.datatypes import WeatherData
 from config import config, logger
-
-
-cache = TTLCache(maxsize=1, ttl=1800)
 
 
 def get_weather() -> WeatherData:

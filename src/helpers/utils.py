@@ -30,6 +30,7 @@ from config import (
     config,
     VERSION,
 )
+from database.funcs import cache
 from database.models import AchievementModel, UserModel
 from helpers.datatypes import Achievement, Item
 from helpers.exceptions import AchievementNotFoundError, ItemNotFoundError, NoResult
@@ -256,15 +257,21 @@ def send_channel_subscribe_message(message: Message):
 
 def check_version() -> str:  # type: ignore
     url = "https://api.github.com/repos/HamletSargsyan/livebot/releases/latest"
-    response = httpx.get(url)
 
-    if response.status_code != 200:
-        logger.error(response.text)
-        response.raise_for_status()
+    if "bot_latest_version" in cache:
+        version: Version = Version.parse(cache.get("bot_latest_version"))  # type: ignore
+    else:
+        response = httpx.get(url)
 
-    latest_release = response.json()
+        if response.status_code != 200:
+            logger.error(response.text)
+            response.raise_for_status()
 
-    latest_version = Version.parse(latest_release["tag_name"].replace("v", ""))
+        latest_release = response.json()
+        version = Version.parse(latest_release["tag_name"].replace("v", ""))
+        cache["bot_latest_version"] = str(version)
+
+    latest_version = version
 
     match VERSION.compare(latest_version):
         case -1:

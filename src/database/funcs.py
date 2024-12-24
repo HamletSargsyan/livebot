@@ -1,6 +1,7 @@
 from typing import Final, Generic, Type, TypeVar
 
 from bson import ObjectId
+from cachetools import TTLCache
 from pymongo import MongoClient
 from pymongo.collection import Collection
 
@@ -108,3 +109,4 @@ class DataBase:
 
 database: Final = DataBase()
 redis_cache: Final = redis.from_url(config.redis.url)
+cache: Final = TTLCache(maxsize=1, ttl=1800)
