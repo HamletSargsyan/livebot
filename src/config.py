@@ -51,7 +51,6 @@ class TelegramConfig:
 
 @dataclass
 class WeatherConfig:
-    api_key: str
     region: str
 
 
