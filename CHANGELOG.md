@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Механизм кеширования для запросов получения версии бота ([#87](https://github.com/HamletSargsyan/livebot/issues/87))
 
+### Изменено
+
+- Переход с сервиса OpenWeatherMapApi на open-meteo ([#88](https://github.com/HamletSargsyan/livebot/issues/88))
+
 ### Исправлено
 
 - Баг при просмотре конкретного достижения ([#86](https://github.com/HamletSargsyan/livebot/issues/86))

@@ -91,14 +91,14 @@ def street(call: CallbackQuery, user: UserModel):
 
     snow = 2
     water = 2
-    if weather.main.temp <= -15:
+    if weather.current.temperature_2m <= -15:
         snow = 10
-    elif weather.main.temp <= -5:
+    elif weather.current.temperature_2m <= -5:
         snow = 5
 
-    if weather.weather.main == "Snow":
+    if weather.current.type == "Snow":
         snow *= 3
-    elif weather.weather.main == "Rain":
+    elif weather.current.type == "Rain":
         water *= 3
 
     loot_table = [
@@ -110,7 +110,7 @@ def street(call: CallbackQuery, user: UserModel):
         ["конфета", (1, 7)],
     ]
 
-    if weather.main.temp < 0:
+    if weather.current.temperature_2m < 0:
         loot_table.append(["снежок", (10 * snow, 20 * snow)])
 
     xp = random.uniform(3.0, 5.0)

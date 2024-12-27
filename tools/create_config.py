@@ -19,7 +19,6 @@ config = {
         "owners": [5161392463],
     },
     "weather": {
-        "api_key": "your_openweather_api_key",
         "region": "",
     },
     "event": {

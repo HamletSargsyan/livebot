@@ -714,9 +714,9 @@ def weather_cmd(message: Message):
         weather = get_weather()
 
         mess = (
-            f"<b>{weather.weather.emoji} Прогноз погоды</b>\n\n"
-            f"{weather.main.temp} °C\n"
-            f"{weather.weather.ru_name}"
+            f"<b>{weather.current.emoji} Прогноз погоды</b>\n\n"
+            f"{weather.current.temperature_2m} {weather.current_units.temperature_2m}\n"
+            f"{weather.current.ru_type}"
         )
 
         bot.reply_to(message, mess)
