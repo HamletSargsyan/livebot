@@ -9,6 +9,7 @@
         "Бродкаст",
         "буст",
         "бусте",
+        "варн",
         "гайдом",
         "енергос",
         "Забанен",
@@ -28,6 +29,7 @@
         "Нифига",
         "ничо",
         "Просрал",
+        "разбанен",
         "сендвич",
         "Скрафтил",
         "скрафтить",
@@ -64,6 +66,8 @@
         "livebot",
         "meteo",
         "OPENWEATHER",
+        "pban",
+        "prereleased",
         "pymongo",
         "pyright",
         "relativedelta",
@@ -72,7 +76,8 @@
         "telebot",
         "termux",
         "tinylogging",
-        "translit"
+        "translit",
+        "unban"
     ],
     "yaml.schemas": {
         "https://squidfunk.github.io/mkdocs-material/schema.json": "mkdocs.yml"
