@@ -40,14 +40,8 @@ def warn_cmd(message: Message):
 
     database.users.update(**reply_user.to_dict())
 
-    mess = (
-        f"{get_user_tag(reply_user)} получил варн.\n\n"
-        f"<b>Причина</b>\n"
-        f"<i>{reason}</i>"
-    )
-    markup = quick_markup(
-        {"Правила": {"url": "https://hamletsargsyan.github.io/livebot/rules"}}
-    )
+    mess = f"{get_user_tag(reply_user)} получил варн.\n\n" f"<b>Причина</b>\n" f"<i>{reason}</i>"
+    markup = quick_markup({"Правила": {"url": "https://hamletsargsyan.github.io/livebot/rules"}})
 
     bot.send_message(message.chat.id, mess, reply_markup=markup)
 
@@ -86,9 +80,7 @@ def mute_cmd(message: Message):
         message.chat.id,
         reply_user.id,
         mute_end_time,
-        permissions=ChatPermissions(
-            can_send_messages=False, can_send_other_messages=False
-        ),
+        permissions=ChatPermissions(can_send_messages=False, can_send_other_messages=False),
     )
 
     mess = (
@@ -96,9 +88,7 @@ def mute_cmd(message: Message):
         f"<b>Причина</b>\n"
         f"<i>{reason}</i>"
     )
-    markup = quick_markup(
-        {"Правила": {"url": "https://hamletsargsyan.github.io/livebot/rules"}}
-    )
+    markup = quick_markup({"Правила": {"url": "https://hamletsargsyan.github.io/livebot/rules"}})
 
     bot.send_message(message.chat.id, mess, reply_markup=markup)
 
@@ -149,9 +139,7 @@ def ban_cmd(message: Message):
         f"<b>Причина</b>\n"
         f"<i>{reason}</i>"
     )
-    markup = quick_markup(
-        {"Правила": {"url": "https://hamletsargsyan.github.io/livebot/rules"}}
-    )
+    markup = quick_markup({"Правила": {"url": "https://hamletsargsyan.github.io/livebot/rules"}})
 
     bot.send_message(message.chat.id, mess, reply_markup=markup)
 
@@ -188,9 +176,7 @@ def pban_cmd(message: Message):
         f"<b>Причина</b>\n"
         f"<i>{reason}</i>"
     )
-    markup = quick_markup(
-        {"Правила": {"url": "https://hamletsargsyan.github.io/livebot/rules"}}
-    )
+    markup = quick_markup({"Правила": {"url": "https://hamletsargsyan.github.io/livebot/rules"}})
 
     bot.send_message(message.chat.id, mess, reply_markup=markup)
 
@@ -257,15 +243,11 @@ def add_promo(message: Message):
                     name = name.lower()
                     if get_item(name):
                         items[name] = quantity
-                        mess += (
-                            f"{quantity} {get_item(name).name} {get_item(name).emoji}\n"
-                        )
+                        mess += f"{quantity} {get_item(name).name} {get_item(name).emoji}\n"
 
             line_num += 1
 
-        code = PromoModel(
-            name=promo, usage_count=usage_count, description=description, items=items
-        )
+        code = PromoModel(name=promo, usage_count=usage_count, description=description, items=items)
 
         database.promos.add(**code.to_dict())
 

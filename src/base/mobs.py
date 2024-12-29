@@ -53,16 +53,12 @@ class Dog(BaseMob):
 
         markup = quick_markup(
             {
-                "Подружится": {
-                    "callback_data": f"dog friend {self.quantity} {self.user.id}"
-                },
+                "Подружится": {"callback_data": f"dog friend {self.quantity} {self.user.id}"},
                 "Уйти": {"callback_data": f"dog leave {self.user.id}"},
             }
         )
 
-        bot.edit_message_text(
-            mess, self.message.chat.id, self.message.id, reply_markup=markup
-        )
+        bot.edit_message_text(mess, self.message.chat.id, self.message.id, reply_markup=markup)
 
 
 class Trader(BaseMob):
@@ -94,9 +90,7 @@ class Trader(BaseMob):
             }
         )
 
-        bot.edit_message_text(
-            mess, self.message.chat.id, self.message.id, reply_markup=markup
-        )
+        bot.edit_message_text(mess, self.message.chat.id, self.message.id, reply_markup=markup)
 
 
 class Chest(BaseMob):
@@ -114,9 +108,7 @@ class Chest(BaseMob):
             }
         )
 
-        bot.edit_message_text(
-            mess, self.message.chat.id, self.message.id, reply_markup=markup
-        )
+        bot.edit_message_text(mess, self.message.chat.id, self.message.id, reply_markup=markup)
 
 
 # ---------------------------------------------------------------------------- #

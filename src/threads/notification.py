@@ -18,9 +18,7 @@ def notification():
                     user_notification = database.notifications.get(owner=user._id)
                 except NoResult:
                     user_notification = NotificationModel(owner=user._id)
-                    id = database.notifications.add(
-                        **user_notification.to_dict()
-                    ).inserted_id
+                    id = database.notifications.add(**user_notification.to_dict()).inserted_id
                     user_notification._id = id
 
                 user = database.users.get(_id=user._id)
@@ -35,9 +33,7 @@ def notification():
                         elif user.action.type == "work" and not user_notification.work:
                             user_notification.work = True
                             mess = "Ты закончил работу"
-                        elif (
-                            user.action.type == "sleep" and not user_notification.sleep
-                        ):
+                        elif user.action.type == "sleep" and not user_notification.sleep:
                             user_notification.sleep = True
                             mess = "Ты проснулся"
                         elif user.action.type == "game" and not user_notification.game:
@@ -46,9 +42,7 @@ def notification():
                         else:
                             continue
 
-                        markup = quick_markup(
-                            {"Дом": {"callback_data": f"open home {user.id}"}}
-                        )
+                        markup = quick_markup({"Дом": {"callback_data": f"open home {user.id}"}})
                         antiflood(bot.send_message, user.id, mess, reply_markup=markup)
 
                 except ApiTelegramException:

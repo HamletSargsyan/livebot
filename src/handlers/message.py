@@ -15,9 +15,12 @@ from telebot.util import (
     chunks,
 )
 
+from config import bot, config, VERSION
+
+from helpers.consts import COIN_EMOJI
 from helpers.enums import ItemType
 from helpers.exceptions import ItemNotFoundError, NoResult
-from base.items import ITEMS
+
 from helpers.markups import InlineMarkup
 from helpers.utils import (
     check_user_subscription,
@@ -33,6 +36,8 @@ from helpers.utils import (
     send_channel_subscribe_message,
     utcnow,
 )
+
+from base.items import ITEMS
 from base.player import (
     check_user_stats,
     coin_top,
@@ -44,15 +49,15 @@ from base.player import (
     get_or_add_user_item,
     transfer_countable_item,
 )
-from base.weather import get_weather
 
-import base.user_input  # noqa
-from . import admin  # noqa
+
+from base.weather import get_weather
+import base.user_input  # noqa  # pylint: disable=unused-import
+
+from handlers import admin  # noqa  # pylint: disable=unused-import
 
 from database.funcs import database
 from database.models import ItemModel
-
-from config import bot, config, VERSION
 
 
 START_MARKUP = ReplyKeyboardMarkup(resize_keyboard=True)
@@ -87,8 +92,7 @@ def start(message: Message):
         user = database.users.get(id=from_user(message).id)
 
         mess = (
-            f"Здорова {from_user(message).first_name}, добро пожаловать в игру\n\n"
-            "Помощь: /help"
+            f"Здорова {from_user(message).first_name}, добро пожаловать в игру\n\n" "Помощь: /help"
         )
 
         if len(message.text.split("/start ")) != 1:
@@ -220,9 +224,7 @@ def shop_cmd(message: Message):
             bot.reply_to(message, mess)
             return
 
-        err_mess = (
-            "Что-то не так написал\n" "Надо: <code>/shop [имя предмета] [кол-во]</code>"
-        )
+        err_mess = "Что-то не так написал\nНадо: <code>/shop [имя предмета] [кол-во]</code>"
 
         if len(args) != 3:
             bot.reply_to(message, err_mess)
@@ -258,9 +260,10 @@ def shop_cmd(message: Message):
         database.users.update(**user.to_dict())
         database.items.update(**user_item.to_dict())
 
+        emoji = get_item_emoji(item.name)
         bot.reply_to(
             message,
-            f"Купил {count} {item.name} {get_item_emoji(item.name)} за {price} {get_item_emoji('бабло')}",
+            f"Купил {count} {item.name} {emoji} за {price} {COIN_EMOJI}",
         )
 
 
@@ -354,12 +357,8 @@ def workbench_cmd(message: Message):
                         for user_item in resources
                     )
 
-                    print(
-                        get_item_emoji(item_name), item_name, get_item(item_name).emoji
-                    )
-                    craft_str = (
-                        f"{get_item_emoji(item_name)} {item_name} - {possible_crafts}\n"
-                    )
+                    print(get_item_emoji(item_name), item_name, get_item(item_name).emoji)
+                    craft_str = f"{get_item_emoji(item_name)} {item_name} - {possible_crafts}\n"
                     mess += f"{craft_str}"
             print(mess)
             bot.reply_to(message, mess)
@@ -407,9 +406,7 @@ def workbench_cmd(message: Message):
 
         database.items.update(**item.to_dict())
         database.users.update(**user.to_dict())
-        bot.reply_to(
-            message, f"Скрафтил {count} {name} {get_item_emoji(name)}\n+ {int(xp)} хп"
-        )
+        bot.reply_to(message, f"Скрафтил {count} {name} {get_item_emoji(name)}\n+ {int(xp)} хп")
 
         check_user_stats(user, message.chat.id)
 
@@ -427,8 +424,7 @@ def transfer_cmd(message: Message):
         args = message.text.split(" ")
 
         err_mess = (
-            "Что-то не так написал, надо так:\n"
-            "<code>/transfer [имя предмета] [кол-во]</code>"
+            "Что-то не так написал, надо так:\n<code>/transfer [имя предмета] [кол-во]</code>"
         )
 
         if len(args) < 2:
@@ -439,9 +435,7 @@ def transfer_cmd(message: Message):
         try:
             item = get_item(item_name)
         except ItemNotFoundError:
-            bot.reply_to(
-                message, f"{item_name}??\nСерьёзно?\n\nТакого предмета не существует"
-            )
+            bot.reply_to(message, f"{item_name}??\nСерьёзно?\n\nТакого предмета не существует")
             return
 
         try:
@@ -453,7 +447,7 @@ def transfer_cmd(message: Message):
             if user.coin <= 0:
                 bot.reply_to(message, f"У тебя нет <i>{item_name}</i>")
                 return
-            elif user.coin <= quantity:
+            if user.coin <= quantity:
                 bot.reply_to(message, "У тебя Недостаточно бабла, иди работать")
                 return
             user.coin -= quantity
@@ -465,13 +459,13 @@ def transfer_cmd(message: Message):
 
                 bot.reply_to(message, mess, reply_markup=markup)
                 return
-            else:
-                user_item = get_or_add_user_item(user, item_name)
 
-                if (user_item.quantity < quantity) or (user_item.quantity <= 0):
-                    bot.reply_to(message, f"У тебя нет <i>{item_name}</i>")
-                    return
-                transfer_countable_item(user_item, quantity, reply_user)
+            user_item = get_or_add_user_item(user, item_name)
+
+            if (user_item.quantity < quantity) or (user_item.quantity <= 0):
+                bot.reply_to(message, f"У тебя нет <i>{item_name}</i>")
+                return
+            transfer_countable_item(user_item, quantity, reply_user)
 
         mess = (
             f"{user.name} подарил {reply_user.name}\n"
@@ -497,9 +491,10 @@ def event_cmd(message: Message):
             if config.event.start_time < utcnow():
                 bot.reply_to(message, "Ивент закончился", reply_markup=markup)
             else:
+                time_difference = get_time_difference_string(config.event.start_time - utcnow())
                 bot.reply_to(
                     message,
-                    f"До начала ивента осталось {get_time_difference_string(config.event.start_time - utcnow())}",
+                    f"До начала ивента осталось {time_difference}",
                     reply_markup=markup,
                 )
             return
@@ -516,13 +511,11 @@ def event_cmd(message: Message):
         )
 
         items = database.items.get_all(name="конфета")
-        sorted_items: list[ItemModel] = sorted(
-            items, key=lambda item: item.quantity, reverse=True
-        )
+        sorted_items: list[ItemModel] = sorted(items, key=lambda item: item.quantity, reverse=True)
         for index, item in enumerate(sorted_items, start=1):
             if item.quantity > 0:
                 owner = database.users.get(**{"_id": item.owner})
-                mess += f"{index}. {owner.name or '<i>неопознанный персонаж</i>'} - {item.quantity}\n"
+                mess += f"{index}. {owner.name} - {item.quantity}\n"
             if index == 10:
                 break
 
@@ -610,9 +603,7 @@ def promo(message: Message) -> None:
             if code:
                 promo_users = code.users
                 if user.id in promo_users:
-                    bot.send_message(
-                        message.chat.id, "Ты уже активировал этот промокод"
-                    )
+                    bot.send_message(message.chat.id, "Ты уже активировал этот промокод")
                     return
 
                 if code.is_used:
@@ -685,16 +676,12 @@ def quest_cmd(message: Message):
         item = get_or_add_user_item(user, quest.name)
 
         finish_button_text = (
-            f"{item.quantity} / {quest.quantity}"
-            if item.quantity < quest.quantity
-            else "Завершить"
+            f"{item.quantity} / {quest.quantity}" if item.quantity < quest.quantity else "Завершить"
         )
         markup = InlineKeyboardMarkup()
         markup.add(
             *[
-                InlineKeyboardButton(
-                    finish_button_text, callback_data=f"finish_quest {user.id}"
-                ),
+                InlineKeyboardButton(finish_button_text, callback_data=f"finish_quest {user.id}"),
                 InlineKeyboardButton("Пропуск", callback_data=f"skip_quest {user.id}"),
             ]
         )
@@ -727,17 +714,16 @@ def exchanger_cmd(message: Message):
     # if True:
     #     bot.reply_to(
     #         message,
-    #         "Временно не работает из-за <a href='https://github.com/HamletSargsyan/livebot/issues/18'>бага</a> :(",
+    #         (
+    #             "Временно не работает из-за"
+    #             "<a href='https://github.com/HamletSargsyan/livebot/issues/18'>бага</a> :("
+    #         ),
     #     )
     #     return
     with Loading(message):
         user = database.users.get(id=from_user(message).id)
         markup = quick_markup(
-            {
-                "Гайд": {
-                    "url": "https://hamletsargsyan.github.io/livebot/guide/#обменник"
-                }
-            }
+            {"Гайд": {"url": "https://hamletsargsyan.github.io/livebot/guide/#обменник"}}
         )
 
         if user.level < 5:
@@ -753,11 +739,12 @@ def exchanger_cmd(message: Message):
             exchanger = generate_exchanger(user)
             database.exchangers.update(**exchanger.to_dict())
 
+        time_difference = get_time_difference_string(exchanger.expires - utcnow())
         mess = (
             "<b>Обменник 🔄</b>\n\n"
             f"<b>Предмет:</b> {exchanger.item} {get_item_emoji(exchanger.item)}\n"
-            f"<b>Цена за 1 шт:</b> {exchanger.price} {get_item_emoji('бабло')}\n"
-            f"<b>Новый предмет появится через:</b> {get_time_difference_string(exchanger.expires - utcnow())}\n"
+            f"<b>Цена за 1 шт:</b> {exchanger.price} {COIN_EMOJI}\n"
+            f"<b>Новый предмет появится через:</b> {time_difference}\n"
         )
 
         args = message.text.split(" ")
@@ -792,9 +779,10 @@ def exchanger_cmd(message: Message):
         database.users.update(**user.to_dict())
         database.items.update(**user_item.to_dict())
 
+        emoji = get_item_emoji(exchanger.item)
         bot.reply_to(
             message,
-            f"Обменял {quantity} {get_item_emoji(exchanger.item)} за {coin} {get_item_emoji('бабло')}",
+            f"Обменял {quantity} {emoji} за {coin} {COIN_EMOJI}",
             reply_markup=markup,
         )
 
@@ -960,11 +948,7 @@ def daily_gift_cmd(message: Message):
 def version_cmd(message: Message):
     mess = f"<b>Версия бота</b>: <code>{VERSION}</code> | <i>{check_version()}</i>\n"
     markup = quick_markup(
-        {
-            "Релиз": {
-                "url": f"https://github.com/HamletSargsyan/livebot/releases/tag/v{VERSION}"
-            }
-        }
+        {"Релиз": {"url": f"https://github.com/HamletSargsyan/livebot/releases/tag/v{VERSION}"}}
     )
     bot.reply_to(message, mess, reply_markup=markup)
 
@@ -990,9 +974,7 @@ def achievements_cmd(message: Message):
 def rules_cmd(message: Message):
     mess = "Правила"
 
-    markup = quick_markup(
-        {"Читать": {"url": "https://hamletsargsyan.github.io/livebot/rules"}}
-    )
+    markup = quick_markup({"Читать": {"url": "https://hamletsargsyan.github.io/livebot/rules"}})
 
     bot.reply_to(message, mess, reply_markup=markup)
 
@@ -1042,11 +1024,18 @@ def new_chat_member(message: Message):
     if not message.new_chat_members:
         return
     markup = quick_markup(
-        {"Правила": {"url": "https://hamletsargsyan.github.io/livebot/rules"}}
+        {
+            "Правила": {
+                "url": "https://hamletsargsyan.github.io/livebot/rules",
+            },
+        }
     )
     for new_member in message.new_chat_members:
         if str(message.chat.id) == config.telegram.chat_id:
-            mess = f"Привет {user_link(new_member)}, добро пожаловать в официальный чат по лайвботу 💙\n\n"
+            mess = (
+                f"Привет {user_link(new_member)}, "
+                "добро пожаловать в официальный чат по лайвботу 💙\n\n"
+            )
         else:
             mess = f"👋 {user_link(new_member)} присоединился к чату"
         bot.send_message(message.chat.id, mess, reply_markup=markup)
@@ -1058,11 +1047,18 @@ def left_chat_member(message: Message):
         return
 
     markup = quick_markup(
-        {"Правила": {"url": "https://hamletsargsyan.github.io/livebot/rules"}}
+        {
+            "Правила": {
+                "url": "https://hamletsargsyan.github.io/livebot/rules",
+            },
+        }
     )
 
     if str(message.chat.id) == config.telegram.chat_id:
-        mess = f"Привет {user_link(message.left_chat_member)}, добро пожаловать в официальный чат по лайвботу 💙\n\n"
+        mess = (
+            f"Привет {user_link(message.left_chat_member)},"
+            "добро пожаловать в официальный чат по лайвботу 💙"
+        )
     else:
         mess = f"👋 {user_link(message.left_chat_member)} присоединился к чату"
     bot.send_message(message.chat.id, mess, reply_markup=markup)
@@ -1091,7 +1087,7 @@ def text_message_handler(message: Message):
         case "предметы":
             items_cmd(message)
         case "бабло":
-            bot.reply_to(message, f"{get_item_emoji('бабло')} Бабло: {user.coin}")
+            bot.reply_to(message, f"{COIN_EMOJI} Бабло: {user.coin}")
         case "статы":
             stats_cmd(message)
         case "квест":

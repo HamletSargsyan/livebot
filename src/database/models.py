@@ -45,13 +45,9 @@ class ItemModel(BaseModel):
 
         _item = get_item(self.name)
         if _item.type == ItemType.USABLE and self.quantity > 1:
-            raise ValueError(
-                "Quantity must be 0 or 1 for items with type `ItemType.USABLE`"
-            )
+            raise ValueError("Quantity must be 0 or 1 for items with type `ItemType.USABLE`")
         if _item.type == ItemType.COUNTABLE and self.usage is not None:
-            raise ValueError(
-                "Usage must be `None` for items with type `ItemType.COUNTABLE`"
-            )
+            raise ValueError("Usage must be `None` for items with type `ItemType.COUNTABLE`")
         if not _item.can_equip and self.is_equipped:
             raise ValueError(f"Item {self.name} cannot be equipped")
 
@@ -183,13 +179,9 @@ class MarketItemModel(BaseModel):
 
         _item = get_item(self.name)
         if _item.type == ItemType.USABLE and self.quantity > 1:
-            raise ValueError(
-                "Quantity must be 0 or 1 for items with type `ItemType.USABLE`"
-            )
+            raise ValueError("Quantity must be 0 or 1 for items with type `ItemType.USABLE`")
         if _item.type == ItemType.COUNTABLE and self.usage is not None:
-            raise ValueError(
-                "Usage must be `None` for items with type `ItemType.COUNTABLE`"
-            )
+            raise ValueError("Usage must be `None` for items with type `ItemType.COUNTABLE`")
 
 
 @dataclass
@@ -197,9 +189,7 @@ class DailyGiftModel(BaseModel):
     _id: ObjectId = field(default_factory=ObjectId)
     owner: ObjectId = field(default_factory=ObjectId)
     last_claimed_at: Optional[datetime] = None
-    next_claimable_at: datetime = field(
-        default_factory=lambda: _utcnow() + timedelta(days=1)
-    )
+    next_claimable_at: datetime = field(default_factory=lambda: _utcnow() + timedelta(days=1))
     is_claimed: bool = False
     items: list = field(default_factory=list)
     streak: int = 0

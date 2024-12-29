@@ -1,0 +1,33 @@
+[MAIN]
+
+recursive = y
+source-roots = src
+
+const-naming-style = any
+
+disable =
+    missing-module-docstring,
+    missing-function-docstring,
+    missing-class-docstring,
+    redefined-outer-name,
+    unspecified-encoding,
+    import-outside-toplevel,
+    protected-access, # TODO: delete
+    broad-exception-caught,
+    super-init-not-called,
+    too-few-public-methods,
+    too-many-instance-attributes,
+    too-many-positional-arguments,
+    too-many-locals,
+    redefined-builtin,
+    unnecessary-lambda,
+    too-many-arguments,
+    too-many-return-statements,
+    too-many-branches,
+    too-many-statements,
+    too-many-lines,
+    inconsistent-return-statements
+
+[DESIGN]
+
+min-public-methods = 1

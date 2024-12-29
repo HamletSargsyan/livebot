@@ -5,6 +5,7 @@ from telebot.util import quick_markup, chunks
 
 from base.achievements import ACHIEVEMENTS
 from base.items import ITEMS
+from helpers.consts import COIN_EMOJI
 from helpers.utils import (
     achievement_status,
     get_item,
@@ -23,9 +24,7 @@ from config import logger
 class InlineMarkup:
     @classmethod
     def home_main(cls, user: UserModel) -> InlineKeyboardMarkup:
-        return quick_markup(
-            {"Действия": {"callback_data": f"actions choice {user.id}"}}
-        )
+        return quick_markup({"Действия": {"callback_data": f"actions choice {user.id}"}})
 
     @classmethod
     def actions_choice(cls, user: UserModel) -> InlineKeyboardMarkup:
@@ -49,9 +48,7 @@ class InlineMarkup:
             }
         )
 
-        markup.row(
-            InlineKeyboardButton("Назад", callback_data=f"actions back {user.id}")
-        )
+        markup.row(InlineKeyboardButton("Назад", callback_data=f"actions back {user.id}"))
         return markup
 
     @classmethod
@@ -92,9 +89,10 @@ class InlineMarkup:
 
         try:
             for item in items[index]:
+                emoji = get_item_emoji(item.name)
                 buttons.append(
                     InlineKeyboardButton(
-                        f"{item.quantity} {get_item_emoji(item.name)} — {item.price} {get_item_emoji('бабло')}",
+                        f"{item.quantity} {emoji} — {item.price} {get_item_emoji('бабло')}",
                         callback_data=f"market_item_open {item._id} {user.id}",
                     )
                 )
@@ -142,9 +140,10 @@ class InlineMarkup:
         buttons = []
         try:
             for item in market_items:
+                emoji = get_item_emoji(item.name)
                 buttons.append(
                     InlineKeyboardButton(
-                        f"{item.quantity} {get_item_emoji(item.name)} — {item.price} {get_item_emoji('бабло')}",
+                        f"{item.quantity} {emoji} — {item.price} {COIN_EMOJI}",
                         callback_data=f"market delete {item._id} {user.id}",
                     )
                 )
@@ -192,17 +191,13 @@ class InlineMarkup:
         return markup
 
     @classmethod
-    def daily_gift(
-        cls, user: UserModel, daily_gift: DailyGiftModel
-    ) -> InlineKeyboardMarkup:
+    def daily_gift(cls, user: UserModel, daily_gift: DailyGiftModel) -> InlineKeyboardMarkup:
         def get_text():
             if daily_gift.is_claimed:
                 return f"🕐 {get_time_difference_string(daily_gift.next_claimable_at - utcnow())}"
             return "🔹  Получить"
 
-        return quick_markup(
-            {f"{get_text()}": {"callback_data": f"daily_gift claim {user.id}"}}
-        )
+        return quick_markup({f"{get_text()}": {"callback_data": f"daily_gift claim {user.id}"}})
 
     @classmethod
     def transfer_usable_items(
@@ -269,9 +264,7 @@ class InlineMarkup:
             )
 
         markup.add(*buttons)
-        markup.row(
-            InlineKeyboardButton("Назад", callback_data=f"achievements main {user.id}")
-        )
+        markup.row(InlineKeyboardButton("Назад", callback_data=f"achievements main {user.id}"))
 
         return markup
 
@@ -279,18 +272,10 @@ class InlineMarkup:
     def achievements(cls, user: UserModel) -> InlineKeyboardMarkup:
         return quick_markup(
             {
-                "Все достижения": {
-                    "callback_data": f"achievements filter all {user.id}"
-                },
-                "В прогрессе": {
-                    "callback_data": f"achievements filter in_progress {user.id}"
-                },
-                "Не начатие": {
-                    "callback_data": f"achievements filter not_started {user.id}"
-                },
-                "Получение": {
-                    "callback_data": f"achievements filter completed {user.id}"
-                },
+                "Все достижения": {"callback_data": f"achievements filter all {user.id}"},
+                "В прогрессе": {"callback_data": f"achievements filter in_progress {user.id}"},
+                "Не начатие": {"callback_data": f"achievements filter not_started {user.id}"},
+                "Получение": {"callback_data": f"achievements filter completed {user.id}"},
             }
         )
 

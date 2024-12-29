@@ -94,7 +94,16 @@
         "Taskfile.yml",
         ".venv/",
         ".vscode/settings.json",
-        "requirements.txt"
+        "requirements.txt",
+        ".gitignore",
+
     ],
     "cSpell.useGitignore": true,
+    "files.associations": {
+        "pylintrc": "ini"
+    },
+    "pylint.args": ["--rcfile=pylintrc"],
+    "editor.rulers": [
+        100
+    ]
 }

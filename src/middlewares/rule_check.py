@@ -40,9 +40,7 @@ class RuleCheckMiddleware(BaseMiddleware):
         if isinstance(message, Message) and not message.text.startswith("/start"):
             send_rules_message(message, user)
             return CancelUpdate()
-        elif isinstance(message, CallbackQuery) and not message.data.startswith(
-            "accept_rules"
-        ):
+        if isinstance(message, CallbackQuery) and not message.data.startswith("accept_rules"):
             send_rules_message(message.message, user)  # pyright: ignore
             return CancelUpdate()
 

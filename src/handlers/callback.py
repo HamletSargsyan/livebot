@@ -10,10 +10,6 @@ from telebot.types import (
     Message,
 )
 from telebot.apihelper import ApiTelegramException
-
-from helpers.enums import ItemRarity, ItemType
-from helpers.exceptions import ItemIsCoin, NoResult
-from helpers.markups import InlineMarkup
 from base.player import (
     add_user_usage_item,
     check_user_stats,
@@ -25,13 +21,7 @@ from base.player import (
     use_item,
     get_available_items_for_use,
 )
-from base.actions import (
-    game,
-    sleep,
-    street,
-    work,
-)
-
+from base.actions import game, sleep, street, work
 from base.items import ITEMS
 from helpers.utils import (
     achievement_progress,
@@ -47,6 +37,10 @@ from helpers.utils import (
     safe,
     utcnow,
 )
+
+from helpers.enums import ItemRarity, ItemType
+from helpers.exceptions import ItemIsCoin, NoResult
+from helpers.markups import InlineMarkup
 
 from database.models import DogModel
 from database.funcs import database
@@ -69,7 +63,7 @@ def dog_callback(call: CallbackQuery):
 
     if data[-1] != str(user.id):
         return
-    elif data[1] == "leave":
+    if data[1] == "leave":
         bot.delete_message(call.message.chat.id, call.message.id)
         bot.send_sticker(
             call.message.chat.id,
@@ -77,16 +71,14 @@ def dog_callback(call: CallbackQuery):
         )
         bot.send_message(call.message.chat.id, "Прогнал бедную собачку(")
         return
-    elif data[1] == "friend":
+    if data[1] == "friend":
         date = datetime.utcfromtimestamp(call.message.date)
         current_time = utcnow()
         time_difference = current_time - date
 
         if time_difference >= timedelta(minutes=1):
             bot.delete_message(call.message.chat.id, call.message.id)
-            bot.answer_callback_query(
-                call.id, "Пока ты думал псина сбежала", show_alert=True
-            )
+            bot.answer_callback_query(call.id, "Пока ты думал псина сбежала", show_alert=True)
             return
 
         item = get_or_add_user_item(user, "кость")
@@ -106,18 +98,16 @@ def dog_callback(call: CallbackQuery):
         bot.delete_message(call.message.chat.id, call.message.id)
         bot.send_sticker(
             call.message.chat.id,
-            "CAACAgIAAxkBAAEpvz9l211Kyfi280mwFR6XMKUhzMXbiwACGAEAAjDUnREiQ2-IziTqFTQE",  # cspell:ignore CAAC, Epvz, Kyfi, MXbiwACGAEA, FTQE
+            "CAACAgIAAxkBAAEpvz9l211Kyfi280mwFR6XMKUhzMXbiwACGAEAAjDUnREiQ2-IziTqFTQE",  # cspell: disable-line  # pylint: disable=line-too-long
         )
         bot.send_message(
             call.message.chat.id,
             "Завел собачку 🐶\n\nНапиши /rename_dog [имя] чтобы дать имя пёсику",
         )
         return
-    elif data[1] == "feed" and dog:
+    if data[1] == "feed" and dog:
         if dog.hunger == 0:
-            bot.answer_callback_query(
-                call.id, f"{dog.name} не голоден", show_alert=True
-            )
+            bot.answer_callback_query(call.id, f"{dog.name} не голоден", show_alert=True)
             return
         item = get_or_add_user_item(user, "мясо")
 
@@ -159,29 +149,31 @@ def dog_callback(call: CallbackQuery):
                 # "Уложить спать": {"callback_data": f"dog sleep {user.id}"}
             }
         )
-        bot.edit_message_text(
-            mess, call.message.chat.id, call.message.id, reply_markup=markup
-        )
-    elif data[1] == "sleep" and dog:
+        bot.edit_message_text(mess, call.message.chat.id, call.message.id, reply_markup=markup)
+    if data[1] == "sleep" and dog:
         current_time = utcnow()
         time_difference = current_time - dog.sleep_time
         if time_difference <= timedelta(minutes=1):
+            time_difference = get_time_difference_string(time_difference - timedelta(minutes=1))
             bot.answer_callback_query(
                 call.id,
-                f"{dog.name} спит, жди {get_time_difference_string(time_difference - timedelta(minutes=1))}",
+                f"{dog.name} спит, жди {time_difference}",
                 show_alert=True,
             )
             return
 
         dog.sleep_time = utcnow()
-        time_difference = current_time - dog.sleep_time
+
+        time_difference = get_time_difference_string(
+            (current_time - dog.sleep_time) - timedelta(hours=1)
+        )
 
         bot.answer_callback_query(
             call.id,
-            f"{dog.name} пошел спать, проснется через {get_time_difference_string(time_difference - timedelta(hours=1))}",
+            f"{dog.name} пошел спать, проснется через {time_difference}",
             show_alert=True,
         )
-    elif data[1] == "wakeup" and dog:
+    if data[1] == "wakeup" and dog:
         bot.answer_callback_query(call.id, f"{dog.name} проснулся", show_alert=True)
         dog.sleep_time = utcnow()
 
@@ -207,7 +199,10 @@ def new_quest_callback(call: CallbackQuery):
     if user.new_quest_coin_quantity > user.coin:
         bot.answer_callback_query(
             call.id,
-            f"У тебя недостаточно бабла. Чтобы получить новый квест надо иметь {user.new_quest_coin_quantity}",
+            (
+                "У тебя недостаточно бабла."
+                f"Чтобы получить новый квест надо иметь {user.new_quest_coin_quantity}"
+            ),
             show_alert=True,
         )
         return
@@ -269,7 +264,7 @@ def finish_quest_callback(call: CallbackQuery):
     user_message = call.message.reply_to_message
     bot.send_sticker(
         call.message.chat.id,
-        "CAACAgIAAxkBAAEpslFl2JwAAaZFMa3RM-3fKaHU7RYrOSQAAoIPAAJ73EFKS4aLwGmJ_Ok0BA",  # cspell:ignore Epsl, OSQA, IPAAJ, EFKS
+        "CAACAgIAAxkBAAEpslFl2JwAAaZFMa3RM-3fKaHU7RYrOSQAAoIPAAJ73EFKS4aLwGmJ_Ok0BA",  # cspell:disable-line  # pylint: disable=line-too-long
     )
     if user_message:
         bot.reply_to(user_message, mess)
@@ -314,9 +309,7 @@ def use_callback(call: CallbackQuery):
         mess = "Нет доступных предметов для юза"
         bot.edit_message_text(mess, call.message.chat.id, call.message.id)
 
-    bot.edit_message_reply_markup(
-        call.message.chat.id, call.message.id, reply_markup=markup
-    )
+    bot.edit_message_reply_markup(call.message.chat.id, call.message.id, reply_markup=markup)
 
 
 @bot.callback_query_handler(lambda c: c.data.startswith("item_info_main"))
@@ -345,9 +338,7 @@ def item_info_main_callback(call: CallbackQuery):
         mess = f"<b>Предметы</b>\n\n{pos + 1} / {max_pos + 1}"
         markup = InlineMarkup.items_pager(user=user, index=int(pos))
 
-        bot.edit_message_text(
-            mess, call.message.chat.id, call.message.id, reply_markup=markup
-        )
+        bot.edit_message_text(mess, call.message.chat.id, call.message.id, reply_markup=markup)
     except (IndexError, ApiTelegramException):
         bot.answer_callback_query(call.id, "Дальше ничо нету", show_alert=True)
 
@@ -367,10 +358,7 @@ def item_info_callback(call: CallbackQuery):
     craft = ""
     if item.craft:
         craft = ", ".join(
-            [
-                f"{get_item_emoji(name)} {name} {count}"
-                for name, count in item.craft.items()
-            ]
+            [f"{get_item_emoji(name)} {name} {count}" for name, count in item.craft.items()]
         )
 
     mess = (
@@ -380,9 +368,7 @@ def item_info_callback(call: CallbackQuery):
         + (f"<b>Крафт:</b> <i>{craft}</i>\n" if item.craft else "")
     )
 
-    bot.edit_message_text(
-        mess, call.message.chat.id, call.message.id, reply_markup=markup
-    )
+    bot.edit_message_text(mess, call.message.chat.id, call.message.id, reply_markup=markup)
 
 
 @bot.callback_query_handler(lambda c: c.data.startswith("trader"))
@@ -402,7 +388,7 @@ def trader_callback(call: CallbackQuery):
             "CAACAgEAAxkBAAEpxYVl3KqB7JnvbmYgXQqVAhUQYbnyXwACngIAAv9iMUeUcUiHcCrhSTQE",
         )
         bot.send_message(call.message.chat.id, "Пф... не хочешь как хочешь")
-        return
+
     elif data[1] == "trade":
         item = get_item(data[2])
         quantity = int(data[3])
@@ -422,7 +408,6 @@ def trader_callback(call: CallbackQuery):
             call.message.chat.id,
             f"{user.name} купил у торговца {quantity} {item.name} {item.emoji} за {price}",
         )
-        return
 
 
 @bot.callback_query_handler(lambda c: c.data.startswith("top"))
@@ -477,11 +462,7 @@ def chest_callback(call: CallbackQuery):
             )
             quantity = get_item_count_for_rarity(rarity)
             item = random.choice(
-                [
-                    item
-                    for item in ITEMS
-                    if item.rarity == rarity and item.name != "бабло"
-                ]
+                [item for item in ITEMS if item.rarity == rarity and item.name != "бабло"]
             )
             if item.name in items or quantity < 1:
                 continue
@@ -516,15 +497,11 @@ def actions_callback(call: CallbackQuery):
 
         mess = "Чем хочешь заняться?"
 
-        bot.edit_message_text(
-            mess, call.message.chat.id, call.message.id, reply_markup=markup
-        )
+        bot.edit_message_text(mess, call.message.chat.id, call.message.id, reply_markup=markup)
     elif data[1] == "back":
         markup = InlineMarkup.home_main(user)
         mess = "🏠 Дом милый дом"
-        bot.edit_message_text(
-            mess, call.message.chat.id, call.message.id, reply_markup=markup
-        )
+        bot.edit_message_text(mess, call.message.chat.id, call.message.id, reply_markup=markup)
     elif data[1] == "street":
         street(call, user)
     elif data[1] == "work":
@@ -547,23 +524,17 @@ def open_callback(call: CallbackQuery):
     if data[1] == "home":
         mess = "🏠 Дом милый дом"
         markup = InlineMarkup.home_main(user)
-        bot.edit_message_text(
-            mess, call.message.chat.id, call.message.id, reply_markup=markup
-        )
+        bot.edit_message_text(mess, call.message.chat.id, call.message.id, reply_markup=markup)
     elif data[1] == "market-profile":
         mess = "Твой ларек"
         markup = InlineMarkup.market_profile(user)
 
-        bot.edit_message_text(
-            mess, call.message.chat.id, call.message.id, reply_markup=markup
-        )
+        bot.edit_message_text(mess, call.message.chat.id, call.message.id, reply_markup=markup)
     elif data[1] == "bag":
         markup = InlineMarkup.bag(user)
         text = "Инвентарь"
 
-        bot.edit_message_text(
-            text, call.message.chat.id, call.message.id, reply_markup=markup
-        )
+        bot.edit_message_text(text, call.message.chat.id, call.message.id, reply_markup=markup)
 
 
 @bot.callback_query_handler(lambda c: c.data.split(" ")[0] == "market")
@@ -633,9 +604,7 @@ def market_callback(call: CallbackQuery):
         item_owner = database.users.get(_id=market_item.owner)
 
         if item_owner.id == user.id:
-            bot.answer_callback_query(
-                call.id, "Сам у себя будешь покупать?", show_alert=True
-            )
+            bot.answer_callback_query(call.id, "Сам у себя будешь покупать?", show_alert=True)
             return
 
         if market_item.price > user.coin:
@@ -650,7 +619,11 @@ def market_callback(call: CallbackQuery):
             user_item = get_or_add_user_item(user, market_item.name)
             user_item.quantity += market_item.quantity
         else:
-            user_item = add_user_usage_item(user, market_item.name, market_item.usage)  # type: ignore
+            user_item = add_user_usage_item(
+                user,
+                market_item.name,
+                market_item.usage,  # type: ignore
+            )
             user_item.quantity = market_item.quantity
 
         database.items.update(**user_item.to_dict())
@@ -662,14 +635,14 @@ def market_callback(call: CallbackQuery):
         increment_achievement_progress(item_owner, "продавец")
 
         usage = f" ({int(market_item.usage)}%)" if market_item.usage else ""
-
-        mess = f"{get_user_tag(user)} купил {market_item.quantity} {get_item_emoji(market_item.name)}{usage}"
+        emoji = get_item_emoji(market_item.name)
+        mess = f"{get_user_tag(user)} купил {market_item.quantity} {emoji}{usage}"
         safe(bot.send_message, call.message.chat.id, mess)
 
         safe(
             bot.send_message,
             item_owner.id,
-            f"{get_user_tag(user)} купил у тебя {market_item.quantity} {get_item_emoji(market_item.name)}{usage}",
+            f"{get_user_tag(user)} купил у тебя {market_item.quantity} {emoji}{usage}",
         )
 
         mess = "<b>Рынок</b>\n\n"
@@ -677,14 +650,20 @@ def market_callback(call: CallbackQuery):
         markup = InlineMarkup.market_pager(user)
         mess += f"1 / {len(list(chunks(market_items, 6)))}"
         bot.edit_message_text(
-            mess, call.message.chat.id, call.message.id, reply_markup=markup
+            mess,
+            call.message.chat.id,
+            call.message.id,
+            reply_markup=markup,
         )
     elif data[1] == "view-my-items":
         markup = InlineMarkup.market_view_my_items(user)
 
         mess = "<b>Твои товары</b>"
         bot.edit_message_text(
-            mess, call.message.chat.id, call.message.id, reply_markup=markup
+            mess,
+            call.message.chat.id,
+            call.message.id,
+            reply_markup=markup,
         )
     elif data[1] == "delete":
         market_item = database.market_items.get(_id=ObjectId(data[2]))
@@ -692,11 +671,17 @@ def market_callback(call: CallbackQuery):
         user_item.quantity += market_item.quantity
         database.items.update(**user_item.to_dict())
         database.market_items.delete(**market_item.to_dict())
-        bot.answer_callback_query(call.id, "предмет удален успешно", show_alert=True)
+        bot.answer_callback_query(
+            call.id,
+            "предмет удален успешно",
+            show_alert=True,
+        )
         markup = InlineMarkup.market_view_my_items(user)
 
         bot.edit_message_reply_markup(
-            call.message.chat.id, call.message.id, reply_markup=markup
+            call.message.chat.id,
+            call.message.id,
+            reply_markup=markup,
         )
 
     else:
@@ -722,9 +707,7 @@ def market_callback(call: CallbackQuery):
             mess = f"<b>Рынок</b>\n\n{pos + 1} / {max_pos + 1}"
             markup = InlineMarkup.market_pager(user=user, index=pos)
 
-            bot.edit_message_text(
-                mess, call.message.chat.id, call.message.id, reply_markup=markup
-            )
+            bot.edit_message_text(mess, call.message.chat.id, call.message.id, reply_markup=markup)
         except (IndexError, ApiTelegramException):
             bot.answer_callback_query(call.id, "Дальше ничо нету", show_alert=True)
 
@@ -742,16 +725,15 @@ def market_item_open_callback(call: CallbackQuery):
     market_item = database.market_items.get(_id=item_id)
 
     item_owner = database.users.get(_id=market_item.owner)
+    emoji = get_item_emoji(market_item.name)
     mess = (
-        f"<b>{get_item_emoji(market_item.name)} {market_item.name} | {market_item.quantity} шт.</b>\n"
+        f"<b>{emoji} {market_item.name} | {market_item.quantity} шт.</b>\n"
         f"Продавец: {get_user_tag(item_owner)}\n"
         f"Средней прайс: {get_middle_item_price(market_item.name)}/шт"
     )
 
     markup = InlineMarkup.market_item_open(user, market_item)
-    bot.edit_message_text(
-        mess, call.message.chat.id, call.message.id, reply_markup=markup
-    )
+    bot.edit_message_text(mess, call.message.chat.id, call.message.id, reply_markup=markup)
 
 
 @bot.callback_query_handler(lambda c: c.data.startswith("delate_state"), state="*")
@@ -787,9 +769,7 @@ def levelup_callback(call: CallbackQuery):
 
     database.users.update(**user.to_dict())
     bot.answer_callback_query(call.id, "Поздравляю 🎉🎉", show_alert=True)
-    bot.edit_message_reply_markup(
-        call.message.chat.id, call.message.id, reply_markup=None
-    )
+    bot.edit_message_reply_markup(call.message.chat.id, call.message.id, reply_markup=None)
 
 
 @bot.callback_query_handler(lambda c: c.data.startswith("daily_gift"))
@@ -813,10 +793,10 @@ def daily_gift_callback(call: CallbackQuery):
 
         daily_gift = database.daily_gifts.get(owner=user._id)
         if daily_gift.is_claimed:
-            time_difference = daily_gift.next_claimable_at - now
+            time_difference = get_time_difference_string(daily_gift.next_claimable_at - now)
             bot.answer_callback_query(
                 call.id,
-                f"Ты сегодня уже получил подарок. Жди {get_time_difference_string(time_difference)}",
+                f"Ты сегодня уже получил подарок. Жди {time_difference}",
                 show_alert=True,
             )
             markup = InlineMarkup.daily_gift(user, daily_gift)
@@ -851,9 +831,7 @@ def daily_gift_callback(call: CallbackQuery):
             mess += f"+{quantity} {item.name} {item.emoji}\n"
 
         markup = InlineMarkup.daily_gift(user, daily_gift)
-        bot.edit_message_reply_markup(
-            call.message.chat.id, call.message.id, reply_markup=markup
-        )
+        bot.edit_message_reply_markup(call.message.chat.id, call.message.id, reply_markup=markup)
         bot.send_message(call.message.chat.id, mess)
 
 
@@ -905,29 +883,21 @@ def achievements_callback(call: CallbackQuery):
 
         logger.debug(str(user.achievement_progress))
 
-        markup = quick_markup(
-            {"Назад": {"callback_data": f"achievements main {user.id}"}}
-        )
+        markup = quick_markup({"Назад": {"callback_data": f"achievements main {user.id}"}})
 
-        bot.edit_message_text(
-            mess, call.message.chat.id, call.message.id, reply_markup=markup
-        )
+        bot.edit_message_text(mess, call.message.chat.id, call.message.id, reply_markup=markup)
     elif data[1] == "main":
         mess = "Достижения"
 
         markup = InlineMarkup.achievements(user)
 
-        bot.edit_message_text(
-            mess, call.message.chat.id, call.message.id, reply_markup=markup
-        )
+        bot.edit_message_text(mess, call.message.chat.id, call.message.id, reply_markup=markup)
 
     elif data[1] == "filter":
         filter = data[2]
         markup = InlineMarkup.achievements_view(user, filter)  # type: ignore
 
-        bot.edit_message_reply_markup(
-            call.message.chat.id, call.message.id, reply_markup=markup
-        )
+        bot.edit_message_reply_markup(call.message.chat.id, call.message.id, reply_markup=markup)
 
 
 @bot.callback_query_handler(lambda c: c.data.startswith("accept_rules"))
@@ -983,9 +953,7 @@ def event_shop_callback(call: CallbackQuery):
 
     markup = InlineMarkup.event_shop(user)
 
-    bot.edit_message_text(
-        mess, call.message.chat.id, call.message.id, reply_markup=markup
-    )
+    bot.edit_message_text(mess, call.message.chat.id, call.message.id, reply_markup=markup)
 
     bot.answer_callback_query(
         call.id,

@@ -74,9 +74,9 @@ def main(args: argparse.Namespace):
     if not args.without_threads:
         start_threads()
 
-    for id in config.telegram.owners:
+    for uid in config.telegram.owners:
         try:
-            user = database.users.get(id=id)
+            user = database.users.get(id=uid)
         except NoResult:
             continue
         user.is_admin = True
@@ -88,9 +88,7 @@ def main(args: argparse.Namespace):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Запуск телеграм-бота.")
     parser.add_argument("--debug", action="store_true", help="Запуск в режиме отладки")
-    parser.add_argument(
-        "--without-threads", action="store_true", help="Запуск без потоков"
-    )
+    parser.add_argument("--without-threads", action="store_true", help="Запуск без потоков")
 
     args = parser.parse_args()
 

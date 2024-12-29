@@ -23,19 +23,20 @@ from telebot.util import antiflood, escape, split_string, quick_markup
 
 from tinylogging import Record, Level
 
-from base.achievements import ACHIEVEMENTS
-from config import (
-    bot,
-    logger,
-    config,
-    VERSION,
-)
+
+from config import bot, logger, config, VERSION
+
 from database.funcs import cache
 from database.models import AchievementModel, UserModel
+
+
+from base.items import ITEMS
+from base.achievements import ACHIEVEMENTS
+
+from helpers.enums import ItemRarity
 from helpers.datatypes import Achievement, Item
 from helpers.exceptions import AchievementNotFoundError, ItemNotFoundError, NoResult
-from base.items import ITEMS
-from helpers.enums import ItemRarity
+
 
 T = TypeVar("T")
 P = ParamSpec("P")
@@ -56,7 +57,10 @@ def deprecated(
             if warn_once and func.__name__ in _deprecated_funcs:
                 return func(*args, **kwargs)
             _deprecated_funcs.add(func.__name__)
-            msg = f"начиная с версии {deprecated_in} функция `{func.__name__}` помечена как устаревшая и будет удалена в версии {remove_in}, (текущая версия: {VERSION})"
+            msg = (
+                f"начиная с версии {deprecated_in} функция `{func.__name__}` помечена"
+                f" как устаревшая и будет удалена в версии {remove_in} (текущая версия: {VERSION})"
+            )
 
             if message:
                 msg += f" | {message}"
@@ -144,9 +148,9 @@ def get_item(name: str) -> Union[Item, NoReturn]:
         item.name = item.name.lower()
         if item.name == name:
             return item
-        elif item.altnames and name in item.altnames:
+        if item.altnames and name in item.altnames:
             return item
-        elif name == item.translit():
+        if name == item.translit():
             return item
     raise ItemNotFoundError(f"Item {name} not found")
 
@@ -175,6 +179,7 @@ def get_item_count_for_rarity(rarity: ItemRarity) -> int:
 class Loading:
     def __init__(self, message: Message):
         self.message = message
+        self.loading_message: Message
 
     def __enter__(self):
         with open("src/base/hints.json") as f:
@@ -211,9 +216,7 @@ def get_pager_controllers(name: str, pos: int, user_id: Union[int, str]):
     return [
         InlineKeyboardButton(
             controller.text,
-            callback_data=controller.callback_data.format(
-                name=name, pos=pos, user_id=user_id
-            ),
+            callback_data=controller.callback_data.format(name=name, pos=pos, user_id=user_id),
         )
         for controller in PAGER_CONTROLLERS
     ]
@@ -295,7 +298,7 @@ def get_achievement(name: str) -> Achievement:
     for achievement in ACHIEVEMENTS:
         if name == achievement.name:
             return achievement
-        elif name == achievement.translit() or name == achievement.key:
+        if name == achievement.translit() or name == achievement.key:
             return achievement
     raise AchievementNotFoundError(name)
 
@@ -369,7 +372,7 @@ def calc_percentage(part: int, total: int = 100) -> float:
 
 
 def create_progress_bar(percentage: float) -> str:
-    if not (0 <= percentage <= 100):
+    if not (0 <= percentage <= 100):  # pylint: disable=superfluous-parens
         raise ValueError("Процент должен быть в диапазоне от 0 до 100.")
 
     length: int = 10
@@ -388,10 +391,9 @@ def achievement_status(user: UserModel, achievement: Achievement) -> int:
     is_completed = is_completed_achievement(user, achievement.name)
     if progress > 0 and not is_completed:
         return 0  # В процессе
-    elif is_completed:
+    if is_completed:
         return 2  # Выполнено
-    else:
-        return 1  # Не начато
+    return 1  # Не начато
 
 
 def parse_time_duration(time_str: str) -> timedelta:
@@ -403,14 +405,12 @@ def parse_time_duration(time_str: str) -> timedelta:
 
     if unit == "d":
         return timedelta(days=value)
-    elif unit == "h":
+    if unit == "h":
         return timedelta(hours=value)
-    elif unit == "m":
+    if unit == "m":
         return timedelta(minutes=value)
-    else:
-        raise ValueError(
-            "Неверный формат времени. Используйте {d,h,m} для дней, часов, минут."
-        )
+
+    raise ValueError("Неверный формат времени. Используйте {d,h,m} для дней, часов, минут.")
 
 
 def pretty_datetime(d: datetime) -> str:
@@ -442,9 +442,7 @@ class MessageEditor:
 
     def write(self, new_text: str):
         self._mess = text = f"{self._mess}\n<b>*</b>  {new_text}"
-        self.message = antiflood(
-            bot.edit_message_text, text, self.message.chat.id, self.message.id
-        )
+        self.message = antiflood(bot.edit_message_text, text, self.message.chat.id, self.message.id)
 
 
 def safe(func: Callable[P, T], *args: P.args, **kwargs: P.kwargs) -> Optional[T]:

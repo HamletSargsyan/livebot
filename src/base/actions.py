@@ -28,14 +28,10 @@ def street(call: CallbackQuery, user: UserModel):
         dog = None
 
     if user.hunger >= 80:
-        bot.answer_callback_query(
-            call.id, "Ты слишком голодный для прогулки", show_alert=True
-        )
+        bot.answer_callback_query(call.id, "Ты слишком голодный для прогулки", show_alert=True)
         return
     elif user.fatigue >= 85:
-        bot.answer_callback_query(
-            call.id, "Ты слишком устал для прогулки", show_alert=True
-        )
+        bot.answer_callback_query(call.id, "Ты слишком устал для прогулки", show_alert=True)
         return
 
     current_time = utcnow()
@@ -52,9 +48,7 @@ def street(call: CallbackQuery, user: UserModel):
         mess = f"<b>Улица</b>\n\nГуляешь\nОсталось: {get_time_difference_string(time_left)}"
 
         walk_duration = current_time - user.action.start
-        if not user.met_mob and walk_duration >= timedelta(
-            minutes=random.randint(15, 20)
-        ):
+        if not user.met_mob and walk_duration >= timedelta(minutes=random.randint(15, 20)):
             mob = generate_mob()
             if mob:
                 mob.init(user, call.message)
@@ -167,14 +161,10 @@ def street(call: CallbackQuery, user: UserModel):
 
 def work(call: CallbackQuery, user: UserModel):
     if user.hunger >= 80:
-        bot.answer_callback_query(
-            call.id, "Ты слишком голодный для работы", show_alert=True
-        )
+        bot.answer_callback_query(call.id, "Ты слишком голодный для работы", show_alert=True)
         return
     elif user.fatigue >= 85:
-        bot.answer_callback_query(
-            call.id, "Ты слишком устал для работы", show_alert=True
-        )
+        bot.answer_callback_query(call.id, "Ты слишком устал для работы", show_alert=True)
         return
 
     current_time = utcnow()
@@ -232,9 +222,7 @@ def sleep(call: CallbackQuery, user: UserModel):
     current_time = utcnow()
 
     if user.action is None:
-        user.action = UserAction(
-            "sleep", current_time + timedelta(hours=random.randint(3, 8))
-        )
+        user.action = UserAction("sleep", current_time + timedelta(hours=random.randint(3, 8)))
         database.users.update(**user.to_dict())
     elif user.action.type != "sleep":
         bot.answer_callback_query(call.id, "Ты занят чем то другим", show_alert=True)
@@ -282,8 +270,7 @@ def game(call: CallbackQuery, user: UserModel):
     if user.action is None:
         user.action = UserAction(
             "game",
-            current_time
-            + timedelta(hours=random.randint(0, 3), minutes=random.randint(15, 20)),
+            current_time + timedelta(hours=random.randint(0, 3), minutes=random.randint(15, 20)),
         )
 
         database.users.update(**user.to_dict())

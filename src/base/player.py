@@ -77,9 +77,7 @@ def level_up(user: UserModel, chat_id: Union[str, int, None] = None):
         btn_data.append(("+1 удача", "luck"))
 
     for data in btn_data:
-        buttons.append(
-            InlineKeyboardButton(data[0], callback_data=f"levelup {data[1]} {user.id}")
-        )
+        buttons.append(InlineKeyboardButton(data[0], callback_data=f"levelup {data[1]} {user.id}"))
 
     markup.add(*buttons)
     if len(buttons) != 0:
@@ -230,9 +228,7 @@ def get_available_crafts(user: UserModel) -> list[AvailableCraftItem]:
             )
 
         if can_craft:
-            available_crafts.append(
-                {"item_name": item.name, "resources": required_resources}
-            )
+            available_crafts.append({"item_name": item.name, "resources": required_resources})
 
     available_crafts = sorted(
         available_crafts,
@@ -327,9 +323,7 @@ def use_item(message: Message, name: str):
             case "буст":
                 xp = random.randint(100, 150)
                 user.xp += xp
-                bot.reply_to(
-                    message, f"{get_item_emoji(name)} Юзнул буст\n+ {xp} опыта"
-                )
+                bot.reply_to(message, f"{get_item_emoji(name)} Юзнул буст\n+ {xp} опыта")
                 user_item.quantity -= 1
             case "бокс":
                 mess = "Ты открыл бокс и получил\n---------\n"
@@ -426,9 +420,7 @@ def get_or_add_user_item(user: UserModel, name: str) -> Union[ItemModel, NoRetur
     return item
 
 
-def add_user_usage_item(
-    user: UserModel, name: str, usage: float = 0
-) -> Union[ItemModel, NoReturn]:
+def add_user_usage_item(user: UserModel, name: str, usage: float = 0) -> Union[ItemModel, NoReturn]:
     _item = get_item(name)
 
     if _item.type != ItemType.USABLE:
@@ -464,9 +456,7 @@ def transfer_usable_item(from_user_item: ItemModel, to_user: UserModel):
     database.items.update(**from_user_item.to_dict())
 
 
-def transfer_countable_item(
-    from_user_item: ItemModel, quantity: int, to_user: UserModel
-):
+def transfer_countable_item(from_user_item: ItemModel, quantity: int, to_user: UserModel):
     to_user_item = get_or_add_user_item(to_user, from_user_item.name)
 
     if from_user_item.quantity < quantity:

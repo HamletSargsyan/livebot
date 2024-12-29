@@ -1,11 +1,11 @@
 import json
-from dns import resolver
 from dataclasses import dataclass
 from typing import Final, Optional
 from datetime import UTC, datetime
 
 import toml
 from redis import Redis
+from dns import resolver
 from semver import Version
 
 from tinylogging import Logger, Level, BaseHandler, LoggingAdapterHandler

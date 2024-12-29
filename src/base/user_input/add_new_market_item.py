@@ -26,9 +26,7 @@ class AddNewItemState(StatesGroup):
     price = State()
 
 
-@bot.callback_query_handler(
-    state=AddNewItemState.name, func=lambda c: c.data.startswith("sell")
-)
+@bot.callback_query_handler(state=AddNewItemState.name, func=lambda c: c.data.startswith("sell"))
 def name_state(call: CallbackQuery):
     data = call.data.split(" ")
 
@@ -67,9 +65,7 @@ def name_state(call: CallbackQuery):
 def select_item_state(message: Message): ...
 
 
-@bot.message_handler(
-    state=[AddNewItemState.quantity, AddNewItemState.price], is_digit=False
-)
+@bot.message_handler(state=[AddNewItemState.quantity, AddNewItemState.price], is_digit=False)
 def invalid_int_input(message: Message):
     user = database.users.get(id=from_user(message).id)
     markup = InlineMarkup.delate_state(user)
