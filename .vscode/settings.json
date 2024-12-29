@@ -92,5 +92,9 @@
     ],
     "cSpell.ignorePaths": [
         "Taskfile.yml",
-    ]
+        ".venv/",
+        ".vscode/settings.json",
+        "requirements.txt"
+    ],
+    "cSpell.useGitignore": true,
 }
