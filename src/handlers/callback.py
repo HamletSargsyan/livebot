@@ -255,7 +255,7 @@ def finish_quest_callback(call: CallbackQuery):
         "Ты выполнил квест за "
     )
 
-    total_time: timedelta = utcnow() - quest.start_time
+    total_time = utcnow() - quest.start_time
     mess += get_time_difference_string(total_time)
 
     generate_quest(user)
@@ -288,20 +288,7 @@ def use_callback(call: CallbackQuery):
 
     use_item(call.message.reply_to_message, item.name)
 
-    markup = InlineKeyboardMarkup()
-    buttons = []
-    items = get_available_items_for_use(user)
-
-    for user_item in items:
-        item = get_item(user_item.name)
-        buttons.append(
-            InlineKeyboardButton(
-                f"{item.emoji} {user_item.quantity}",
-                callback_data=f"use {item.translit()} {user.id}",
-            )
-        )
-
-    markup.add(*buttons)
+    markup = InlineMarkup.use(user)
 
     items = get_available_items_for_use(user)
 

@@ -548,20 +548,8 @@ def use_cmd(message: Message):
         args = message.text.split(" ")
 
         if len(args) < 2:
-            markup = InlineKeyboardMarkup()
-            buttons = []
             items = get_available_items_for_use(user)
-
-            for user_item in items:
-                item = get_item(user_item.name)
-                buttons.append(
-                    InlineKeyboardButton(
-                        f"{item.emoji} {user_item.quantity}",
-                        callback_data=f"use {item.translit()} {user.id}",
-                    )
-                )
-
-            markup.add(*buttons)
+            markup = InlineMarkup.use(user, items)
 
             if items:
                 mess = "<b>Доступные предметы для юза</b>\n\n"
@@ -801,6 +789,7 @@ def dog_cmd(message: Message):
             bot.reply_to(message, "У тебя нет собачки")
             return
 
+        # pylint: disable=duplicate-code
         mess = (
             f"<b>{dog.name}</b>\n\n"
             f"Здоровье: {dog.health}\n"

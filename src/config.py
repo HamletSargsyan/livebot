@@ -118,7 +118,7 @@ class TelegramLogsHandler(BaseHandler):
     def emit(self, record):
         if record.level <= Level.DEBUG and record.name == telebot.logger.name:
             return
-        from helpers.utils import log
+        from helpers.utils import log  # pylint: disable=cyclic-import
 
         log(record)
 

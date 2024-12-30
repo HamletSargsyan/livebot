@@ -1,10 +1,11 @@
 from copy import deepcopy
-from typing import Literal
+from typing import Literal, Optional
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from telebot.util import quick_markup, chunks
 
 from base.achievements import ACHIEVEMENTS
 from base.items import ITEMS
+from base.player import get_available_items_for_use
 from helpers.consts import COIN_EMOJI
 from helpers.utils import (
     achievement_status,
@@ -15,7 +16,7 @@ from helpers.utils import (
     is_completed_achievement,
     utcnow,
 )
-from database.models import DailyGiftModel, MarketItemModel, UserModel
+from database.models import DailyGiftModel, ItemModel, MarketItemModel, UserModel
 from database.funcs import database
 
 from config import logger
@@ -304,4 +305,24 @@ class InlineMarkup:
                     callback_data=f"event_shop buy {item.translit()} {quantity} {user.id}",
                 )
             )
+        return markup
+
+    @classmethod
+    def use(cls, user: UserModel, items: Optional[list[ItemModel]] = None) -> InlineKeyboardMarkup:
+        markup = InlineKeyboardMarkup()
+        buttons = []
+
+        if not items:
+            items = get_available_items_for_use(user)
+
+        for user_item in items:
+            item = get_item(user_item.name)
+            buttons.append(
+                InlineKeyboardButton(
+                    f"{item.emoji} {user_item.quantity}",
+                    callback_data=f"use {item.translit()} {user.id}",
+                )
+            )
+
+        markup.add(*buttons)
         return markup

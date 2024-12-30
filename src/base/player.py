@@ -270,7 +270,7 @@ def generate_exchanger(user: UserModel):
     return exchanger
 
 
-def get_available_items_for_use(user: UserModel) -> List[ItemModel]:
+def get_available_items_for_use(user: UserModel) -> list[ItemModel]:
     available_items = []
     items = database.items.get_all(**{"owner": user._id})
     for user_item in items:
@@ -460,7 +460,7 @@ def transfer_countable_item(from_user_item: ItemModel, quantity: int, to_user: U
     to_user_item = get_or_add_user_item(to_user, from_user_item.name)
 
     if from_user_item.quantity < quantity:
-        raise  # TODO
+        raise ValueError  # TODO: add: message
 
     from_user_item.quantity -= quantity
     to_user_item.quantity += quantity

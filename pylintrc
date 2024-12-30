@@ -26,7 +26,8 @@ disable =
     too-many-branches,
     too-many-statements,
     too-many-lines,
-    inconsistent-return-statements
+    inconsistent-return-statements,
+    fixme
 
 [DESIGN]
 
