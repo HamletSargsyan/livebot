@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Изменено
 
 - Переход с сервиса OpenWeatherMapApi на open-meteo ([#88](https://github.com/HamletSargsyan/livebot/issues/88))
+- Проведён рефакторинг кода для улучшения читаемости и поддержки с использованием pylint
 
 ### Исправлено
 

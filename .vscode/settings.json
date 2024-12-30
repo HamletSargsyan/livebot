@@ -68,6 +68,7 @@
         "OPENWEATHER",
         "pban",
         "prereleased",
+        "pylint",
         "pymongo",
         "pyright",
         "relativedelta",
