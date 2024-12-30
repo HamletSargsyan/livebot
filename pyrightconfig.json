@@ -13,5 +13,7 @@
     "pythonVersion": "3.11",
     "pythonPlatform": "Linux",
     "reportMissingTypeStubs": false,
+    "reportMissingImports": false,
+    "reportMissingModuleSource": false,
     "reportOptionalMemberAccess": false,
 }
