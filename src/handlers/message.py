@@ -57,7 +57,6 @@ import base.user_input  # noqa  # pylint: disable=unused-import
 from handlers import admin  # noqa  # pylint: disable=unused-import
 
 from database.funcs import database
-from database.models import ItemModel
 
 
 START_MARKUP = ReplyKeyboardMarkup(resize_keyboard=True)
@@ -511,7 +510,7 @@ def event_cmd(message: Message):
         )
 
         items = database.items.get_all(name="конфета")
-        sorted_items: list[ItemModel] = sorted(items, key=lambda item: item.quantity, reverse=True)
+        sorted_items = sorted(items, key=lambda item: item.quantity, reverse=True)
         for index, item in enumerate(sorted_items, start=1):
             if item.quantity > 0:
                 owner = database.users.get(**{"_id": item.owner})

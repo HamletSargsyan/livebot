@@ -103,6 +103,7 @@
     "files.associations": {
         "pylintrc": "ini"
     },
+    "pylint.enabled": true,
     "pylint.args": ["--rcfile=pylintrc"],
     "editor.rulers": [
         100

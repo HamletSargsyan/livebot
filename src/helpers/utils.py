@@ -73,6 +73,19 @@ def deprecated(
     return decorator
 
 
+def cached(func: Callable[P, T]):
+    @wraps(func)
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+        key = frozenset((args, kwargs))
+        if key in cache:
+            result: T = cache[key]
+        else:
+            result = func(*args, **kwargs)
+        return result
+
+    return wrapper
+
+
 def utcnow() -> datetime:
     return datetime.now(UTC)
 
