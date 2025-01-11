@@ -1,60 +1,67 @@
 import random
-from datetime import datetime, timedelta
+from datetime import UTC, timedelta
 
 from bson import ObjectId
-from telebot.util import quick_markup, chunks
-from telebot.types import (
+
+from aiogram import F, Router
+from aiogram.exceptions import TelegramAPIError
+from aiogram.filters import StateFilter
+from aiogram.fsm.context import FSMContext
+from aiogram.types import (
     CallbackQuery,
     InlineKeyboardButton,
-    InlineKeyboardMarkup,
     Message,
 )
-from telebot.apihelper import ApiTelegramException
+from aiogram.utils.keyboard import InlineKeyboardBuilder
+
+from base.actions import game, sleep, street, work
+from base.items import ITEMS
 from base.player import (
     add_user_usage_item,
     check_user_stats,
     coin_top,
     dog_level_top,
     generate_quest,
+    get_available_items_for_use,
     get_or_add_user_item,
     level_top,
     use_item,
-    get_available_items_for_use,
 )
-from base.actions import game, sleep, street, work
-from base.items import ITEMS
-from helpers.utils import (
-    achievement_progress,
-    check_user_subscription,
-    get_achievement,
-    get_item_count_for_rarity,
-    get_item_emoji,
-    get_middle_item_price,
-    get_time_difference_string,
-    get_item,
-    get_user_tag,
-    increment_achievement_progress,
-    safe,
-    utcnow,
-)
+
+
+from database.funcs import database
+from database.models import DogModel
 
 from helpers.enums import ItemRarity, ItemType
 from helpers.exceptions import ItemIsCoin, NoResult
 from helpers.markups import InlineMarkup
+from helpers.utils import (
+    achievement_progress,
+    check_user_subscription,
+    batched,
+    get_achievement,
+    get_item,
+    get_item_count_for_rarity,
+    get_item_emoji,
+    get_middle_item_price,
+    get_time_difference_string,
+    get_user_tag,
+    increment_achievement_progress,
+    quick_markup,
+    safe,
+    utcnow,
+)
 
-from database.models import DogModel
-from database.funcs import database
-
-from config import bot, logger
+router = Router()
 
 
-@bot.callback_query_handler(lambda c: c.data.startswith("dog"))
-def dog_callback(call: CallbackQuery):
+@router.callback_query(F.data.startswith("dog"))
+async def dog_callback(call: CallbackQuery):
     data = call.data.split(" ")
     user = database.users.get(id=call.from_user.id)
 
     try:
-        dog = database.dogs.get(**{"owner": user._id})
+        dog = database.dogs.get(owner=user._id)
     except NoResult:
         dog = None
 
@@ -64,30 +71,28 @@ def dog_callback(call: CallbackQuery):
     if data[-1] != str(user.id):
         return
     if data[1] == "leave":
-        bot.delete_message(call.message.chat.id, call.message.id)
-        bot.send_sticker(
-            call.message.chat.id,
+        await call.message.delete()
+        await call.message.answer_sticker(
             "CAACAgIAAxkBAAEpvztl21ybsmS9RVqaYhV8ZtA353n4HgACJwEAAjDUnRGOYUDc7Hyw5TQE",
         )
-        bot.send_message(call.message.chat.id, "Прогнал бедную собачку(")
+
+        await call.message.answer("Прогнал бедную собачку(")
         return
     if data[1] == "friend":
-        date = datetime.utcfromtimestamp(call.message.date)
+        date = call.message.date.astimezone(UTC)
         current_time = utcnow()
         time_difference = current_time - date
 
         if time_difference >= timedelta(minutes=1):
-            bot.delete_message(call.message.chat.id, call.message.id)
-            bot.answer_callback_query(call.id, "Пока ты думал псина сбежала", show_alert=True)
+            await call.message.delete()
+            await call.answer("Пока ты думал псина сбежала", show_alert=True)
             return
 
         item = get_or_add_user_item(user, "кость")
 
         if item.quantity <= int(data[2]):
-            bot.answer_callback_query(
-                call.id,
-                f"Тебе не хватает 🦴, нужно {data[2]} а у тебя {item.quantity}",
-                show_alert=True,
+            await call.answer(
+                f"Тебе не хватает 🦴, нужно {data[2]} а у тебя {item.quantity}", show_alert=True
             )
             return
 
@@ -95,27 +100,25 @@ def dog_callback(call: CallbackQuery):
         dog.name = f"Собачка-{user.id}"
         database.dogs.add(**dog.to_dict())
 
-        bot.delete_message(call.message.chat.id, call.message.id)
-        bot.send_sticker(
-            call.message.chat.id,
-            "CAACAgIAAxkBAAEpvz9l211Kyfi280mwFR6XMKUhzMXbiwACGAEAAjDUnREiQ2-IziTqFTQE",  # cspell: disable-line  # pylint: disable=line-too-long
+        await call.message.delete()
+        await call.message.answer_sticker(
+            "CAACAgIAAxkBAAEpvz9l211Kyfi280mwFR6XMKUhzMXbiwACGAEAAjDUnREiQ2-IziTqFTQE"
         )
-        bot.send_message(
-            call.message.chat.id,
+
+        await call.message.answer(
             "Завел собачку 🐶\n\nНапиши /rename_dog [имя] чтобы дать имя пёсику",
         )
         return
     if data[1] == "feed" and dog:
         if dog.hunger == 0:
-            bot.answer_callback_query(call.id, f"{dog.name} не голоден", show_alert=True)
+            await call.answer(f"{dog.name} не голоден", show_alert=True)
             return
         item = get_or_add_user_item(user, "мясо")
 
         quantity = dog.level * 2
 
         if item.quantity < quantity:
-            bot.answer_callback_query(
-                call.id,
+            await call.answer(
                 f"Тебе не хватает мяса, нужно {quantity} а у тебя {item.quantity}",
                 show_alert=True,
             )
@@ -124,15 +127,14 @@ def dog_callback(call: CallbackQuery):
         count = random.randint(1, 10)
         dog.hunger -= count
         dog.xp += random.uniform(0.1, 0.3)
-        bot.answer_callback_query(
-            call.id,
+        await call.answer(
             f"{dog.name} поел мяса и восстановил {count} единиц голода",
             show_alert=True,
         )
         database.dogs.update(**dog.to_dict())
         database.items.update(**item.to_dict())
 
-        check_user_stats(user, call.message.chat.id)
+        await check_user_stats(user, call.message.chat.id)
 
         mess = (
             f"<b>{dog.name}</b>\n\n"
@@ -149,14 +151,14 @@ def dog_callback(call: CallbackQuery):
                 # "Уложить спать": {"callback_data": f"dog sleep {user.id}"}
             }
         )
-        bot.edit_message_text(mess, call.message.chat.id, call.message.id, reply_markup=markup)
+
+        await call.message.edit_text(mess, reply_markup=markup)
     if data[1] == "sleep" and dog:
         current_time = utcnow()
         time_difference = current_time - dog.sleep_time
         if time_difference <= timedelta(minutes=1):
             time_difference = get_time_difference_string(time_difference - timedelta(minutes=1))
-            bot.answer_callback_query(
-                call.id,
+            await call.answer(
                 f"{dog.name} спит, жди {time_difference}",
                 show_alert=True,
             )
@@ -168,23 +170,23 @@ def dog_callback(call: CallbackQuery):
             (current_time - dog.sleep_time) - timedelta(hours=1)
         )
 
-        bot.answer_callback_query(
-            call.id,
+        await call.answer(
             f"{dog.name} пошел спать, проснется через {time_difference}",
             show_alert=True,
         )
+
     if data[1] == "wakeup" and dog:
-        bot.answer_callback_query(call.id, f"{dog.name} проснулся", show_alert=True)
+        await call.answer(f"{dog.name} проснулся", show_alert=True)
         dog.sleep_time = utcnow()
 
     database.users.update(**user.to_dict())
     if dog:
         database.dogs.update(**dog.to_dict())
-    check_user_stats(user)
+    await check_user_stats(user)
 
 
-@bot.callback_query_handler(lambda c: c.data.startswith("skip_quest"))
-def new_quest_callback(call: CallbackQuery):
+@router.callback_query(F.data.startswith("skip_quest"))
+async def new_quest_callback(call: CallbackQuery):
     if call.data.split(" ")[-1] != str(call.from_user.id):
         return
 
@@ -197,8 +199,7 @@ def new_quest_callback(call: CallbackQuery):
         user.new_quest_coin_quantity = 2
 
     if user.new_quest_coin_quantity > user.coin:
-        bot.answer_callback_query(
-            call.id,
+        await call.answer(
             (
                 "У тебя недостаточно бабла."
                 f"Чтобы получить новый квест надо иметь {user.new_quest_coin_quantity}"
@@ -212,15 +213,14 @@ def new_quest_callback(call: CallbackQuery):
     user.new_quest_coin_quantity += random.randint(10, 20)
     database.users.update(**user.to_dict())
 
-    bot.answer_callback_query(
-        call.id,
+    await call.answer(
         "Ты получил новый квест, напиши /quest чтобы посмотреть",
         show_alert=True,
     )
 
 
-@bot.callback_query_handler(lambda c: c.data.startswith("finish_quest"))
-def finish_quest_callback(call: CallbackQuery):
+@router.callback_query(F.data.startswith("finish_quest"))
+async def finish_quest_callback(call: CallbackQuery):
     if call.data.split(" ")[-1] != str(call.from_user.id):
         return
 
@@ -237,9 +237,7 @@ def finish_quest_callback(call: CallbackQuery):
     item = get_or_add_user_item(user, quest.name)
 
     if item.quantity < quest.quantity:
-        bot.answer_callback_query(
-            call.id, "Кудааа, тебе не хватает", show_alert=True
-        )  # cspell:ignore Кудааа
+        await call.answer("Кудааа, тебе не хватает", show_alert=True)  # cspell:ignore Кудааа
         return
 
     item.quantity -= quest.quantity
@@ -259,23 +257,22 @@ def finish_quest_callback(call: CallbackQuery):
     mess += get_time_difference_string(total_time)
 
     generate_quest(user)
-    bot.delete_message(call.message.chat.id, call.message.id)
+    await call.message.delete()
 
     user_message = call.message.reply_to_message
-    bot.send_sticker(
-        call.message.chat.id,
-        "CAACAgIAAxkBAAEpslFl2JwAAaZFMa3RM-3fKaHU7RYrOSQAAoIPAAJ73EFKS4aLwGmJ_Ok0BA",  # cspell:disable-line  # pylint: disable=line-too-long
-    )
+    await call.message.answer_sticker(
+        "CAACAgIAAxkBAAEpslFl2JwAAaZFMa3RM-3fKaHU7RYrOSQAAoIPAAJ73EFKS4aLwGmJ_Ok0BA",
+    )  # cspell:disable-line  # pylint: disable=line-too-long
     if user_message:
-        bot.reply_to(user_message, mess)
+        await user_message.reply(mess)
     else:
-        bot.send_message(call.message.chat.id, mess)
+        await call.message.answer(mess)
 
-    check_user_stats(user, call.message.chat.id)
+    await check_user_stats(user, call.message.chat.id)
 
 
-@bot.callback_query_handler(lambda c: c.data.startswith("use"))
-def use_callback(call: CallbackQuery):
+@router.callback_query(F.data.startswith("use"))
+async def use_callback(call: CallbackQuery):
     if call.data.split(" ")[-1] != str(call.from_user.id):
         return
 
@@ -286,7 +283,7 @@ def use_callback(call: CallbackQuery):
     if not call.message.reply_to_message:
         return
 
-    use_item(call.message.reply_to_message, item.name)
+    await use_item(call.message.reply_to_message, item.name)
 
     markup = InlineMarkup.use(user)
 
@@ -294,13 +291,13 @@ def use_callback(call: CallbackQuery):
 
     if not items:
         mess = "Нет доступных предметов для юза"
-        bot.edit_message_text(mess, call.message.chat.id, call.message.id)
+        await call.message.edit_text(mess)
 
-    bot.edit_message_reply_markup(call.message.chat.id, call.message.id, reply_markup=markup)
+    await call.message.edit_reply_markup(reply_markup=markup)
 
 
-@bot.callback_query_handler(lambda c: c.data.startswith("item_info_main"))
-def item_info_main_callback(call: CallbackQuery):
+@router.callback_query(F.data.startswith("item_info_main"))
+async def item_info_main_callback(call: CallbackQuery):
     if call.data.split(" ")[-1] != str(call.from_user.id):
         return
 
@@ -308,7 +305,7 @@ def item_info_main_callback(call: CallbackQuery):
         user = database.users.get(id=call.from_user.id)
         action = call.data.split(" ")[1]
         pos = int(call.data.split(" ")[2])
-        max_pos = len(list(chunks(ITEMS, 6))) - 1
+        max_pos = len(list(batched(ITEMS, 6))) - 1
 
         if action == "next":
             pos += 1
@@ -325,13 +322,13 @@ def item_info_main_callback(call: CallbackQuery):
         mess = f"<b>Предметы</b>\n\n{pos + 1} / {max_pos + 1}"
         markup = InlineMarkup.items_pager(user=user, index=int(pos))
 
-        bot.edit_message_text(mess, call.message.chat.id, call.message.id, reply_markup=markup)
-    except (IndexError, ApiTelegramException):
-        bot.answer_callback_query(call.id, "Дальше ничо нету", show_alert=True)
+        await call.message.edit_text(mess, reply_markup=markup)
+    except (IndexError, TelegramAPIError):
+        await call.answer("Дальше ничо нету", show_alert=True)
 
 
-@bot.callback_query_handler(lambda c: c.data.startswith("item_info"))
-def item_info_callback(call: CallbackQuery):
+@router.callback_query(F.data.startswith("item_info"))
+async def item_info_callback(call: CallbackQuery):
     if call.data.split(" ")[-1] != str(call.from_user.id):
         return
 
@@ -355,11 +352,11 @@ def item_info_callback(call: CallbackQuery):
         + (f"<b>Крафт:</b> <i>{craft}</i>\n" if item.craft else "")
     )
 
-    bot.edit_message_text(mess, call.message.chat.id, call.message.id, reply_markup=markup)
+    await call.message.edit_text(mess, reply_markup=markup)
 
 
-@bot.callback_query_handler(lambda c: c.data.startswith("trader"))
-def trader_callback(call: CallbackQuery):
+@router.callback_query(F.data.startswith("trader"))
+async def trader_callback(call: CallbackQuery):
     data = call.data.split(" ")
     if data[-1] != str(call.from_user.id):
         return
@@ -369,12 +366,11 @@ def trader_callback(call: CallbackQuery):
     user = database.users.get(id=call.from_user.id)
 
     if data[1] == "leave":
-        bot.delete_message(call.message.chat.id, call.message.id)
-        bot.send_sticker(
-            call.message.chat.id,
+        await call.message.delete()
+        await call.message.answer_sticker(
             "CAACAgEAAxkBAAEpxYVl3KqB7JnvbmYgXQqVAhUQYbnyXwACngIAAv9iMUeUcUiHcCrhSTQE",
         )
-        bot.send_message(call.message.chat.id, "Пф... не хочешь как хочешь")
+        await call.message.answer("Пф... не хочешь как хочешь")
 
     elif data[1] == "trade":
         item = get_item(data[2])
@@ -383,22 +379,18 @@ def trader_callback(call: CallbackQuery):
         user_item = get_or_add_user_item(user, item.name)
 
         if user.coin < price:
-            bot.answer_callback_query(
-                call.id, f"Тебе нехватает {price - user.coin} бабла", show_alert=True
-            )
+            await call.answer(f"Тебе нехватает {price - user.coin} бабла", show_alert=True)
+
             return
 
         user.coin -= price
         user_item.quantity += quantity
-        bot.delete_message(call.message.chat.id, call.message.id)
-        bot.send_message(
-            call.message.chat.id,
-            f"{user.name} купил у торговца {quantity} {item.name} {item.emoji} за {price}",
-        )
+        await call.mesage.delete()
+        await call.message.answer(f"Купил {quantity} {item.name} {item.emoji} за {price}")
 
 
-@bot.callback_query_handler(lambda c: c.data.startswith("top"))
-def top_callback(call: CallbackQuery):
+@router.callback_query(F.data.startswith("top"))
+async def top_callback(call: CallbackQuery):
     data = call.data.split(" ")
     if data[-1] != str(call.from_user.id):
         return
@@ -414,15 +406,13 @@ def top_callback(call: CallbackQuery):
     tops = {"coin": coin_top(), "level": level_top(), "dog_level": dog_level_top()}
 
     try:
-        bot.edit_message_text(
-            tops[data[1]], call.message.chat.id, call.message.id, reply_markup=markup
-        )
-    except ApiTelegramException:
+        await call.message.edit_text(tops[data[1]], reply_markup=markup)
+    except TelegramAPIError:
         pass
 
 
-@bot.callback_query_handler(lambda c: c.data.startswith("chest"))
-def chest_callback(call: CallbackQuery):
+@router.callback_query(F.data.startswith("chest"))
+async def chest_callback(call: CallbackQuery):
     data = call.data.split(" ")
 
     if data[-1] != str(call.from_user.id):
@@ -435,7 +425,7 @@ def chest_callback(call: CallbackQuery):
     if data[1] == "open":
         key = get_or_add_user_item(user, "ключ")
         if key.quantity < 1:
-            bot.answer_callback_query(call.id, "У тебя нет ключа", show_alert=True)
+            await call.answer("У тебя нет ключа", show_alert=True)
             return
         key.quantity -= 1
         mess = "Открыл сундук\n\n"
@@ -459,19 +449,20 @@ def chest_callback(call: CallbackQuery):
             user_item.quantity += quantity
             database.items.update(**user_item.to_dict())
         increment_achievement_progress(user, "сундук-собиратель")
-        bot.delete_message(call.message.chat.id, call.message.id)
+        await call.message.delete()
         if call.message.reply_to_message:
-            bot.reply_to(call.message.reply_to_message, mess)
+            await call.message.reply(mess)
         else:
-            bot.send_message(user.id, mess)
+            await call.bot.send_message(user.id, mess)
+
     elif data[1] == "leave":
-        bot.delete_message(call.message.chat.id, call.message.id)
+        await call.message.delete()
         if call.message.reply_to_message:
-            bot.reply_to(call.message.reply_to_message, "*Ушел от сундука*")
+            await call.message.reply("*Ушел от сундука*")
 
 
-@bot.callback_query_handler(lambda c: c.data.startswith("actions"))
-def actions_callback(call: CallbackQuery):
+@router.callback_query(F.data.startswith("actions"))
+async def actions_callback(call: CallbackQuery):
     data = call.data.split(" ")
 
     if data[-1] != str(call.from_user.id):
@@ -484,23 +475,23 @@ def actions_callback(call: CallbackQuery):
 
         mess = "Чем хочешь заняться?"
 
-        bot.edit_message_text(mess, call.message.chat.id, call.message.id, reply_markup=markup)
+        await call.message.edit_text(mess, reply_markup=markup)
     elif data[1] == "back":
         markup = InlineMarkup.home_main(user)
         mess = "🏠 Дом милый дом"
-        bot.edit_message_text(mess, call.message.chat.id, call.message.id, reply_markup=markup)
+        await call.message.edit_text(mess, reply_markup=markup)
     elif data[1] == "street":
-        street(call, user)
+        await street(call, user)
     elif data[1] == "work":
-        work(call, user)
+        await work(call, user)
     elif data[1] == "sleep":
-        sleep(call, user)
+        await sleep(call, user)
     elif data[1] == "game":
-        game(call, user)
+        await game(call, user)
 
 
-@bot.callback_query_handler(lambda c: c.data.startswith("open"))
-def open_callback(call: CallbackQuery):
+@router.callback_query(F.data.startswith("open"))
+async def open_callback(call: CallbackQuery):
     data = call.data.split(" ")
 
     if data[-1] != str(call.from_user.id):
@@ -511,21 +502,21 @@ def open_callback(call: CallbackQuery):
     if data[1] == "home":
         mess = "🏠 Дом милый дом"
         markup = InlineMarkup.home_main(user)
-        bot.edit_message_text(mess, call.message.chat.id, call.message.id, reply_markup=markup)
+        await call.message.edit_text(mess, reply_markup=markup)
     elif data[1] == "market-profile":
         mess = "Твой ларек"
         markup = InlineMarkup.market_profile(user)
 
-        bot.edit_message_text(mess, call.message.chat.id, call.message.id, reply_markup=markup)
+        await call.message.edit_text(mess, reply_markup=markup)
     elif data[1] == "bag":
+        mess = "Инвентарь"
         markup = InlineMarkup.bag(user)
-        text = "Инвентарь"
 
-        bot.edit_message_text(text, call.message.chat.id, call.message.id, reply_markup=markup)
+        await call.message.edit_text(mess, reply_markup=markup)
 
 
-@bot.callback_query_handler(lambda c: c.data.split(" ")[0] == "market")
-def market_callback(call: CallbackQuery):
+@router.callback_query(F.data.startswith("market"))
+async def market_callback(call: CallbackQuery, state: FSMContext):
     data = call.data.split(" ")
 
     if data[-1] != str(call.from_user.id):
@@ -536,7 +527,7 @@ def market_callback(call: CallbackQuery):
     if data[1] == "add":
         user_market_items_len = len(database.market_items.get_all(owner=user._id))
         if user_market_items_len >= user.max_items_count_in_market:
-            bot.answer_callback_query(call.id, "Ты привесил лимит", show_alert=True)
+            await call.answer("Ты привесил лимит", show_alert=True)
             return
         from base.user_input.add_new_market_item import AddNewItemState
 
@@ -553,49 +544,39 @@ def market_callback(call: CallbackQuery):
 
             buttons.append(
                 InlineKeyboardButton(
-                    f"{get_item_emoji(item.name)} {item.quantity}",
+                    text=f"{get_item_emoji(item.name)} {item.quantity}",
                     callback_data=f"sell {get_item(item.name).translit()} {user.id}",
                 )
             )
 
-        markup = InlineKeyboardMarkup(row_width=3)
+        builder = InlineKeyboardBuilder()
         if len(buttons) == 0:
-            bot.edit_message_text(
-                "У тебя нет предметов для продажи",
-                call.message.chat.id,
-                call.message.id,
-            )
+            await call.message.edit_text("У тебя нет предметов для продажи")
             return
 
-        markup.add(*buttons)
-
-        bot.edit_message_text(
-            "<b>Продажа предмета</b>\nВыбери предмет",
-            call.message.chat.id,
-            call.message.id,
-            reply_markup=markup,
+        builder.add(*buttons)
+        await call.message.edit_text(
+            "<b>Продажа предмета</b>\nВыбери предмет", reply_markup=builder.as_markup()
         )
 
-        bot.set_state(user.id, AddNewItemState.name, call.message.chat.id)
+        await state.set_state(AddNewItemState.name)
     elif data[1] == "buy":
         try:
             market_item = database.market_items.get(_id=ObjectId(data[2]))
         except NoResult:
-            bot.answer_callback_query(
-                call.id,
-                "Этот предмет либо уже купили либо владелец убрал с продажи",
-                show_alert=True,
+            await call.answer(
+                "Этот предмет либо уже купили либо владелец убрал с продажи", show_alert=True
             )
             return
 
         item_owner = database.users.get(_id=market_item.owner)
 
         if item_owner.id == user.id:
-            bot.answer_callback_query(call.id, "Сам у себя будешь покупать?", show_alert=True)
+            await call.answer("Сам у себя будешь покупать?", show_alert=True)
             return
 
         if market_item.price > user.coin:
-            bot.answer_callback_query(call.id, "Тебе не хватает бабла", show_alert=True)
+            await call.answer("Тебе не хватает бабла", show_alert=True)
             return
 
         item = get_item(market_item.name)
@@ -624,32 +605,29 @@ def market_callback(call: CallbackQuery):
         usage = f" ({int(market_item.usage)}%)" if market_item.usage else ""
         emoji = get_item_emoji(market_item.name)
         mess = f"{get_user_tag(user)} купил {market_item.quantity} {emoji}{usage}"
-        safe(bot.send_message, call.message.chat.id, mess)
+        await safe(call.message.answer(mess))
 
-        safe(
-            bot.send_message,
-            item_owner.id,
-            f"{get_user_tag(user)} купил у тебя {market_item.quantity} {emoji}{usage}",
+        await safe(
+            call.bot.send_message(
+                item_owner.id,
+                f"{get_user_tag(user)} купил у тебя {market_item.quantity} {emoji}{usage}",
+            )
         )
 
         mess = "<b>Рынок</b>\n\n"
         market_items = database.market_items.get_all()
         markup = InlineMarkup.market_pager(user)
-        mess += f"1 / {len(list(chunks(market_items, 6)))}"
-        bot.edit_message_text(
+        mess += f"1 / {len(list(batched(market_items, 6)))}"
+        await call.message.edit_text(
             mess,
-            call.message.chat.id,
-            call.message.id,
             reply_markup=markup,
         )
     elif data[1] == "view-my-items":
         markup = InlineMarkup.market_view_my_items(user)
 
         mess = "<b>Твои товары</b>"
-        bot.edit_message_text(
+        await call.message.edit_text(
             mess,
-            call.message.chat.id,
-            call.message.id,
             reply_markup=markup,
         )
     elif data[1] == "delete":
@@ -658,16 +636,13 @@ def market_callback(call: CallbackQuery):
         user_item.quantity += market_item.quantity
         database.items.update(**user_item.to_dict())
         database.market_items.delete(**market_item.to_dict())
-        bot.answer_callback_query(
-            call.id,
+        await call.answer(
             "предмет удален успешно",
             show_alert=True,
         )
         markup = InlineMarkup.market_view_my_items(user)
 
-        bot.edit_message_reply_markup(
-            call.message.chat.id,
-            call.message.id,
+        await call.message.edit_reply_markup(
             reply_markup=markup,
         )
 
@@ -677,7 +652,7 @@ def market_callback(call: CallbackQuery):
             pos = int(call.data.split(" ")[2])
 
             market_items = database.market_items.get_all()
-            max_pos = len(list(chunks(market_items, 6))) - 1
+            max_pos = len(list(batched(market_items, 6))) - 1
 
             if action == "next":
                 pos += 1
@@ -694,13 +669,13 @@ def market_callback(call: CallbackQuery):
             mess = f"<b>Рынок</b>\n\n{pos + 1} / {max_pos + 1}"
             markup = InlineMarkup.market_pager(user=user, index=pos)
 
-            bot.edit_message_text(mess, call.message.chat.id, call.message.id, reply_markup=markup)
-        except (IndexError, ApiTelegramException):
-            bot.answer_callback_query(call.id, "Дальше ничо нету", show_alert=True)
+            await call.message.edit_text(mess, reply_markup=markup)
+        except (IndexError, TelegramAPIError):
+            await call.answer("Дальше ничо нету", show_alert=True)
 
 
-@bot.callback_query_handler(lambda c: c.data.startswith("market_item_open"))
-def market_item_open_callback(call: CallbackQuery):
+@router.callback_query(F.data.startswith("market_item_open"))
+async def market_item_open_callback(call: CallbackQuery):
     data = call.data.split(" ")
 
     if data[-1] != str(call.from_user.id):
@@ -720,28 +695,27 @@ def market_item_open_callback(call: CallbackQuery):
     )
 
     markup = InlineMarkup.market_item_open(user, market_item)
-    bot.edit_message_text(mess, call.message.chat.id, call.message.id, reply_markup=markup)
+    await call.message.edit_text(mess, reply_markup=markup)
 
 
-@bot.callback_query_handler(lambda c: c.data.startswith("delate_state"), state="*")
-def delate_state_callback(call: CallbackQuery):
+@router.callback_query(F.data.startswith("delate_state"), StateFilter("*"))
+async def delate_state_callback(call: CallbackQuery, state: FSMContext):
     data = call.data.split(" ")
 
     if data[-1] != str(call.from_user.id):
         return
 
-    if not bot.get_state(call.from_user.id, call.message.chat.id):
-        bot.answer_callback_query(call.id, "Что отменять собрался?", show_alert=True)
+    if not await state.get_state():
+        await call.answer("Что отменять собрался?", show_alert=True)
         return
-
-    bot.delete_state(call.from_user.id, call.message.chat.id)
+    await state.delete()
     if call.message.id:
-        bot.delete_message(call.message.chat.id, call.message.id)
-    bot.answer_callback_query(call.id, "Отменил")
+        await call.message.delete()
+    await call.answer("Отменил")
 
 
-@bot.callback_query_handler(lambda c: c.data.startswith("levelup"))
-def levelup_callback(call: CallbackQuery):
+@router.callback_query(F.data.startswith("levelup"))
+async def levelup_callback(call: CallbackQuery):
     data = call.data.split(" ")
 
     if data[-1] != str(call.from_user.id):
@@ -755,12 +729,12 @@ def levelup_callback(call: CallbackQuery):
         user.max_items_count_in_market += 1
 
     database.users.update(**user.to_dict())
-    bot.answer_callback_query(call.id, "Поздравляю 🎉🎉", show_alert=True)
-    bot.edit_message_reply_markup(call.message.chat.id, call.message.id, reply_markup=None)
+    await call.answer("Поздравляю 🎉🎉", show_alert=True)
+    await call.message.edit_reply_markup(reply_markup=None)
 
 
-@bot.callback_query_handler(lambda c: c.data.startswith("daily_gift"))
-def daily_gift_callback(call: CallbackQuery):
+@router.callback_query(F.data.startswith("daily_gift"))
+async def daily_gift_callback(call: CallbackQuery):
     data = call.data.split(" ")
 
     if data[-1] != str(call.from_user.id):
@@ -770,8 +744,7 @@ def daily_gift_callback(call: CallbackQuery):
 
     if data[1] == "claim":
         if not check_user_subscription(user):
-            bot.answer_callback_query(
-                call.id,
+            await call.answer(
                 "Чтобы использовать эту функцию нужно подписаться на новостной канал",
                 show_alert=True,
             )
@@ -781,15 +754,12 @@ def daily_gift_callback(call: CallbackQuery):
         daily_gift = database.daily_gifts.get(owner=user._id)
         if daily_gift.is_claimed:
             time_difference = get_time_difference_string(daily_gift.next_claimable_at - now)
-            bot.answer_callback_query(
-                call.id,
+            await call.answer(
                 f"Ты сегодня уже получил подарок. Жди {time_difference}",
                 show_alert=True,
             )
             markup = InlineMarkup.daily_gift(user, daily_gift)
-            bot.edit_message_reply_markup(
-                call.message.chat.id, call.message.id, reply_markup=markup
-            )
+            await call.message.edit_message_reply_markup(reply_markup=markup)
             return
 
         if not daily_gift.last_claimed_at:
@@ -818,12 +788,12 @@ def daily_gift_callback(call: CallbackQuery):
             mess += f"+{quantity} {item.name} {item.emoji}\n"
 
         markup = InlineMarkup.daily_gift(user, daily_gift)
-        bot.edit_message_reply_markup(call.message.chat.id, call.message.id, reply_markup=markup)
-        bot.send_message(call.message.chat.id, mess)
+        await call.message.edit_message_reply_markup(reply_markup=markup)
+        await call.message.answer(mess)
 
 
-@bot.callback_query_handler(lambda c: c.data.startswith("transfer"))
-def transfer_callback(call: CallbackQuery):
+@router.callback_query(F.data.startswith("transfer"))
+async def transfer_callback(call: CallbackQuery):
     data = call.data.split(" ")
 
     if data[-1] != str(call.from_user.id):
@@ -835,7 +805,7 @@ def transfer_callback(call: CallbackQuery):
     item = database.items.get(_id=ObjectId(data[1]))
 
     if item.quantity <= 0:
-        bot.answer_callback_query(call.id, "У тебя нет такого предмета")
+        await call.answer("У тебя нет такого предмета")
         return
 
     item.owner = reply_user._id
@@ -850,11 +820,11 @@ def transfer_callback(call: CallbackQuery):
     database.users.update(**user.to_dict())
     database.users.update(**reply_user.to_dict())
 
-    bot.send_message(call.message.chat.id, mess)
+    await call.message.answer(mess)
 
 
-@bot.callback_query_handler(lambda c: c.data.startswith("achievements"))
-def achievements_callback(call: CallbackQuery):
+@router.callback_query(F.data.startswith("achievements"))
+async def achievements_callback(call: CallbackQuery):
     data = call.data.split(" ")
 
     if data[-1] != str(call.from_user.id):
@@ -868,27 +838,25 @@ def achievements_callback(call: CallbackQuery):
         mess += f"<i>{ach.desc}</i>\n\n"
         mess += f"{achievement_progress(user, ach.name)}"
 
-        logger.debug(str(user.achievement_progress))
-
         markup = quick_markup({"Назад": {"callback_data": f"achievements main {user.id}"}})
 
-        bot.edit_message_text(mess, call.message.chat.id, call.message.id, reply_markup=markup)
+        await call.message.edit_text(mess, reply_markup=markup)
     elif data[1] == "main":
         mess = "Достижения"
 
         markup = InlineMarkup.achievements(user)
 
-        bot.edit_message_text(mess, call.message.chat.id, call.message.id, reply_markup=markup)
+        await call.message.edit_text(mess, reply_markup=markup)
 
     elif data[1] == "filter":
         filter = data[2]
         markup = InlineMarkup.achievements_view(user, filter)  # type: ignore
 
-        bot.edit_message_reply_markup(call.message.chat.id, call.message.id, reply_markup=markup)
+        await call.message.edit_message_reply_markup(reply_markup=markup)
 
 
-@bot.callback_query_handler(lambda c: c.data.startswith("accept_rules"))
-def accept_rules_callback(call: CallbackQuery):
+@router.callback_query(F.data.startswith("accept_rules"))
+async def accept_rules_callback(call: CallbackQuery):
     data = call.data.split(" ")
 
     if data[-1] != str(call.from_user.id):
@@ -898,17 +866,16 @@ def accept_rules_callback(call: CallbackQuery):
     user.accepted_rules = True
     database.users.update(**user.to_dict())
 
-    bot.answer_callback_query(
-        call.id,
+    await call.answer(
         "Теперь можешь спокойно пользовался ботом",
         show_alert=True,
     )
 
-    bot.delete_message(call.message.chat.id, call.message.id)  # type: ignore
+    await call.message.delete()  # type: ignore
 
 
-@bot.callback_query_handler(lambda c: c.data.startswith("event_shop"))
-def event_shop_callback(call: CallbackQuery):
+@router.callback_query(F.data.startswith("event_shop"))
+async def event_shop_callback(call: CallbackQuery):
     data = call.data.split(" ")
 
     if data[-1] != str(call.from_user.id):
@@ -925,7 +892,7 @@ def event_shop_callback(call: CallbackQuery):
     quantity = int(data[3])
 
     if candy.quantity < quantity:
-        bot.answer_callback_query(call.id, "Недостаточно конфет", show_alert=True)
+        await call.answer("Недостаточно конфет", show_alert=True)
         return
 
     user_item = get_or_add_user_item(user, item.name)
@@ -940,10 +907,9 @@ def event_shop_callback(call: CallbackQuery):
 
     markup = InlineMarkup.event_shop(user)
 
-    bot.edit_message_text(mess, call.message.chat.id, call.message.id, reply_markup=markup)
+    await call.message.edit_text(mess, reply_markup=markup)
 
-    bot.answer_callback_query(
-        call.id,
+    await call.answer(
         f"Ты купил 1 {item.emoji} за {quantity} {get_item_emoji(candy.name)}",
         show_alert=True,
     )

@@ -2,23 +2,17 @@ import random
 from typing import Any, Callable, NoReturn, TypedDict, Union, List
 from datetime import timedelta
 
-from telebot.types import (
-    Message,
-    InlineKeyboardMarkup,
-    InlineKeyboardButton,
-)
+from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram.types import Message, InlineKeyboardButton
 
+from base.items import ITEMS
 from helpers.enums import ItemRarity, ItemType
-
-from .items import ITEMS
-
 
 from helpers.exceptions import ItemIsCoin, NoResult
 from helpers.utils import (
     Loading,
     award_user_achievement,
     calc_xp_for_level,
-    from_user,
     get_achievement,
     get_item,
     get_item_count_for_rarity,
@@ -41,7 +35,7 @@ from helpers.datatypes import Item
 from config import bot, config
 
 
-def level_up(user: UserModel, chat_id: Union[str, int, None] = None):
+async def level_up(user: UserModel, chat_id: Union[str, int, None] = None):
     if user.xp > user.max_xp:
         user.xp = user.xp - user.max_xp
     else:
@@ -63,12 +57,12 @@ def level_up(user: UserModel, chat_id: Union[str, int, None] = None):
     box.quantity += 1
 
     database.items.update(**box.to_dict())
-    bot.send_sticker(
+    await bot.send_sticker(
         chat_id,
         "CAACAgIAAxkBAAEpjItl0i05sChI02Gz_uGnAtLyPBcJwgACXhIAAuyZKUl879mlR_dkOzQE",  # cSpell:ignore CAAC
     )
 
-    markup = InlineKeyboardMarkup(row_width=1)
+    builder = InlineKeyboardBuilder()
     buttons = []
     btn_data = []
     if user.max_items_count_in_market <= 10:
@@ -77,20 +71,23 @@ def level_up(user: UserModel, chat_id: Union[str, int, None] = None):
         btn_data.append(("+1 удача", "luck"))
 
     for data in btn_data:
-        buttons.append(InlineKeyboardButton(data[0], callback_data=f"levelup {data[1]} {user.id}"))
+        buttons.append(
+            InlineKeyboardButton(text=data[0], callback_data=f"levelup {data[1]} {user.id}")
+        )
 
-    markup.add(*buttons)
+    builder.add(*buttons)
+    builder.adjust(1)
     if len(buttons) != 0:
         mess += "\n\nВыбери что хочешь улучшить"
 
-    bot.send_message(chat_id, mess, reply_markup=markup)
+    await bot.send_message(chat_id, mess, reply_markup=builder.as_markup())
 
 
-def check_user_stats(user: UserModel, chat_id: Union[str, int, None] = None):
+async def check_user_stats(user: UserModel, chat_id: Union[str, int, None] = None):
     if not chat_id:
         chat_id = user.id
     if user.xp >= user.max_xp:
-        level_up(user, chat_id)
+        await level_up(user, chat_id)
 
     if user.health < 0:
         user.health = 0
@@ -135,11 +132,11 @@ def check_user_stats(user: UserModel, chat_id: Union[str, int, None] = None):
                 dog.xp = 0
             dog.level += 1
             dog.max_xp = calc_xp_for_level(dog.level)
-            bot.send_sticker(
+            await bot.send_sticker(
                 chat_id,
                 "CAACAgIAAxkBAAEpv_Bl24Fgxvez1weA12y4uARuP6JyFgACLQEAAjDUnREQhgS5L57E0TQE",  # cSpell:ignore Fgxvez, ACLQEA
             )
-            bot.send_message(chat_id, f"Собачка {dog.name} получил новый уровень")
+            await bot.send_message(chat_id, f"Собачка {dog.name} получил новый уровень")
 
         if dog.health < 0:
             dog.health = 0
@@ -281,23 +278,22 @@ def get_available_items_for_use(user: UserModel) -> list[ItemModel]:
     return sorted(available_items, key=lambda item: item.quantity, reverse=True)
 
 
-def use_item(message: Message, name: str):
+async def use_item(message: Message, name: str):
     with Loading(message):
-        user = database.users.get(id=from_user(message).id)
+        user = database.users.get(id=message.from_user.id)
 
         item = get_item(name)
 
         if not item:
-            bot.reply_to(message, "Такого предмета не существует")
+            await message.reply("Такого предмета не существует")
             return
 
         if not item.is_consumable:
-            bot.reply_to(message, "Этот предмет нельзя юзать")
+            await message.reply("Этот предмет нельзя юзать")
             return
 
         if item.type == ItemType.USABLE:
-            bot.reply_to(
-                message,
+            await message.reply(
                 "Этот предмет нельзя юзать (https://github.com/HamletSargsyan/livebot/issues/41)",
             )
             return
@@ -305,25 +301,24 @@ def use_item(message: Message, name: str):
         user_item = get_or_add_user_item(user, item.name)
 
         if not user_item:
-            bot.reply_to(message, f"У тебя нет {item.name} {item.emoji}")
+            await message.reply(f"У тебя нет {item.name} {item.emoji}")
             return
 
         if user_item.quantity <= 0:
-            bot.reply_to(message, f"У тебя нет {item.name} {item.emoji}")
+            await message.reply(f"У тебя нет {item.name} {item.emoji}")
             return
 
         match item.name:
             case "трава" | "буханка" | "сэндвич" | "пицца" | "тако" | "суп":
                 user.hunger -= item.effect  # pyright: ignore
-                bot.reply_to(
-                    message,
+                await message.reply(
                     f"Поел {item.emoji}\n- {item.effect} голода",
                 )
                 user_item.quantity -= 1
             case "буст":
                 xp = random.randint(100, 150)
                 user.xp += xp
-                bot.reply_to(message, f"{get_item_emoji(name)} Юзнул буст\n+ {xp} опыта")
+                await message.reply(f"{get_item_emoji(name)} Юзнул буст\n+ {xp} опыта")
                 user_item.quantity -= 1
             case "бокс":
                 mess = "Ты открыл бокс и получил\n---------\n"
@@ -349,44 +344,42 @@ def use_item(message: Message, name: str):
 
                 user_item.quantity -= 1
 
-                bot.reply_to(message, mess)
+                await message.reply(mess)
             case "энергос" | "чай":
                 user.fatigue -= item.effect  # pyright: ignore
-                bot.reply_to(
-                    message,
+                await message.reply(
                     f"{item.emoji} юзнул {item.name}\n- {item.effect} усталости",
                 )
                 user_item.quantity -= 1
             case "пилюля":
-                bot.reply_to(message, f"{item.emoji} в разработке")
+                await message.reply(f"{item.emoji} в разработке")
                 return
             case "хелп":
                 user.health += item.effect  # pyright: ignore
-                bot.reply_to(message, f"{item.effect} юзнул хелп")
+                await message.reply(f"{item.effect} юзнул хелп")
                 user_item.quantity -= 1
             case "фиксоманчик":
-                bot.reply_to(message, f"{item.emoji} в разработке")
+                await message.reply(f"{item.emoji} в разработке")
                 return
             case "водка":
                 user.fatigue = 0
                 user.health -= item.effect  # pyright: ignore
-                bot.reply_to(message, f"{item.emoji} юзнул водку")
+                await message.reply(f"{item.emoji} юзнул водку")
                 user_item.quantity -= 1
             case "велик":
                 if not user.action or user.action.type != "street":
-                    bot.reply_to(message, "Ты не гуляешь")
+                    await message.reply("Ты не гуляешь")
                     return
                 minutes = random.randint(10, 45)
                 user.action.end -= timedelta(minutes=minutes)
-                bot.reply_to(
-                    message,
+                await message.reply(
                     f"{item.emoji} юзнул велик и сократил время прогулки на {minutes} минут",
                 )
                 user_item.quantity -= 1
             case "клевер-удачи":
                 user.luck += item.effect  # type: ignore
                 user_item.quantity -= 1
-                bot.reply_to(message, f"{item.emoji} Увеличил удачу на 1")
+                await message.reply(f"{item.emoji} Увеличил удачу на 1")
             case "конфета":
                 user.hunger -= item.effect  # type: ignore
                 user.fatigue -= item.effect  # type: ignore
@@ -395,11 +388,11 @@ def use_item(message: Message, name: str):
                 mess += f"-{item.effect}% голод\n"
                 mess += f"-{item.effect}% усталость\n"
 
-                bot.reply_to(message, mess)
+                await message.reply(mess)
 
         database.users.update(**user.to_dict())
         database.items.update(**user_item.to_dict())
-        check_user_stats(user, message.chat.id)
+        await check_user_stats(user, message.chat.id)
 
 
 def get_or_add_user_item(user: UserModel, name: str) -> Union[ItemModel, NoReturn]:

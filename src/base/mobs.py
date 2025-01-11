@@ -1,16 +1,14 @@
 import random
 from abc import ABC, abstractmethod
-from datetime import datetime  # noqa
 from typing import Optional
 
-from telebot.types import Message
+from aiogram.types import Message
 from telebot.util import quick_markup
 
 from helpers.utils import get_item_emoji
 
-from .items import ITEMS
+from base.items import ITEMS
 
-from config import bot
 from database.models import UserModel
 from helpers.enums import ItemRarity
 
@@ -29,7 +27,7 @@ class BaseMob(ABC):
         self.user = user
 
     @abstractmethod
-    def on_meet(self):
+    async def on_meet(self):
         raise NotImplementedError
 
     def init(self, user: UserModel, message: Message):
@@ -46,7 +44,7 @@ class Dog(BaseMob):
 
         self.quantity = random.randint(4, 10)
 
-    def on_meet(self):
+    async def on_meet(self):
         if not self.user or not self.message:
             return
         mess = "Привет дружок, хочешь подружится?\n\n" f"Я хочу {self.quantity} 🦴"
@@ -58,7 +56,7 @@ class Dog(BaseMob):
             }
         )
 
-        bot.edit_message_text(mess, self.message.chat.id, self.message.id, reply_markup=markup)
+        await self.message.edit_text(mess, reply_markup=markup)
 
 
 class Trader(BaseMob):
@@ -72,7 +70,7 @@ class Trader(BaseMob):
         self.quantity = random.randint(2, 10)
         self.price = self.item.price * self.quantity
 
-    def on_meet(self):
+    async def on_meet(self):
         if not self.user or not self.message:
             return
         mess = (
@@ -90,14 +88,14 @@ class Trader(BaseMob):
             }
         )
 
-        bot.edit_message_text(mess, self.message.chat.id, self.message.id, reply_markup=markup)
+        await self.message.edit_text(mess, reply_markup=markup)
 
 
 class Chest(BaseMob):
     def __init__(self):
         super().__init__("сундук", 1.3)
 
-    def on_meet(self):
+    async def on_meet(self):
         if not self.user or not self.message:
             return
         mess = "<b>Сундук</b>\n\n" "- Ой а что это такое...?"
@@ -108,7 +106,7 @@ class Chest(BaseMob):
             }
         )
 
-        bot.edit_message_text(mess, self.message.chat.id, self.message.id, reply_markup=markup)
+        await self.message.edit_text(mess, reply_markup=markup)
 
 
 # ---------------------------------------------------------------------------- #
@@ -125,8 +123,8 @@ def generate_mob():
     # else:  # День (с 6:00 до 21:59)
     #     mob_types = []
 
-    mob = random.choice(mob_types)()
+    mob = random.choice(mob_types)
     chance = random.uniform(1, 10)
 
     if mob.chance <= chance:
-        return mob
+        return mob()

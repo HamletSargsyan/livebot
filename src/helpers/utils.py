@@ -1,11 +1,19 @@
-from contextlib import suppress
-from functools import wraps
+import sys
+import itertools
+import asyncio
 import json
 import random
 import statistics
+from contextlib import suppress
+from datetime import UTC, datetime, timedelta
+from functools import wraps
+from html import escape
 from typing import (
     Any,
+    Iterable,
+    Awaitable,
     Callable,
+    Generator,
     NoReturn,
     Optional,
     ParamSpec,
@@ -13,30 +21,23 @@ from typing import (
     TypeVar,
     Union,
 )
-from datetime import UTC, datetime, timedelta
 
 import httpx
+from aiogram.exceptions import TelegramAPIError, TelegramRetryAfter
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message, User
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 from semver import Version
+from tinylogging import Level, Record
 
-from telebot.types import Message, InlineKeyboardButton, User
-from telebot.util import antiflood, escape, split_string, quick_markup
-
-from tinylogging import Record, Level
-
-
-from config import bot, logger, config, VERSION
-
+from base.achievements import ACHIEVEMENTS
+from base.items import ITEMS
+from config import VERSION, bot, config, logger
 from database.funcs import cache
 from database.models import AchievementModel, UserModel
-
-
-from base.items import ITEMS
-from base.achievements import ACHIEVEMENTS
-
-from helpers.enums import ItemRarity
+from helpers.consts import PAGER_CONTROLLERS
 from helpers.datatypes import Achievement, Item
+from helpers.enums import ItemRarity
 from helpers.exceptions import AchievementNotFoundError, ItemNotFoundError, NoResult
-
 
 T = TypeVar("T")
 P = ParamSpec("P")
@@ -90,6 +91,28 @@ def utcnow() -> datetime:
     return datetime.now(UTC)
 
 
+def split_string(text: str, chars_per_string: int) -> list[str]:
+    return [text[i : i + chars_per_string] for i in range(0, len(text), chars_per_string)]
+
+
+def _log(message: str):
+    url = f"https://api.telegram.org/bot{config.telegram.token}/sendMessage"
+
+    payload = {
+        "chat_id": config.telegram.log_chat_id,
+        "text": message,
+        "parse_mode": "HTML",
+    }
+
+    if config.telegram.log_thread_id is not None:
+        payload["message_thread_id"] = str(config.telegram.log_thread_id)
+
+    response = httpx.post(url, json=payload)
+    if not response.is_success:
+        print(response.text)
+    response.raise_for_status()
+
+
 def log(record: Record) -> None:
     emoji_dict = {
         Level.DEBUG: "👾",
@@ -110,19 +133,17 @@ def log(record: Record) -> None:
         '<pre><code class="language-shell">{text}</code></pre>'
     )
 
+    print(record.message, record.name)
+
     for text in split_string(record.message, 3000):
         try:
-            antiflood(
-                bot.send_message,
-                config.telegram.log_chat_id,
-                log_template.format(text=escape(text)),
-                message_thread_id=config.telegram.log_thread_id,
-            )
+            _log(log_template.format(text=escape(text)))
         except Exception as e:
             print(e)
             print(text)
 
 
+@cached
 def remove_not_allowed_symbols(text: str) -> str:
     not_allowed_symbols = ["#", "<", ">", "{", "}", '"', "'", "$", "(", ")", "@"]
     cleaned_text = "".join(char for char in text if char not in not_allowed_symbols)
@@ -156,6 +177,7 @@ def get_user_tag(user: UserModel):
     return f"<a href='tg://user?id={user.id}'>{user.name}</a>"
 
 
+@cached
 def get_item(name: str) -> Union[Item, NoReturn]:
     for item in ITEMS:
         item.name = item.name.lower()
@@ -168,6 +190,7 @@ def get_item(name: str) -> Union[Item, NoReturn]:
     raise ItemNotFoundError(f"Item {name} not found")
 
 
+@cached
 def get_item_emoji(item_name: str) -> str:
     try:
         return get_item(item_name).emoji or ""
@@ -175,6 +198,7 @@ def get_item_emoji(item_name: str) -> str:
         return ""
 
 
+@cached
 def get_item_count_for_rarity(rarity: ItemRarity) -> int:
     if rarity == ItemRarity.COMMON:
         quantity = random.randint(5, 20)
@@ -194,7 +218,7 @@ class Loading:
         self.message = message
         self.loading_message: Message
 
-    def __enter__(self):
+    async def __aenter__(self):
         with open("src/base/hints.json") as f:
             hints: list[dict[str, str]] = json.load(f)
 
@@ -208,27 +232,19 @@ class Loading:
         mess = f"<b>Загрузка...</b>\n\n<i>{hint['message']}</i>"
 
         try:
-            msg = bot.reply_to(self.message, mess, reply_markup=markup)
+            msg = await self.loading_message.reply(mess, reply_markup=markup)
         except Exception:
-            msg = bot.send_message(self.message.chat.id, mess, reply_markup=markup)
+            msg = await self.loading_message.reply(mess, reply_markup=markup)
         self.loading_message = msg
 
-    def __exit__(self, exc_type, exc_value, traceback):
-        bot.delete_message(self.loading_message.chat.id, self.loading_message.id)
-
-
-PAGER_CONTROLLERS = [
-    InlineKeyboardButton("↩️", callback_data="{name} start {pos} {user_id}"),
-    InlineKeyboardButton("⬅️", callback_data="{name} back {pos} {user_id}"),
-    InlineKeyboardButton("➡️", callback_data="{name} next {pos} {user_id}"),
-    InlineKeyboardButton("↪️", callback_data="{name} end {pos} {user_id}"),
-]
+    async def __aexit__(self, exc_type, exc_value, traceback):
+        await self.loading_message.delete()
 
 
 def get_pager_controllers(name: str, pos: int, user_id: Union[int, str]):
     return [
         InlineKeyboardButton(
-            controller.text,
+            text=controller.text,
             callback_data=controller.callback_data.format(name=name, pos=pos, user_id=user_id),
         )
         for controller in PAGER_CONTROLLERS
@@ -257,18 +273,18 @@ def calc_xp_for_level(level: int) -> int:
     return 5 * level + 50 * level + 100
 
 
-def check_user_subscription(user: UserModel) -> bool:
-    tg_user = bot.get_chat_member(config.telegram.channel_id, user.id)
+async def check_user_subscription(user: UserModel) -> bool:
+    tg_user = await bot.get_chat_member(config.telegram.channel_id, user.id)
     if tg_user.status in ["member", "administrator", "creator"]:
         return True
     return False
 
 
-def send_channel_subscribe_message(message: Message):
-    chat_info = bot.get_chat(config.telegram.channel_id)
+async def send_channel_subscribe_message(message: Message):
+    chat_info = await message.bot.get_chat(config.telegram.channel_id)
     markup = quick_markup({"Подписаться": {"url": f"t.me/{chat_info.username}"}})
     mess = "Чтобы использовать эту функцию нужно подписаться на новостной канал"
-    bot.reply_to(message, mess, reply_markup=markup)
+    await message.reply(mess, reply_markup=markup)
 
 
 def check_version() -> str:  # type: ignore
@@ -299,7 +315,7 @@ def check_version() -> str:  # type: ignore
 
 
 @deprecated(
-    remove_in=Version(major=12),
+    remove_in=Version(major=11),
     deprecated_in=Version(major=10),
     message="Use `message.from_user` instead",
 )
@@ -336,11 +352,11 @@ def is_completed_achievement(user: UserModel, name: str) -> bool:
         return False
 
 
-def award_user_achievement(user: UserModel, achievement: Achievement):
+async def award_user_achievement(user: UserModel, achievement: Achievement):
     if is_completed_achievement(user, achievement.name):
         return
-    from database.funcs import database
     from base.player import get_or_add_user_item
+    from database.funcs import database
 
     ach = AchievementModel(name=achievement.name, owner=user._id)
     database.achievements.add(**ach.to_dict())
@@ -357,7 +373,7 @@ def award_user_achievement(user: UserModel, achievement: Achievement):
             user_item.quantity += quantity
             database.items.update(**user_item.to_dict())
 
-    bot.send_message(
+    await bot.send_message(
         user.id,
         f'Поздравляю🎉, ты получил достижение "{ach.name}"\n\nЗа это ты получил:\n{reward}',
     )
@@ -444,20 +460,51 @@ class MessageEditor:
         self._mess = f"<b>{self.title}</b>"
         self.exit_funcs: set[Callable[[], None | Any]] = set()
 
-    def __enter__(self) -> Self:
-        self.message = antiflood(bot.reply_to, self.user_message, self._mess)
+    async def __aenter__(self) -> Self:
+        self.message = await antiflood(self.user_message.reply(self._mess))
 
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
         for func in self.exit_funcs:
             func()
 
-    def write(self, new_text: str):
+    async def write(self, new_text: str):
         self._mess = text = f"{self._mess}\n<b>*</b>  {new_text}"
-        self.message = antiflood(bot.edit_message_text, text, self.message.chat.id, self.message.id)
+        self.message = await antiflood(self.message.edit_text(text))
 
 
-def safe(func: Callable[P, T], *args: P.args, **kwargs: P.kwargs) -> Optional[T]:
-    with suppress(BaseException):
-        return func(*args, **kwargs)
+async def safe(func: Awaitable[T]) -> Optional[T]:
+    with suppress(TelegramAPIError):
+        return await antiflood(func)
+
+
+def quick_markup(values: dict[str, dict[str, Any]], row_width: int = 2) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    buttons = [InlineKeyboardButton(text=text, **kwargs) for text, kwargs in values.items()]
+    builder.add(*buttons)
+    builder.adjust(row_width)
+    return builder.as_markup()
+
+
+async def antiflood(func: Awaitable[T]) -> T:
+    number_retries = 5
+    for _ in range(number_retries):
+        try:
+            return await func
+        except TelegramRetryAfter as e:
+            await asyncio.sleep(e.retry_after)
+    return await func
+
+
+if sys.version_info >= (3, 12):
+    batched = itertools.batched  # pylint: disable=invalid-name
+else:
+
+    def batched(iterable: Iterable[T], n: int) -> Generator[tuple[T, ...], None, None]:
+        # https://docs.python.org/3.12/library/itertools.html#itertools.batched
+        if n < 1:
+            raise ValueError("n must be at least one")
+        iterator = iter(iterable)
+        while batch := tuple(itertools.islice(iterator, n)):
+            yield batch

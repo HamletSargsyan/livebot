@@ -1,5 +1,13 @@
 from typing import Final
-from helpers.utils import get_item_emoji
+
+from aiogram.types import InlineKeyboardButton
+
+COIN_EMOJI: Final = "🪙"
 
 
-COIN_EMOJI: Final = get_item_emoji("бабло")
+PAGER_CONTROLLERS: Final = [
+    InlineKeyboardButton(text="↩️", callback_data="{name} start {pos} {user_id}"),
+    InlineKeyboardButton(text="⬅️", callback_data="{name} back {pos} {user_id}"),
+    InlineKeyboardButton(text="➡️", callback_data="{name} next {pos} {user_id}"),
+    InlineKeyboardButton(text="↪️", callback_data="{name} end {pos} {user_id}"),
+]

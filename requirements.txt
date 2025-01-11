@@ -1,5 +1,4 @@
 changelog-parser @ git+https://github.com/HamletSargsyan/changelog-parser@main
-pyTelegramBotAPI==4.25.0
 pymongo==4.10.1
 transliterate==1.10.2
 redis==5.2.1
@@ -11,3 +10,4 @@ cachetools==5.5.0
 dacite==1.8.1
 python-dateutil==2.9.0.post0
 tinylogging==3.2.0
+aiogram==3.17.0

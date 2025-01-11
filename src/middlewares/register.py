@@ -1,11 +1,12 @@
-from telebot import BaseMiddleware, CancelUpdate
-from telebot.types import Message
+from typing import Any, Awaitable, Callable
+from aiogram import BaseMiddleware
+from aiogram.types import Message, TelegramObject
 
 from helpers.utils import from_user, remove_not_allowed_symbols
 
 from database.funcs import database
 from database.models import UserModel
-from config import logger
+from config import TELEGRAM_ID, logger
 
 
 def register_user(message: Message):
@@ -20,18 +21,17 @@ def register_user(message: Message):
 
 
 class RegisterMiddleware(BaseMiddleware):
-    def __init__(self) -> None:
-        self.update_types = ["message"]
+    async def __call__(
+        self,
+        handler: Callable[[TelegramObject, dict[str, Any]], Awaitable[Any]],
+        event: TelegramObject,
+        data: dict[str, Any],
+    ):
+        if isinstance(event, Message):
+            if event.from_user.id == TELEGRAM_ID or event.from_user.is_bot:
+                return
 
-    def pre_process(self, message: Message, data):
-        if from_user(message).is_bot:
-            return CancelUpdate()
-        register_user(message)
-
-        if message.reply_to_message:
-            if from_user(message.reply_to_message).is_bot:
-                return CancelUpdate()
-            register_user(message.reply_to_message)
-
-    def post_process(self, message, data, exception):
-        pass
+            register_user(event)
+            if event.reply_to_message:
+                register_user(event.reply_to_message)
+            return await handler(event, data)
