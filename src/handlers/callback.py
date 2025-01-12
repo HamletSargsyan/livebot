@@ -101,7 +101,7 @@ async def dog_callback(call: CallbackQuery):
 
         await call.message.delete()
         await call.message.answer_sticker(
-            "CAACAgIAAxkBAAEpvz9l211Kyfi280mwFR6XMKUhzMXbiwACGAEAAjDUnREiQ2-IziTqFTQE"
+            "CAACAgIAAxkBAAEpvz9l211Kyfi280mwFR6XMKUhzMXbiwACGAEAAjDUnREiQ2-IziTqFTQE"  # cspell:disable-line # pylint: disable=line-too-long
         )
 
         await call.message.answer(
@@ -260,8 +260,8 @@ async def finish_quest_callback(call: CallbackQuery):
 
     user_message = call.message.reply_to_message
     await call.message.answer_sticker(
-        "CAACAgIAAxkBAAEpslFl2JwAAaZFMa3RM-3fKaHU7RYrOSQAAoIPAAJ73EFKS4aLwGmJ_Ok0BA",
-    )  # cspell:disable-line  # pylint: disable=line-too-long
+        "CAACAgIAAxkBAAEpslFl2JwAAaZFMa3RM-3fKaHU7RYrOSQAAoIPAAJ73EFKS4aLwGmJ_Ok0BA",  # cspell:disable-line  # pylint: disable=line-too-long
+    )
     if user_message:
         await user_message.reply(mess)
     else:
@@ -384,7 +384,7 @@ async def trader_callback(call: CallbackQuery):
 
         user.coin -= price
         user_item.quantity += quantity
-        await call.mesage.delete()
+        await call.message.delete()
         await call.message.answer(f"Купил {quantity} {item.name} {item.emoji} за {price}")
 
 
