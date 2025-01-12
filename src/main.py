@@ -1,20 +1,21 @@
 import argparse
 import asyncio
 
-
 from aiogram import Dispatcher
 from aiogram.types import BotCommand
 from tinylogging import Level
 
-import handlers as _  # noqa: F401 # type: ignore
 from config import aiogram_logger, bot, config, logger
 from database.funcs import database
+from handlers import router as handlers_router
 from helpers.exceptions import NoResult
 from middlewares import middlewares
 from tasks.check import check
 from tasks.notification import notification
 
 dp = Dispatcher()
+
+dp.include_router(handlers_router)
 
 
 async def configure_bot_commands():
@@ -80,7 +81,7 @@ async def main(args: argparse.Namespace):
         user.is_admin = True
         database.users.update(**user.to_dict())
 
-    await dp.start_polling(bot)
+    await dp.start_polling(bot, handle_signals=False)
 
 
 if __name__ == "__main__":

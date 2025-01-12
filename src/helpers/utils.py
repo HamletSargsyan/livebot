@@ -24,7 +24,7 @@ from typing import (
 
 import httpx
 from aiogram.exceptions import TelegramAPIError, TelegramRetryAfter
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message, User
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from semver import Version
 from tinylogging import Level, Record
@@ -77,7 +77,7 @@ def deprecated(
 def cached(func: Callable[P, T]):
     @wraps(func)
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
-        key = frozenset((args, kwargs))
+        key = frozenset((*args, *tuple(kwargs.items())))
         if key in cache:
             result: T = cache[key]
         else:
@@ -91,6 +91,7 @@ def utcnow() -> datetime:
     return datetime.now(UTC)
 
 
+@cached
 def split_string(text: str, chars_per_string: int) -> list[str]:
     return [text[i : i + chars_per_string] for i in range(0, len(text), chars_per_string)]
 
@@ -133,8 +134,6 @@ def log(record: Record) -> None:
         '<pre><code class="language-shell">{text}</code></pre>'
     )
 
-    print(record.message, record.name)
-
     for text in split_string(record.message, 3000):
         try:
             _log(log_template.format(text=escape(text)))
@@ -151,6 +150,7 @@ def remove_not_allowed_symbols(text: str) -> str:
     return cleaned_text
 
 
+@cached
 def get_time_difference_string(d: timedelta) -> str:
     years, days_in_year = divmod(d.days, 365)
     months, days = divmod(days_in_year, 30)
@@ -173,6 +173,7 @@ def get_time_difference_string(d: timedelta) -> str:
     return data
 
 
+@cached
 def get_user_tag(user: UserModel):
     return f"<a href='tg://user?id={user.id}'>{user.name}</a>"
 
@@ -234,13 +235,14 @@ class Loading:
         try:
             msg = await self.loading_message.reply(mess, reply_markup=markup)
         except Exception:
-            msg = await self.loading_message.reply(mess, reply_markup=markup)
+            msg = await self.message.answer(mess, reply_markup=markup)
         self.loading_message = msg
 
     async def __aexit__(self, exc_type, exc_value, traceback):
         await self.loading_message.delete()
 
 
+@cached
 def get_pager_controllers(name: str, pos: int, user_id: Union[int, str]):
     return [
         InlineKeyboardButton(
@@ -269,6 +271,7 @@ def get_middle_item_price(name: str) -> int:
     return int(price)
 
 
+@cached
 def calc_xp_for_level(level: int) -> int:
     return 5 * level + 50 * level + 100
 
@@ -314,15 +317,7 @@ def check_version() -> str:  # type: ignore
             return "текущая версия бота больше чем в репозитории"
 
 
-@deprecated(
-    remove_in=Version(major=11),
-    deprecated_in=Version(major=10),
-    message="Use `message.from_user` instead",
-)
-def from_user(message: Message) -> User:
-    return message.from_user  # type: ignore
-
-
+@cached
 def get_achievement(name: str) -> Achievement:
     for achievement in ACHIEVEMENTS:
         if name == achievement.name:
@@ -394,12 +389,14 @@ def increment_achievement_progress(user: UserModel, key: str, quantity: int = 1)
         )
 
 
+@cached
 def calc_percentage(part: int, total: int = 100) -> float:
     if total == 0:
         raise ValueError("Общий объем не может быть равен нулю")
     return (part / total) * 100
 
 
+@cached
 def create_progress_bar(percentage: float) -> str:
     if not (0 <= percentage <= 100):  # pylint: disable=superfluous-parens
         raise ValueError("Процент должен быть в диапазоне от 0 до 100.")
@@ -425,6 +422,7 @@ def achievement_status(user: UserModel, achievement: Achievement) -> int:
     return 1  # Не начато
 
 
+@cached
 def parse_time_duration(time_str: str) -> timedelta:
     """
     Parse time duration in the format like 2d, 3h, 15m and return the timedelta.
@@ -442,6 +440,7 @@ def parse_time_duration(time_str: str) -> timedelta:
     raise ValueError("Неверный формат времени. Используйте {d,h,m} для дней, часов, минут.")
 
 
+@cached
 def pretty_datetime(d: datetime) -> str:
     return d.strftime("%H:%M %d.%m.%Y")
 
@@ -479,6 +478,7 @@ async def safe(func: Awaitable[T]) -> Optional[T]:
         return await antiflood(func)
 
 
+@cached
 def quick_markup(values: dict[str, dict[str, Any]], row_width: int = 2) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     buttons = [InlineKeyboardButton(text=text, **kwargs) for text, kwargs in values.items()]

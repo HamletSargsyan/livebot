@@ -6,8 +6,7 @@
   },
   {
     "label": "fix",
-    "command": "task fix",
-    "hide": "on_success"
+    "command": "task fix"
   },
   {
     "label": "lint",

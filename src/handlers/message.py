@@ -35,8 +35,6 @@ from config import VERSION, config
 
 from database.funcs import database
 
-from handlers import admin  # noqa  # pylint: disable=unused-import
-
 from helpers.consts import COIN_EMOJI
 from helpers.enums import ItemType
 from helpers.exceptions import ItemNotFoundError, NoResult
@@ -46,7 +44,6 @@ from helpers.utils import (
     check_user_subscription,
     check_version,
     batched,
-    from_user,
     get_item,
     get_item_emoji,
     get_middle_item_price,
@@ -82,7 +79,7 @@ start_markup_builder.add(
     KeyboardButton(text="Достижения"),
 )
 
-START_MARKUP = start_markup_builder.as_markup()
+START_MARKUP = start_markup_builder.as_markup()  # pylint: disable=assignment-from-no-return
 
 
 @router.message(CommandStart())
@@ -108,7 +105,7 @@ async def start(message: Message, command: CommandObject):
                 if not ref_user:
                     await message.reply(mess, reply_markup=START_MARKUP)
                     return
-                user = database.users.get(id=from_user(message).id)
+                user = database.users.get(id=message.from_user.id)
 
                 coin = random.randint(5000, 15000)
                 ref_user.coin += coin
@@ -151,9 +148,9 @@ async def help(message: Message):
 async def profile_cmd(message: Message):
     async with Loading(message):
         if message.reply_to_message:
-            user = user = database.users.get(id=from_user(message.reply_to_message).id)
+            user = user = database.users.get(id=message.reply_to_message.id)
         else:
-            user = database.users.get(id=from_user(message).id)
+            user = database.users.get(id=message.from_user.id)
 
         await check_user_stats(user, message.chat.id)
 
@@ -174,7 +171,7 @@ async def profile_cmd(message: Message):
 @router.message(Command("bag"))
 async def bag_cmd(message: Message):
     async with Loading(message):
-        user = database.users.get(id=from_user(message).id)
+        user = database.users.get(id=message.from_user.id)
 
         mess = "<b>Рюкзак</b>\n\n"
         inventory = database.items.get_all(**{"owner": user._id})
@@ -200,7 +197,7 @@ async def bag_cmd(message: Message):
 async def items_cmd(message: Message):
     async with Loading(message):
         mess = f"<b>Предметы</b>\n\n1 / {len(list(batched(ITEMS, 6)))}"
-        user = database.users.get(id=from_user(message).id)
+        user = database.users.get(id=message.from_user.id)
         markup = markup = InlineMarkup.items_pager(user=user)
 
         await message.reply(mess, reply_markup=markup)
@@ -229,7 +226,7 @@ async def shop_cmd(message: Message):
             await message.reply(err_mess)
             return
 
-        user = database.users.get(id=from_user(message).id)
+        user = database.users.get(id=message.from_user.id)
 
         item_name = args[1]
         try:
@@ -285,7 +282,7 @@ async def casino(message: Message, command: CommandObject):
         except ValueError:
             count = 1
 
-        user = database.users.get(id=from_user(message).id)
+        user = database.users.get(id=message.from_user.id)
 
         ticket = get_or_add_user_item(user, "билет")
 
@@ -331,7 +328,7 @@ async def casino(message: Message, command: CommandObject):
 @router.message(Command("craft"))
 async def workbench_cmd(message: Message):
     async with Loading(message):
-        user = database.users.get(id=from_user(message).id)
+        user = database.users.get(id=message.from_user.id)
 
         mess = (
             "<b>🧰Верстак🧰</b>\n\n"
@@ -415,8 +412,8 @@ async def transfer_cmd(message: Message):
             await message.reply("Кому кидать собрался??")
             return
 
-        user = database.users.get(id=from_user(message).id)
-        reply_user = database.users.get(id=from_user(message.reply_to_message).id)
+        user = database.users.get(id=message.from_user.id)
+        reply_user = database.users.get(id=message.reply_to_message.id)
 
         args = message.text.split(" ")
 
@@ -479,7 +476,7 @@ async def transfer_cmd(message: Message):
 @router.message(Command("event"))
 async def event_cmd(message: Message):
     async with Loading(message):
-        user = database.users.get(id=from_user(message).id)
+        user = database.users.get(id=message.from_user.id)
         markup = quick_markup(
             {"Гайд": {"url": "https://hamletsargsyan.github.io/livebot/guide/#ивент"}}
         )
@@ -527,9 +524,9 @@ async def top_cmd(message: Message):
 
         markup = quick_markup(
             {
-                "🪙": {"callback_data": f"top coin {from_user(message).id}"},
-                "🏵": {"callback_data": f"top level {from_user(message).id}"},
-                "🐶": {"callback_data": f"top dog_level {from_user(message).id}"},
+                "🪙": {"callback_data": f"top coin {message.from_user.id}"},
+                "🏵": {"callback_data": f"top level {message.from_user.id}"},
+                "🐶": {"callback_data": f"top dog_level {message.from_user.id}"},
             }
         )
 
@@ -539,7 +536,7 @@ async def top_cmd(message: Message):
 @router.message(Command("use"))
 async def use_cmd(message: Message):
     async with Loading(message):
-        user = database.users.get(id=from_user(message).id)
+        user = database.users.get(id=message.from_user.id)
 
         args = message.text.split(" ")
 
@@ -558,7 +555,7 @@ async def use_cmd(message: Message):
 @router.message(Command("ref"))
 async def ref(message: Message):
     async with Loading(message):
-        user = database.users.get(id=from_user(message).id)
+        user = database.users.get(id=message.from_user.id)
 
         mess = (
             "Хочешь заработать?\n"
@@ -571,11 +568,11 @@ async def ref(message: Message):
 @router.message(Command("promo"))
 async def promo(message: Message) -> None:
     async with Loading(message):
-        user = database.users.get(id=from_user(message).id)
+        user = database.users.get(id=message.from_user.id)
 
         await message.delete()
         if not check_user_subscription(user):
-            send_channel_subscribe_message(message)
+            await send_channel_subscribe_message(message)
             return
 
         text = message.text.split(" ")
@@ -625,7 +622,7 @@ async def promo(message: Message) -> None:
 @router.message(Command("stats"))
 async def stats_cmd(message: Message):
     async with Loading(message):
-        user = database.users.get(id=from_user(message).id)
+        user = database.users.get(id=message.from_user.id)
 
         mess = (
             "<b>Статистика</b>\n\n\n"
@@ -703,7 +700,7 @@ async def exchanger_cmd(message: Message):
     #     )
     #     return
     async with Loading(message):
-        user = database.users.get(id=from_user(message).id)
+        user = database.users.get(id=message.from_user.id)
         markup = quick_markup(
             {"Гайд": {"url": "https://hamletsargsyan.github.io/livebot/guide/#обменник"}}
         )
@@ -770,7 +767,7 @@ async def exchanger_cmd(message: Message):
 @router.message(Command("dog"))
 async def dog_cmd(message: Message):
     async with Loading(message):
-        user = database.users.get(id=from_user(message).id)
+        user = database.users.get(id=message.from_user.id)
 
         try:
             dog = database.dogs.get(owner=user._id)
@@ -864,7 +861,7 @@ async def price_cmd(message: Message):
 @router.message(Command("home"))
 async def home_cmd(message: Message):
     async with Loading(message):
-        user = database.users.get(id=from_user(message).id)
+        user = database.users.get(id=message.from_user.id)
         mess = "🏠 Дом милый дом"
 
         markup = InlineMarkup.home_main(user)
@@ -882,7 +879,7 @@ async def guide_cmd(message: Message):
 
 @router.message(Command("market"))
 async def market_cmd(message: Message):
-    user = database.users.get(id=from_user(message).id)
+    user = database.users.get(id=message.from_user.id)
 
     mess = "<b>Рынок</b>\n\n"
 
@@ -895,10 +892,10 @@ async def market_cmd(message: Message):
 
 @router.message(Command("daily_gift"))
 async def daily_gift_cmd(message: Message):
-    user = database.users.get(id=from_user(message).id)
+    user = database.users.get(id=message.from_user.id)
 
     if not check_user_subscription(user):
-        send_channel_subscribe_message(message)
+        await send_channel_subscribe_message(message)
         return
 
     try:
@@ -1019,7 +1016,7 @@ async def left_chat_member(event: ChatMemberUpdated):
 
 @router.message()
 async def text_message_handler(message: Message):
-    user = database.users.get(id=from_user(message).id)
+    user = database.users.get(id=message.from_user.id)
     text = message.text.lower().strip()
 
     match text:

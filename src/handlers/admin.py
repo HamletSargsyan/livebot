@@ -16,7 +16,6 @@ from helpers.utils import (
     Loading,
     MessageEditor,
     antiflood,
-    from_user,
     get_item,
     get_user_tag,
     parse_time_duration,
@@ -213,7 +212,7 @@ async def unban_cmd(message: Message):
 @router.message(Command("add_promo"))
 async def add_promo(message: Message):
     async with Loading(message):
-        user = database.users.get(id=from_user(message).id)
+        user = database.users.get(id=message.from_user.id)
 
         if not user.is_admin:
             return

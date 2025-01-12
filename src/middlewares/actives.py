@@ -14,11 +14,10 @@ class ActiveMiddleware(BaseMiddleware):
         event: TelegramObject,
         data: dict[str, Any],
     ):
+        result = await handler(event, data)
         if isinstance(event, (Message, CallbackQuery)):
             if event.from_user.id == TELEGRAM_ID or event.from_user.is_bot:
                 return
-
-            result = await handler(event, data)
 
             user_id = event.from_user.id
             user = database.users.get(id=user_id)

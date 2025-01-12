@@ -38,7 +38,7 @@ class RuleCheckMiddleware(BaseMiddleware):
             user = database.users.get(id=event.from_user.id)
 
             if user.accepted_rules:
-                return
+                return await handler(event, data)
 
             if isinstance(event, Message) and not event.text.startswith("/start"):
                 await send_rules_message(event, user)
@@ -46,5 +46,3 @@ class RuleCheckMiddleware(BaseMiddleware):
             if isinstance(event, CallbackQuery) and not event.data.startswith("accept_rules"):
                 await send_rules_message(event.message, user)  # pyright: ignore
                 return
-
-        return await handler(event, data)
