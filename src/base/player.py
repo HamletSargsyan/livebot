@@ -112,7 +112,7 @@ async def check_user_stats(user: UserModel, chat_id: Union[str, int, None] = Non
     if user.coin < 0:
         user.coin = 0
 
-    check_achievements(user)
+    await check_achievements(user)
 
     # TODO edit
     # tg_user = bot.get_chat(user.id)
@@ -279,7 +279,7 @@ def get_available_items_for_use(user: UserModel) -> list[ItemModel]:
 
 
 async def use_item(message: Message, name: str):
-    with Loading(message):
+    async with Loading(message):
         user = database.users.get(id=message.from_user.id)
 
         item = get_item(name)
@@ -542,8 +542,8 @@ def generate_daily_gift(user: UserModel):
     return daily_gift
 
 
-def check_achievements(user: UserModel):
+async def check_achievements(user: UserModel):
     for key in list(user.achievement_progress):
         ach = get_achievement(key.replace("-", " "))
         if ach.check(user):
-            award_user_achievement(user, ach)
+            await award_user_achievement(user, ach)

@@ -5,6 +5,7 @@ import json
 import random
 import statistics
 from contextlib import suppress
+from dataclasses import is_dataclass, astuple
 from datetime import UTC, datetime, timedelta
 from functools import wraps
 from html import escape
@@ -74,10 +75,20 @@ def deprecated(
     return decorator
 
 
+def make_hashable(value: Any):
+    if isinstance(value, dict):
+        return tuple((k, make_hashable(v)) for k, v in sorted(value.items()))
+    if isinstance(value, (list, set, tuple)):
+        return tuple(make_hashable(v) for v in value)
+    if is_dataclass(value):
+        return make_hashable(astuple(value))
+    return value
+
+
 def cached(func: Callable[P, T]):
     @wraps(func)
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
-        key = frozenset((*args, *tuple(kwargs.items())))
+        key = frozenset((make_hashable(args), make_hashable(kwargs)))
         if key in cache:
             result: T = cache[key]
         else:

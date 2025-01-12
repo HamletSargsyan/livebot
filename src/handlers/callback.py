@@ -28,7 +28,6 @@ from base.player import (
     use_item,
 )
 
-
 from database.funcs import database
 from database.models import DogModel
 
@@ -515,7 +514,7 @@ async def open_callback(call: CallbackQuery):
         await call.message.edit_text(mess, reply_markup=markup)
 
 
-@router.callback_query(F.data.startswith("market"))
+@router.callback_query(F.data.split(" ")[0] == "market")
 async def market_callback(call: CallbackQuery, state: FSMContext):
     data = call.data.split(" ")
 
@@ -555,11 +554,14 @@ async def market_callback(call: CallbackQuery, state: FSMContext):
             return
 
         builder.add(*buttons)
+        builder.adjust(3)
+
+        await state.set_state(AddNewItemState.name)
+
         await call.message.edit_text(
             "<b>Продажа предмета</b>\nВыбери предмет", reply_markup=builder.as_markup()
         )
 
-        await state.set_state(AddNewItemState.name)
     elif data[1] == "buy":
         try:
             market_item = database.market_items.get(_id=ObjectId(data[2]))
@@ -650,7 +652,6 @@ async def market_callback(call: CallbackQuery, state: FSMContext):
         try:
             action = call.data.split(" ")[1]
             pos = int(call.data.split(" ")[2])
-
             market_items = database.market_items.get_all()
             max_pos = len(list(batched(market_items, 6))) - 1
 
@@ -670,7 +671,7 @@ async def market_callback(call: CallbackQuery, state: FSMContext):
             markup = InlineMarkup.market_pager(user=user, index=pos)
 
             await call.message.edit_text(mess, reply_markup=markup)
-        except (IndexError, TelegramAPIError):
+        except IndexError:
             await call.answer("Дальше ничо нету", show_alert=True)
 
 

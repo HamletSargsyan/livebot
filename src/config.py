@@ -7,7 +7,6 @@ import toml
 
 from aiogram import Bot
 from aiogram.client.default import DefaultBotProperties
-from aiogram.fsm.storage.redis import RedisStorage
 from aiogram.types import LinkPreviewOptions
 
 from dns import resolver
@@ -134,8 +133,6 @@ for handler in logger.handlers:
 #     format="%(asctime)s - %(levelname)s - %(module)s - %(message)s",
 #     datefmt="%d-%m-%y %H:%M:%S",
 # )
-
-state_storage = RedisStorage.from_url(config.redis.url)
 
 
 bot: Final = Bot(

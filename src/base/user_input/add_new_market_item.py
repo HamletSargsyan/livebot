@@ -56,7 +56,7 @@ async def name_state(call: CallbackQuery, state: FSMContext):
     )
     await state.set_state(AddNewItemState.quantity)
 
-    redis_cache.setex(f"{user.id}_item_add_message", 300, call.message.id)  # type: ignore
+    redis_cache.setex(f"{user.id}_item_add_message", 300, call.message.message_id)  # type: ignore
 
 
 # TODO
@@ -73,9 +73,9 @@ async def invalid_int_input(message: Message):
 
 @router.message(StateFilter(AddNewItemState.quantity), IsDigitFilter())
 async def quantity_state(message: Message, state: FSMContext):
-    user = database.users.get(id=message.from_message.id)
-
-    user_item = database.items.get(owner=user._id, name=await state.get("name"))
+    user = database.users.get(id=message.from_user.id)
+    data = await state.get_data()
+    user_item = database.items.get(owner=user._id, name=data.get("name"))
     await state.update_data(user_item=user_item)
 
     if user_item.quantity < int(message.text):  # type: ignore
@@ -92,30 +92,32 @@ async def quantity_state(message: Message, state: FSMContext):
     markup = InlineMarkup.delate_state(user)
     await message.bot.edit_message_text(
         f"<b>Продажа предмета {item.emoji}</b>\nВведи прайс (+-{get_middle_item_price(item.name)}/шт)",
-        call_message_id,  # type: ignore
+        message_id=call_message_id,  # type: ignore
+        chat_id=message.chat.id,
         reply_markup=markup,
     )
 
     await state.set_state(AddNewItemState.price)
 
 
-@router.message(StateFilter(AddNewItemState.price), IsDigitFilter)
+@router.message(StateFilter(AddNewItemState.price), IsDigitFilter())
 async def price_state(message: Message, state: FSMContext):
     user = database.users.get(id=message.from_user.id)
 
+    data = await state.get_data()
     try:
-        user_item = database.items.get(owner=user._id, name=await state.get("name"))
+        user_item = database.items.get(owner=user._id, name=data.get("name"))
     except NoResult:
         await message.reply("У тебя нет такого предмета")
         return
 
-    if user_item.quantity < await state.get("quantity"):
+    if user_item.quantity < data.get("quantity"):  # type: ignore
         await message.reply("У тебя нет столько")
         return
 
     item = MarketItemModel(
-        name=await state.get("name").lower(),
-        quantity=await state.get("quantity"),
+        name=data.get("name").lower(),
+        quantity=data.get("quantity"),  # type: ignore
         price=int(message.text),  # type: ignore
         owner=user._id,
     )

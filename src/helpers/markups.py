@@ -49,9 +49,9 @@ class InlineMarkup:
                 },
             }
         )
-
-        markup.row(InlineKeyboardButton(text="Назад", callback_data=f"actions back {user.id}"))
-        return markup
+        builder = InlineKeyboardBuilder.from_markup(markup)
+        builder.row(InlineKeyboardButton(text="Назад", callback_data=f"actions back {user.id}"))
+        return builder.as_markup()
 
     @classmethod
     def update_action(cls, user: UserModel, name: str) -> InlineKeyboardMarkup:
@@ -101,15 +101,15 @@ class InlineMarkup:
         except IndexError:
             pass
 
-        buttons.reverse()
+        # buttons.reverse()
         builder = InlineKeyboardBuilder()
         builder.add(*buttons)
         pager_controllers = get_pager_controllers("market", pos=index, user_id=user.id)
         pager_controllers.insert(
             2, InlineKeyboardButton(text="🛍", callback_data=f"open market-profile {user.id}")
         )
+        builder.adjust(1)
         builder.row(*pager_controllers)
-        builder.adjust(2)
 
         return builder.as_markup()
 

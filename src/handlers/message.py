@@ -79,13 +79,14 @@ start_markup_builder.add(
     KeyboardButton(text="Достижения"),
 )
 
+start_markup_builder.adjust(3)
 START_MARKUP = start_markup_builder.as_markup()  # pylint: disable=assignment-from-no-return
 
 
 @router.message(CommandStart())
 async def start(message: Message, command: CommandObject):
     async with Loading(message):
-        user_id = message.message.id
+        user_id = message.from_user.id
 
         user = database.users.get(id=message.from_user.id)
 

@@ -3,6 +3,8 @@ import asyncio
 
 from aiogram import Dispatcher
 from aiogram.types import BotCommand
+from aiogram.fsm.storage.redis import RedisStorage
+
 from tinylogging import Level
 
 from config import aiogram_logger, bot, config, logger
@@ -13,7 +15,10 @@ from middlewares import middlewares
 from tasks.check import check
 from tasks.notification import notification
 
-dp = Dispatcher()
+
+dp = Dispatcher(
+    state_storage=RedisStorage.from_url(config.redis.url),
+)
 
 dp.include_router(handlers_router)
 
