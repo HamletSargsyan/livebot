@@ -102,7 +102,7 @@ async def start(message: Message, command: CommandObject):
                 if user is not None:
                     await message.reply(mess)
                     return
-                ref_user = user = database.users.get(id=param)
+                ref_user = user = database.users.get(id=int(param))
                 if not ref_user:
                     await message.reply(mess, reply_markup=START_MARKUP)
                     return
@@ -554,14 +554,14 @@ async def use_cmd(message: Message):
 
 
 @router.message(Command("ref"))
-async def ref(message: Message):
+async def ref_cmd(message: Message):
     async with Loading(message):
         user = database.users.get(id=message.from_user.id)
 
         mess = (
             "Хочешь заработать?\n"
             "Ты по адресу, пригласи друзей и получи от 5к до 15к бабла\n"
-            f"Вот твоя ссылочка: https://t.me/{await message.bot.me().username}?start={user.id}"
+            f"Вот твоя ссылочка: https://t.me/{(await message.bot.me()).username}?start={user.id}"
         )
         await message.reply(mess)
 
@@ -572,7 +572,7 @@ async def promo(message: Message) -> None:
         user = database.users.get(id=message.from_user.id)
 
         await message.delete()
-        if not check_user_subscription(user):
+        if not await check_user_subscription(user):
             await send_channel_subscribe_message(message)
             return
 

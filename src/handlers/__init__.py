@@ -8,4 +8,4 @@ from base.user_input import router as user_input_router
 __all__ = ["router"]
 router = Router()
 
-router.include_routers(callback_router, user_input_router, message_router, admin_router)
+router.include_routers(callback_router, user_input_router, admin_router, message_router)

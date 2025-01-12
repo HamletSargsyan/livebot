@@ -853,7 +853,7 @@ async def achievements_callback(call: CallbackQuery):
         filter = data[2]
         markup = InlineMarkup.achievements_view(user, filter)  # type: ignore
 
-        await call.message.edit_message_reply_markup(reply_markup=markup)
+        await call.message.edit_reply_markup(reply_markup=markup)
 
 
 @router.callback_query(F.data.startswith("accept_rules"))
