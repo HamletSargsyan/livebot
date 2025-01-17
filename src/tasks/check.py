@@ -1,3 +1,4 @@
+import asyncio
 import random
 from itertools import filterfalse
 
@@ -6,7 +7,7 @@ from database.funcs import database
 from base.player import check_user_stats
 
 
-async def check():
+async def _check():
     users = database.users.get_all()
 
     for user in users:
@@ -28,3 +29,9 @@ async def check():
 
         database.users.update(**user.to_dict())
         await check_user_stats(user)
+
+
+async def check():
+    while True:
+        await _check()
+        await asyncio.sleep(3600)  # 1h

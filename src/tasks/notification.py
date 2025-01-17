@@ -7,7 +7,7 @@ from helpers.exceptions import NoResult
 from helpers.utils import antiflood, quick_markup, utcnow
 
 
-async def notification():
+async def _notification():
     users = database.users.get_all()
 
     for user in users:
@@ -40,9 +40,14 @@ async def notification():
                     continue
 
                 markup = quick_markup({"Дом": {"callback_data": f"open home {user.id}"}})
-                await antiflood(bot.send_message, user.id, mess, reply_markup=markup)
+                await antiflood(bot.send_message(user.id, mess, reply_markup=markup))
 
         except TelegramAPIError:
             continue
 
         database.notifications.update(**user_notification.to_dict())
+
+
+async def notification():
+    while True:
+        await _notification()
