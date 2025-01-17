@@ -8,7 +8,6 @@ from contextlib import suppress
 from dataclasses import is_dataclass, astuple
 from datetime import UTC, datetime, timedelta
 from functools import wraps
-from html import escape
 from typing import (
     Any,
     Iterable,
@@ -28,7 +27,6 @@ from aiogram.exceptions import TelegramAPIError, TelegramRetryAfter
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from semver import Version
-from tinylogging import Level, Record
 
 from base.achievements import ACHIEVEMENTS
 from base.items import ITEMS
@@ -105,52 +103,6 @@ def utcnow() -> datetime:
 @cached
 def split_string(text: str, chars_per_string: int) -> list[str]:
     return [text[i : i + chars_per_string] for i in range(0, len(text), chars_per_string)]
-
-
-def _log(message: str):
-    url = f"https://api.telegram.org/bot{config.telegram.token}/sendMessage"
-
-    payload = {
-        "chat_id": config.telegram.log_chat_id,
-        "text": message,
-        "parse_mode": "HTML",
-    }
-
-    if config.telegram.log_thread_id is not None:
-        payload["message_thread_id"] = str(config.telegram.log_thread_id)
-
-    response = httpx.post(url, json=payload)
-    if not response.is_success:
-        print(response.text)
-    response.raise_for_status()
-
-
-def log(record: Record) -> None:
-    emoji_dict = {
-        Level.DEBUG: "👾",
-        Level.INFO: "ℹ️",
-        Level.WARNING: "⚠️",
-        Level.ERROR: "🛑",
-        Level.CRITICAL: "⛔",
-    }
-    current_time = datetime.now(UTC).strftime("%d.%m.%Y %H:%M:%S")
-    log_template = (
-        f'<b>{emoji_dict.get(record.level, "")} {record.level.name}</b>\n\n'
-        f"{current_time}\n\n"
-        f"<b>Логгер:</b> <code>{record.name}</code>\n"  # cspell: disable-line
-        # f"<b>Модуль:</b> <code>{record.module}</code>\n"
-        f"<b>Путь к файлу:</b> <code>{record.filename}</code>\n"
-        f"<b>Файл</b>: <code>{record.relpath}</code>\n"
-        f"<b>Строка:</b> {record.line}\n\n"
-        '<pre><code class="language-shell">{text}</code></pre>'
-    )
-
-    for text in split_string(record.message, 3000):
-        try:
-            _log(log_template.format(text=escape(text)))
-        except Exception as e:
-            print(e)
-            print(text)
 
 
 @cached

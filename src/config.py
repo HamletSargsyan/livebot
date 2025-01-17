@@ -11,7 +11,8 @@ from aiogram.types import LinkPreviewOptions
 
 from dns import resolver
 from semver import Version
-from tinylogging import BaseHandler, Level, Logger, LoggingAdapterHandler
+from tinylogging import Level, Logger, LoggingAdapterHandler, TelegramHandler
+from tinylogging.helpers import TelegramFormatter
 
 TELEGRAM_ID: Final = 777000
 
@@ -111,29 +112,20 @@ with open("version") as f:
 logger = Logger("Bot", Level.DEBUG if config.general.debug else Level.INFO)
 
 
-class TelegramLogsHandler(BaseHandler):
-    def emit(self, record):
-        if record.level <= Level.DEBUG and record.name == aiogram_logger.name:
-            return
-        from helpers.utils import log  # pylint: disable=cyclic-import
-
-        log(record)
-
-
-logger.handlers.add(TelegramLogsHandler())
+logger.handlers.add(
+    TelegramHandler(
+        chat_id=config.telegram.log_chat_id,
+        token=config.telegram.token,
+        message_thread_id=config.telegram.log_thread_id,
+        formatter=TelegramFormatter(),
+    )
+)
 
 aiogram_logger = logging.getLogger("aiogram")
 aiogram_logger.handlers = []
 
 for handler in logger.handlers:
     aiogram_logger.handlers.append(LoggingAdapterHandler(handler))
-
-# logging.basicConfig(
-#     level=logging.DEBUG,
-#     format="%(asctime)s - %(levelname)s - %(module)s - %(message)s",
-#     datefmt="%d-%m-%y %H:%M:%S",
-# )
-
 
 bot: Final = Bot(
     token=config.telegram.token,
