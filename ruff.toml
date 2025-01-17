@@ -29,7 +29,7 @@ exclude = [
 line-length = 100
 indent-width = 4
 
-target-version = "py312"
+target-version = "py311"
 
 [lint]
 # Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.
@@ -71,4 +71,3 @@ docstring-code-format = true
 # This only has an effect when the `docstring-code-format` setting is
 # enabled.
 docstring-code-line-length = "dynamic"
-

@@ -3,12 +3,11 @@ import httpx
 
 from database.funcs import cache
 from helpers.datatypes import WeatherData
-from config import config, logger
+from config import config
 
 
 def _get_coords_from_region(name: str) -> tuple[float, float]:
     if f"coords_{name}" in cache:
-        logger.debug("cache")
         return cache[f"coords_{name}"]
 
     url = "https://geocoding-api.open-meteo.com/v1/search"
@@ -27,9 +26,7 @@ def _get_coords_from_region(name: str) -> tuple[float, float]:
 
 def get_weather() -> WeatherData:
     if "weather_data" in cache:
-        logger.debug("cache")
         return cache["weather_data"]
-    logger.debug("new")
 
     coords = _get_coords_from_region(config.weather.region)
     url = "https://api.open-meteo.com/v1/forecast"

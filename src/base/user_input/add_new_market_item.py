@@ -1,13 +1,13 @@
-# pyright: reportOptionalContextManager=none
+from aiogram import Router, F
+from aiogram.filters import StateFilter
+from aiogram.types import Message, CallbackQuery
+from aiogram.fsm.state import State, StatesGroup
+from aiogram.fsm.context import FSMContext
 
-from telebot.types import Message, CallbackQuery
-from telebot.handler_backends import State, StatesGroup
-
-
-from config import bot
+from helpers.consts import COIN_EMOJI
 from helpers.enums import ItemType
+from helpers.filters import IsDigitFilter
 from helpers.utils import (
-    from_user,
     get_item,
     get_item_emoji,
     get_middle_item_price,
@@ -19,6 +19,9 @@ from helpers.exceptions import NoResult
 from helpers.markups import InlineMarkup
 
 
+router = Router()
+
+
 class AddNewItemState(StatesGroup):
     name = State()
     item_oid = State()
@@ -26,8 +29,8 @@ class AddNewItemState(StatesGroup):
     price = State()
 
 
-@bot.callback_query_handler(state=AddNewItemState.name, func=lambda c: c.data.startswith("sell"))
-def name_state(call: CallbackQuery):
+@router.callback_query(StateFilter(AddNewItemState.name), F.data.startswith("sell"))
+async def name_state(call: CallbackQuery, state: FSMContext):
     data = call.data.split(" ")
 
     if data[-1] != str(call.from_user.id):
@@ -36,100 +39,99 @@ def name_state(call: CallbackQuery):
     item = get_item(data[1])
 
     if item.type == ItemType.USABLE:
-        bot.answer_callback_query(
-            call.id,
+        await call.message.edit_text(
             "Этот предмет нельзя продавать (https://github.com/HamletSargsyan/livebot/issues/41)",
         )
         return
 
-    with bot.retrieve_data(call.from_user.id, call.message.chat.id) as data:  # type: ignore
-        data["name"] = item.name
+    await state.update_data(name=item.name)
 
     user = database.users.get(id=call.from_user.id)
     user_item = database.items.get(name=item.name, owner=user._id)
 
     markup = InlineMarkup.delate_state(user)
-    bot.edit_message_text(
+    await call.message.edit_text(
         f"<b>Продажа предмета {item.emoji}</b>\nВведи кол-во ({user_item.quantity})",
-        call.message.chat.id,
-        call.message.id,
         reply_markup=markup,
     )
-    bot.set_state(call.from_user.id, AddNewItemState.quantity, call.message.chat.id)
+    await state.set_state(AddNewItemState.quantity)
 
-    redis_cache.setex(f"{user.id}_item_add_message", 300, call.message.id)  # type: ignore
+    redis_cache.setex(f"{user.id}_item_add_message", 300, call.message.message_id)  # type: ignore
 
 
 # TODO
-@bot.message_handler(state=AddNewItemState.item_oid, is_digit=True)
-def select_item_state(message: Message): ...
+@router.message(StateFilter(AddNewItemState.item_oid), IsDigitFilter())
+def select_item_state(message: Message, state: FSMContext): ...
 
 
-@bot.message_handler(state=[AddNewItemState.quantity, AddNewItemState.price], is_digit=False)
-def invalid_int_input(message: Message):
-    user = database.users.get(id=from_user(message).id)
+@router.message(StateFilter(AddNewItemState.quantity, AddNewItemState.price), ~IsDigitFilter())
+async def invalid_int_input(message: Message):
+    user = database.users.get(id=message.from_user.id)
     markup = InlineMarkup.delate_state(user)
-    bot.reply_to(message, "Введите число", reply_markup=markup)
+    await message.reply("Введите число", reply_markup=markup)
 
 
-@bot.message_handler(state=AddNewItemState.quantity, is_digit=True)
-def quantity_state(message: Message):
-    user = database.users.get(id=from_user(message).id)
-    with bot.retrieve_data(from_user(message).id, message.chat.id) as data:  # type: ignore
-        user_item = database.items.get(owner=user._id, name=data["name"])
+@router.message(StateFilter(AddNewItemState.quantity), IsDigitFilter())
+async def quantity_state(message: Message, state: FSMContext):
+    user = database.users.get(id=message.from_user.id)
+    data = await state.get_data()
+    user_item = database.items.get(owner=user._id, name=data.get("name"))
+    await state.update_data(user_item=user_item)
 
     if user_item.quantity < int(message.text):  # type: ignore
-        bot.reply_to(message, "У тебя нет столько")
+        await message.reply("У тебя нет столько")
         return
 
-    with bot.retrieve_data(from_user(message).id, message.chat.id) as data:  # type: ignore
-        data["quantity"] = int(message.text)  # type: ignore
+    await state.update_data(quantity=int(message.text))  # type: ignore
 
-    call_message_id = redis_cache.get(f"{from_user(message).id}_item_add_message")
-    bot.delete_message(message.chat.id, message.id)
+    call_message_id = redis_cache.get(f"{message.from_user.id}_item_add_message")
+
+    await message.delete()
 
     item = get_item(user_item.name)
     markup = InlineMarkup.delate_state(user)
-    bot.edit_message_text(
+    await message.bot.edit_message_text(
         f"<b>Продажа предмета {item.emoji}</b>\nВведи прайс (+-{get_middle_item_price(item.name)}/шт)",
-        message.chat.id,
-        call_message_id,  # type: ignore
+        message_id=call_message_id,  # type: ignore
+        chat_id=message.chat.id,
         reply_markup=markup,
     )
-    bot.set_state(from_user(message).id, AddNewItemState.price, message.chat.id)
+
+    await state.set_state(AddNewItemState.price)
 
 
-@bot.message_handler(state=AddNewItemState.price, is_digit=True)
-def price_state(message: Message):
-    user = database.users.get(id=from_user(message).id)
-    with bot.retrieve_data(from_user(message).id, message.chat.id) as data:  # type: ignore
-        try:
-            user_item = database.items.get(owner=user._id, name=data["name"])
-        except NoResult:
-            bot.reply_to(message, "У тебя нет такого предмета")
-            return
+@router.message(StateFilter(AddNewItemState.price), IsDigitFilter())
+async def price_state(message: Message, state: FSMContext):
+    user = database.users.get(id=message.from_user.id)
 
-        if user_item.quantity < data["quantity"]:
-            bot.reply_to(message, "У тебя нет столько")
-            return
+    data = await state.get_data()
+    try:
+        user_item = database.items.get(owner=user._id, name=data.get("name"))
+    except NoResult:
+        await message.reply("У тебя нет такого предмета")
+        return
 
-        item = MarketItemModel(
-            name=data["name"].lower(),
-            quantity=int(data["quantity"]),
-            price=int(message.text),  # type: ignore
-            owner=user._id,
-        )
+    if user_item.quantity < data.get("quantity"):  # type: ignore
+        await message.reply("У тебя нет столько")
+        return
 
-    bot.delete_state(user.id, message.chat.id)
+    item = MarketItemModel(
+        name=data.get("name").lower(),
+        quantity=data.get("quantity"),  # type: ignore
+        price=int(message.text),  # type: ignore
+        owner=user._id,
+    )
+
+    await state.clear()
     database.market_items.add(**item.to_dict())
     user_item.quantity -= item.quantity
     database.items.update(**user_item.to_dict())
 
-    call_message_id = redis_cache.get(f"{from_user(message).id}_item_add_message")
+    call_message_id = redis_cache.get(f"{message.from_user.id}_item_add_message")
 
-    bot.delete_message(message.chat.id, call_message_id)  # type: ignore
-    bot.delete_message(message.chat.id, message.id)
+    await message.bot.delete_message(message.chat.id, call_message_id)  # type: ignore
+    await message.delete()
 
-    redis_cache.delete(f"{from_user(message).id}_item_add_message")
-    mess = f"{get_user_tag(user)} выставил на продажу {item.quantity} {get_item_emoji(item.name)} за {item.price} {get_item_emoji('бабло')}"
-    bot.send_message(message.chat.id, mess)
+    redis_cache.delete(f"{message.from_user.id}_item_add_message")
+    mess = f"{get_user_tag(user)} выставил на продажу {item.quantity} {get_item_emoji(item.name)} за {item.price} {COIN_EMOJI}"
+    await message.bot.send_message(message.chat.id, mess)

@@ -1,6 +1,7 @@
-from datetime import timedelta
 import random
-from telebot.types import CallbackQuery
+from datetime import timedelta
+
+from aiogram.types import CallbackQuery
 
 from base.mobs import generate_mob
 from base.weather import get_weather
@@ -8,8 +9,6 @@ from base.player import check_user_stats, get_or_add_user_item
 
 from database.funcs import database
 from database.models import UserAction, UserModel
-
-from config import bot
 
 from helpers.exceptions import NoResult
 from helpers.markups import InlineMarkup
@@ -21,17 +20,17 @@ from helpers.utils import (
 )
 
 
-def street(call: CallbackQuery, user: UserModel):
+async def street(call: CallbackQuery, user: UserModel):
     try:
         dog = database.dogs.get(**{"owner": user._id})
     except NoResult:
         dog = None
 
     if user.hunger >= 80:
-        bot.answer_callback_query(call.id, "Ты слишком голодный для прогулки", show_alert=True)
+        await call.answer("Ты слишком голодный для прогулки", show_alert=True)
         return
     elif user.fatigue >= 85:
-        bot.answer_callback_query(call.id, "Ты слишком устал для прогулки", show_alert=True)
+        await call.answer("Ты слишком устал для прогулки", show_alert=True)
         return
 
     current_time = utcnow()
@@ -40,7 +39,7 @@ def street(call: CallbackQuery, user: UserModel):
         user.action = UserAction("street", current_time + timedelta(hours=1))
         database.users.update(**user.to_dict())
     elif user.action.type != "street":
-        bot.answer_callback_query(call.id, "Ты занят чем то другим", show_alert=True)
+        await call.answer("Ты занят чем то другим", show_alert=True)
         return
 
     if user.action.end >= current_time:
@@ -53,30 +52,24 @@ def street(call: CallbackQuery, user: UserModel):
             if mob:
                 mob.init(user, call.message)
                 if dog and mob.name == "псина":
-                    bot.edit_message_text(
+                    await call.message.edit_text(
                         mess,
-                        call.message.chat.id,
-                        call.message.id,
                         reply_markup=InlineMarkup.update_action(user, "street"),
                     )
                     return
                 user.met_mob = True
 
                 database.users.update(**user.to_dict())
-                mob.on_meet()
+                await mob.on_meet()
                 return
 
-            bot.edit_message_text(
+            await call.message.edit_text(
                 mess,
-                call.message.chat.id,
-                call.message.id,
                 reply_markup=InlineMarkup.update_action(user, "street"),
             )
             return
-        bot.edit_message_text(
+        await call.message.edit_text(
             mess,
-            call.message.chat.id,
-            call.message.id,
             reply_markup=InlineMarkup.update_action(user, "street"),
         )
         return
@@ -152,19 +145,19 @@ def street(call: CallbackQuery, user: UserModel):
         pass
 
     if not loot:
-        bot.edit_message_text(mess, call.message.chat.id, call.message.id)
+        await call.message.edit_text(mess)
         return
 
-    bot.edit_message_text(mess, call.message.chat.id, call.message.id)
-    check_user_stats(user, call.message.chat.id)
+    await call.message.edit_text(mess)
+    await check_user_stats(user, call.message.chat.id)
 
 
-def work(call: CallbackQuery, user: UserModel):
+async def work(call: CallbackQuery, user: UserModel):
     if user.hunger >= 80:
-        bot.answer_callback_query(call.id, "Ты слишком голодный для работы", show_alert=True)
+        await call.answer("Ты слишком голодный для работы", show_alert=True)
         return
     elif user.fatigue >= 85:
-        bot.answer_callback_query(call.id, "Ты слишком устал для работы", show_alert=True)
+        await call.answer("Ты слишком устал для работы", show_alert=True)
         return
 
     current_time = utcnow()
@@ -173,17 +166,15 @@ def work(call: CallbackQuery, user: UserModel):
         user.action = UserAction("work", current_time + timedelta(hours=3))
         database.users.update(**user.to_dict())
     elif user.action.type != "work":
-        bot.answer_callback_query(call.id, "Ты занят чем то другим", show_alert=True)
+        await call.answer("Ты занят чем то другим", show_alert=True)
         return
 
     if user.action.end >= current_time:
         time_left = user.action.end - current_time
         mess = f"<b>Работа</b>\n\nОсталось: {get_time_difference_string(time_left)}"
 
-        bot.edit_message_text(
+        await call.message.edit_text(
             mess,
-            call.message.chat.id,
-            call.message.id,
             reply_markup=InlineMarkup.update_action(user, "work"),
         )
         return
@@ -214,28 +205,26 @@ def work(call: CallbackQuery, user: UserModel):
         database.notifications.update(**user_notification.to_dict())
     except NoResult:
         pass
-    bot.edit_message_text(mess, call.message.chat.id, call.message.id)
-    check_user_stats(user, call.message.chat.id)
+    await call.message.edit_text(mess)
+    await check_user_stats(user, call.message.chat.id)
 
 
-def sleep(call: CallbackQuery, user: UserModel):
+async def sleep(call: CallbackQuery, user: UserModel):
     current_time = utcnow()
 
     if user.action is None:
         user.action = UserAction("sleep", current_time + timedelta(hours=random.randint(3, 8)))
         database.users.update(**user.to_dict())
     elif user.action.type != "sleep":
-        bot.answer_callback_query(call.id, "Ты занят чем то другим", show_alert=True)
+        await call.answer("Ты занят чем то другим", show_alert=True)
         return
 
     if user.action.end >= current_time:
         time_left = user.action.end - current_time
         mess = f"<b>🛏️ Спишь</b>\n\nОсталось: {get_time_difference_string(time_left)}"
 
-        bot.edit_message_text(
+        await call.message.edit_text(
             mess,
-            call.message.chat.id,
-            call.message.id,
             reply_markup=InlineMarkup.update_action(user, "sleep"),
         )
         return
@@ -256,15 +245,15 @@ def sleep(call: CallbackQuery, user: UserModel):
     increment_achievement_progress(user, "сонный")
 
     mess = "Охх, хорошенько поспал"
-    bot.edit_message_text(mess, call.message.chat.id, call.message.id)
-    check_user_stats(user, call.message.chat.id)
+    await call.message.edit_text(mess)
+    await check_user_stats(user, call.message.chat.id)
 
 
-def game(call: CallbackQuery, user: UserModel):
+async def game(call: CallbackQuery, user: UserModel):
     current_time = utcnow()
 
     if user.level < 3:
-        bot.answer_callback_query(call.id, "Доступно с 3 лвла", show_alert=True)
+        await call.answer("Доступно с 3 лвла", show_alert=True)
         return
 
     if user.action is None:
@@ -275,17 +264,15 @@ def game(call: CallbackQuery, user: UserModel):
 
         database.users.update(**user.to_dict())
     elif user.action.type != "game":
-        bot.answer_callback_query(call.id, "Ты занят чем то другим", show_alert=True)
+        await call.answer("Ты занят чем то другим", show_alert=True)
         return
 
     if user.action.end >= current_time:
         time_left = user.action.end - current_time
         mess = f"<b>🎮 Играешь</b>\n\nОсталось: {get_time_difference_string(time_left)}"
 
-        bot.edit_message_text(
+        await call.message.edit_text(
             mess,
-            call.message.chat.id,
-            call.message.id,
             reply_markup=InlineMarkup.update_action(user, "sleep"),
         )
         return
@@ -308,5 +295,5 @@ def game(call: CallbackQuery, user: UserModel):
     increment_achievement_progress(user, "игроман")
 
     mess = "Как же хорошо было играть 😊"
-    bot.edit_message_text(mess, call.message.chat.id, call.message.id)
-    check_user_stats(user, call.message.chat.id)
+    await call.message.edit_text(mess)
+    await check_user_stats(user, call.message.chat.id)

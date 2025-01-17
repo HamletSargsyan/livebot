@@ -1,38 +1,42 @@
-from functools import partial
 import random
 import string
 import time
-from telebot.types import Message, ChatPermissions
-from telebot.util import quick_markup, antiflood
-from telebot.apihelper import ApiTelegramException
+from functools import partial
 
+from aiogram import Router
+from aiogram.exceptions import TelegramAPIError
+from aiogram.filters import Command, CommandObject
+from aiogram.types import ChatPermissions, Message
+
+from config import logger
 from database.funcs import database, redis_cache
 from database.models import PromoModel, Violation
 from helpers.exceptions import NoResult
 from helpers.utils import (
     Loading,
     MessageEditor,
-    from_user,
+    antiflood,
     get_item,
     get_user_tag,
     parse_time_duration,
     pretty_datetime,
+    quick_markup,
     utcnow,
 )
-from config import bot, logger
+
+router = Router()
 
 
-@bot.message_handler(commands=["warn"])
-def warn_cmd(message: Message):
+@router.message(Command("warn"))
+async def warn_cmd(message: Message, command: CommandObject):
     user = database.users.get(id=message.from_user.id)
     if not user.is_admin:
         return
 
-    bot.reply_to(message, "t")
     if not message.reply_to_message:
         return
     reply_user = database.users.get(id=message.reply_to_message.from_user.id)
-    reason = " ".join(message.text.strip().split(" ")[1:])
+    reason = command.args
     if not reason:
         return
 
@@ -43,11 +47,11 @@ def warn_cmd(message: Message):
     mess = f"{get_user_tag(reply_user)} получил варн.\n\n" f"<b>Причина</b>\n" f"<i>{reason}</i>"
     markup = quick_markup({"Правила": {"url": "https://hamletsargsyan.github.io/livebot/rules"}})
 
-    bot.send_message(message.chat.id, mess, reply_markup=markup)
+    await message.answer(mess, reply_markup=markup)
 
 
-@bot.message_handler(commands=["mute"])
-def mute_cmd(message: Message):
+@router.message(Command("mute"))
+async def mute_cmd(message: Message, command: CommandObject):
     user = database.users.get(id=message.from_user.id)
     if not user.is_admin:
         return
@@ -56,18 +60,17 @@ def mute_cmd(message: Message):
         return
     reply_user = database.users.get(id=message.reply_to_message.from_user.id)
 
-    args = message.text.strip().split(" ")[1:]
-
-    if not args:
+    args = command.args
+    if args is None:
         return
-
+    args = args.strip().split(" ")
     time_str = args[0]
     reason = " ".join(args[1:]) if len(args) > 1 else "Без причины"
 
     try:
         mute_duration = parse_time_duration(time_str)
     except ValueError as e:
-        bot.send_message(message.chat.id, f"Ошибка: {str(e)}")
+        await message.reply(f"Ошибка: {str(e)}")
         return
 
     mute_end_time = utcnow() + mute_duration
@@ -76,11 +79,11 @@ def mute_cmd(message: Message):
 
     database.users.update(**reply_user.to_dict())
 
-    bot.restrict_chat_member(
+    await message.bot.restrict_chat_member(
         message.chat.id,
         reply_user.id,
-        mute_end_time,
         permissions=ChatPermissions(can_send_messages=False, can_send_other_messages=False),
+        until_date=mute_end_time,
     )
 
     mess = (
@@ -90,11 +93,11 @@ def mute_cmd(message: Message):
     )
     markup = quick_markup({"Правила": {"url": "https://hamletsargsyan.github.io/livebot/rules"}})
 
-    bot.send_message(message.chat.id, mess, reply_markup=markup)
+    await message.answer(mess, reply_markup=markup)
 
 
-@bot.message_handler(commands=["ban"])
-def ban_cmd(message: Message):
+@router.message(Command("ban"))
+async def ban_cmd(message: Message, command: CommandObject):
     user = database.users.get(id=message.from_user.id)
     if not user.is_admin:
         return
@@ -103,10 +106,11 @@ def ban_cmd(message: Message):
         return
     reply_user = database.users.get(id=message.reply_to_message.from_user.id)
 
-    args = message.text.strip().split(" ")[1:]
+    args = command.args
 
     if not args:
         return
+    args = args.strip().split(" ")
 
     time_str = args[0]
     reason = " ".join(args[1:]) if len(args) > 1 else "Без причины"
@@ -114,7 +118,7 @@ def ban_cmd(message: Message):
     try:
         ban_duration = parse_time_duration(time_str)
     except ValueError as e:
-        bot.send_message(message.chat.id, f"Ошибка: {str(e)}")
+        await message.reply(f"Ошибка: {str(e)}")
         return
 
     ban_end_time = utcnow() + ban_duration
@@ -123,16 +127,20 @@ def ban_cmd(message: Message):
 
     database.users.update(**reply_user.to_dict())
 
-    bot.restrict_chat_member(
+    await message.bot.restrict_chat_member(
         message.chat.id,
         reply_user.id,
-        ban_end_time,
         permissions=ChatPermissions(
             can_send_messages=False,
         ),
+        until_date=ban_end_time,
     )
 
-    bot.ban_chat_member(message.chat.id, reply_user.id, ban_end_time)
+    await message.bot.ban_chat_member(
+        message.chat.id,
+        reply_user.id,
+        until_date=ban_end_time,
+    )
 
     mess = (
         f"{get_user_tag(reply_user)} получил бан до {pretty_datetime(ban_end_time)} по UTC.\n\n"
@@ -141,11 +149,11 @@ def ban_cmd(message: Message):
     )
     markup = quick_markup({"Правила": {"url": "https://hamletsargsyan.github.io/livebot/rules"}})
 
-    bot.send_message(message.chat.id, mess, reply_markup=markup)
+    await message.answer(mess, reply_markup=markup)
 
 
-@bot.message_handler(commands=["pban"])
-def pban_cmd(message: Message):
+@router.message(Command("pban"))
+async def pban_cmd(message: Message, command: CommandObject):
     """
     Usage:
         /pban time{d,h,m} [reason]
@@ -158,18 +166,18 @@ def pban_cmd(message: Message):
         return
     reply_user = database.users.get(id=message.reply_to_message.from_user.id)
 
-    args = message.text.strip().split(" ")[1:]
+    args = command.args
 
-    if not args:
+    if args is None:
         return
-
+    args = args.strip().split()
     reason = " ".join(args[1:]) if len(args) > 1 else "Без причины"
 
     reply_user.violations.append(Violation(reason, "permanent-ban"))
 
     database.users.update(**reply_user.to_dict())
 
-    bot.ban_chat_member(message.chat.id, reply_user.id)
+    await message.bot.ban_chat_member(message.chat.id, reply_user.id)
 
     mess = (
         f"{get_user_tag(reply_user)} получил перманентный бан.\n\n"
@@ -178,11 +186,11 @@ def pban_cmd(message: Message):
     )
     markup = quick_markup({"Правила": {"url": "https://hamletsargsyan.github.io/livebot/rules"}})
 
-    bot.send_message(message.chat.id, mess, reply_markup=markup)
+    await message.answer(mess, reply_markup=markup)
 
 
-@bot.message_handler(commands=["unban"])
-def unban_cmd(message: Message):
+@router.message(Command("unban"))
+async def unban_cmd(message: Message):
     user = database.users.get(id=message.from_user.id)
     if not user.is_admin:
         return
@@ -196,15 +204,15 @@ def unban_cmd(message: Message):
         if violation.type not in ["ban", "permanent-ban"]
     ]
     database.users.update(**reply_user.to_dict())
-    bot.unban_chat_member(message.chat.id, reply_user.id, only_if_banned=True)
+    await message.bot.unban_chat_member(message.chat.id, reply_user.id, only_if_banned=True)
 
-    bot.send_message(message.chat.id, f"{get_user_tag(reply_user)} разбанен")
+    await message.answer(f"{get_user_tag(reply_user)} разбанен")
 
 
-@bot.message_handler(commands=["add_promo"])
-def add_promo(message: Message):
-    with Loading(message):
-        user = database.users.get(id=from_user(message).id)
+@router.message(Command("add_promo"))
+async def add_promo(message: Message):
+    async with Loading(message):
+        user = database.users.get(id=message.from_user.id)
 
         if not user.is_admin:
             return
@@ -251,23 +259,23 @@ def add_promo(message: Message):
 
         database.promos.add(**code.to_dict())
 
-        bot.reply_to(message, mess)
+        await message.reply(mess)
 
 
-@bot.message_handler(commands=["broadcast"])
-def broadcast_cmd(message: Message):
+@router.message(Command("broadcast"))
+async def broadcast_cmd(message: Message):
     user = database.users.get(id=message.from_user.id)
 
     if not user.is_admin:
         return
 
     if redis_cache.get("broadcast"):
-        antiflood(bot.reply_to, message, "На данный момент уже идет бродкаст")
+        await antiflood(message.reply("На данный момент уже идет бродкаст"))
         return
 
     mess = message.html_text.removeprefix("/broadcast")
 
-    with MessageEditor(message, title="Бродкаст") as msg:
+    async with MessageEditor(message, title="Бродкаст") as msg:
         redis_cache.set("broadcast", 1)
         msg.exit_funcs.add(partial(redis_cache.delete, "broadcast"))
 
@@ -278,18 +286,18 @@ def broadcast_cmd(message: Message):
         success_count = 0
         fatal_count = 0
 
-        msg.write(f"Кол-во пользователей: {total_count}")
+        await msg.write(f"Кол-во пользователей: {total_count}")
 
         for user in users:
             try:
-                antiflood(bot.send_message, user.id, mess)
+                await antiflood(message.bot.send_message(user.id, mess))
                 success_count += 1
-            except ApiTelegramException as e:
+            except TelegramAPIError as e:
                 fatal_count += 1
                 logger.error(str(e))
 
         total_time = time.monotonic() - start_time
-        msg.write("Бродкаст закончился")
-        msg.write(f"Время: {total_time:_.2f} с.")
-        msg.write(f"Кол-во юзеров получивших сообщение: {success_count}")
-        msg.write(f"Кол-во ошибок: {fatal_count}")
+        await msg.write("Бродкаст закончился")
+        await msg.write(f"Время: {total_time:_.2f} с.")
+        await msg.write(f"Кол-во юзеров получивших сообщение: {success_count}")
+        await msg.write(f"Кол-во ошибок: {fatal_count}")

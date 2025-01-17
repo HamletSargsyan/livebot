@@ -1,7 +1,8 @@
 from copy import deepcopy
 from typing import Literal, Optional
-from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
-from telebot.util import quick_markup, chunks
+
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from base.achievements import ACHIEVEMENTS
 from base.items import ITEMS
@@ -15,11 +16,11 @@ from helpers.utils import (
     get_time_difference_string,
     is_completed_achievement,
     utcnow,
+    quick_markup,
+    batched,
 )
 from database.models import DailyGiftModel, ItemModel, MarketItemModel, UserModel
 from database.funcs import database
-
-from config import logger
 
 
 class InlineMarkup:
@@ -48,9 +49,9 @@ class InlineMarkup:
                 },
             }
         )
-
-        markup.row(InlineKeyboardButton("Назад", callback_data=f"actions back {user.id}"))
-        return markup
+        builder = InlineKeyboardBuilder.from_markup(markup)
+        builder.row(InlineKeyboardButton(text="Назад", callback_data=f"actions back {user.id}"))
+        return builder.as_markup()
 
     @classmethod
     def update_action(cls, user: UserModel, name: str) -> InlineKeyboardMarkup:
@@ -63,29 +64,29 @@ class InlineMarkup:
 
     @classmethod
     def items_pager(cls, user: UserModel, index: int = 0) -> InlineKeyboardMarkup:
-        items = list(chunks(ITEMS, 6))
+        items = list(batched(ITEMS, 6))
         buttons = []
 
         for item in items[index]:
             buttons.append(
                 InlineKeyboardButton(
-                    f"{item.emoji} {item.name}",
+                    text=f"{item.emoji} {item.name}",
                     callback_data=f"item_info {item.translit()} {index} {user.id}",
                 )
             )
 
-        markup = InlineKeyboardMarkup(row_width=2)
-        markup.add(*buttons)
-        markup.row(*get_pager_controllers("item_info_main", pos=index, user_id=user.id))
+        builder = InlineKeyboardBuilder()
+        builder.add(*buttons)
+        builder.row(*get_pager_controllers("item_info_main", pos=index, user_id=user.id))
 
-        return markup
+        return builder.as_markup()
 
     @classmethod
     def market_pager(cls, user: UserModel, index: int = 0) -> InlineKeyboardMarkup:
         market_items = sorted(
             database.market_items.get_all(), key=lambda i: i.published_at, reverse=True
         )
-        items = list(chunks(market_items, 6))
+        items = list(batched(market_items, 6))
         buttons = []
 
         try:
@@ -93,23 +94,24 @@ class InlineMarkup:
                 emoji = get_item_emoji(item.name)
                 buttons.append(
                     InlineKeyboardButton(
-                        f"{item.quantity} {emoji} — {item.price} {get_item_emoji('бабло')}",
+                        text=f"{item.quantity} {emoji} — {item.price} {get_item_emoji('бабло')}",
                         callback_data=f"market_item_open {item._id} {user.id}",
                     )
                 )
         except IndexError:
             pass
 
-        markup = InlineKeyboardMarkup(row_width=1)
-        buttons.reverse()
-        markup.add(*buttons)
+        # buttons.reverse()
+        builder = InlineKeyboardBuilder()
+        builder.add(*buttons)
         pager_controllers = get_pager_controllers("market", pos=index, user_id=user.id)
         pager_controllers.insert(
-            2, InlineKeyboardButton("🛍", callback_data=f"open market-profile {user.id}")
+            2, InlineKeyboardButton(text="🛍", callback_data=f"open market-profile {user.id}")
         )
-        markup.row(*pager_controllers)
+        builder.adjust(1)
+        builder.row(*pager_controllers)
 
-        return markup
+        return builder.as_markup()
 
     @classmethod
     def market_profile(cls, user: UserModel) -> InlineKeyboardMarkup:
@@ -144,17 +146,19 @@ class InlineMarkup:
                 emoji = get_item_emoji(item.name)
                 buttons.append(
                     InlineKeyboardButton(
-                        f"{item.quantity} {emoji} — {item.price} {COIN_EMOJI}",
+                        text=f"{item.quantity} {emoji} — {item.price} {COIN_EMOJI}",
                         callback_data=f"market delete {item._id} {user.id}",
                     )
                 )
         except IndexError:
             pass
 
-        markup = InlineKeyboardMarkup(row_width=1)
-        markup.add(*buttons)
-        markup.row(InlineKeyboardButton("◀️", callback_data=f"market start 0 {user.id}"))
-        return markup
+        builder = InlineKeyboardBuilder()
+        builder.add(*buttons)
+        builder.row(InlineKeyboardButton(text="◀️", callback_data=f"market start 0 {user.id}"))
+        builder.adjust(1)
+
+        return builder.as_markup()
 
     @classmethod
     def delate_state(cls, user: UserModel) -> InlineKeyboardMarkup:
@@ -162,17 +166,18 @@ class InlineMarkup:
 
     @classmethod
     def profile(cls, user: UserModel) -> InlineKeyboardMarkup:
-        markup = InlineKeyboardMarkup(row_width=2)
+        builder = InlineKeyboardBuilder()
 
-        markup.add(
-            InlineKeyboardButton("🗄️", callback_data=f"open bag {user.id}"),
-            InlineKeyboardButton("🎒", callback_data=f"open equipped_items {user.id}"),
+        builder.add(
+            InlineKeyboardButton(text="🗄️", callback_data=f"open bag {user.id}"),
+            InlineKeyboardButton(text="🎒", callback_data=f"open equipped_items {user.id}"),
         )
-        return markup
+        builder.adjust(2)
+        return builder.as_markup()
 
     @classmethod
     def bag(cls, user: UserModel) -> InlineKeyboardMarkup:
-        markup = InlineKeyboardMarkup(row_width=3)
+        builder = InlineKeyboardBuilder()
 
         items = database.items.get_all(owner=user._id)
         buttons = []
@@ -181,15 +186,14 @@ class InlineMarkup:
                 continue
             buttons.append(
                 InlineKeyboardButton(
-                    f"{get_item_emoji(item.name)} {item.quantity}",
+                    text=f"{get_item_emoji(item.name)} {item.quantity}",
                     callback_data=f"nothing {user.id}",
                 )
             )
 
-        markup.add(*buttons)
-        logger.debug(f"{len(buttons) = }")
-
-        return markup
+        builder.add(*buttons)
+        builder.adjust(3)
+        return builder.as_markup()
 
     @classmethod
     def daily_gift(cls, user: UserModel, daily_gift: DailyGiftModel) -> InlineKeyboardMarkup:
@@ -206,7 +210,7 @@ class InlineMarkup:
     ) -> InlineKeyboardMarkup:
         from base.player import get_or_add_user_usable_items
 
-        markup = InlineKeyboardMarkup(row_width=3)
+        builder = InlineKeyboardBuilder()
         buttons = []
 
         items = get_or_add_user_usable_items(user, item_name)
@@ -216,13 +220,14 @@ class InlineMarkup:
         for item in items:
             buttons.append(
                 InlineKeyboardButton(
-                    f"{get_item_emoji(item.name)} ({item.usage}%)",
+                    text=f"{get_item_emoji(item.name)} ({item.usage}%)",
                     callback_data=f"transfer {item._id} {to_user.id} {user.id}",
                 )
             )
 
-        markup.add(*buttons)
-        return markup
+        builder.add(*buttons)
+        builder.adjust(3)
+        return builder.as_markup()
 
     @classmethod
     def achievements_view(
@@ -230,7 +235,7 @@ class InlineMarkup:
         user: UserModel,
         status: Literal["all", "in_progress", "completed", "not_started"] = "all",
     ) -> InlineKeyboardMarkup:
-        markup = InlineKeyboardMarkup(row_width=1)
+        builder = InlineKeyboardBuilder()
         buttons = []
 
         achievements = deepcopy(ACHIEVEMENTS)
@@ -264,10 +269,12 @@ class InlineMarkup:
                 )
             )
 
-        markup.add(*buttons)
-        markup.row(InlineKeyboardButton("Назад", callback_data=f"achievements main {user.id}"))
-
-        return markup
+        builder.add(*buttons)
+        builder.row(
+            InlineKeyboardButton(text="Назад", callback_data=f"achievements main {user.id}")
+        )
+        builder.adjust(1)
+        return builder.as_markup()
 
     @classmethod
     def achievements(cls, user: UserModel) -> InlineKeyboardMarkup:
@@ -282,7 +289,7 @@ class InlineMarkup:
 
     @classmethod
     def event_shop(cls, user: UserModel) -> InlineKeyboardMarkup:
-        markup = InlineKeyboardMarkup(row_width=1)
+        builder = InlineKeyboardBuilder()
         items: dict[str, int] = {
             "чай": 15,
             "суп": 20,
@@ -299,17 +306,17 @@ class InlineMarkup:
         for name, quantity in items.items():
             item = get_item(name)
             text = f"{get_item_emoji('конфета')} {quantity} -> 1 {name} {get_item_emoji(name)}"
-            markup.row(
+            builder.row(
                 InlineKeyboardButton(
-                    text,
+                    text=text,
                     callback_data=f"event_shop buy {item.translit()} {quantity} {user.id}",
                 )
             )
-        return markup
+        return builder.as_markup()
 
     @classmethod
     def use(cls, user: UserModel, items: Optional[list[ItemModel]] = None) -> InlineKeyboardMarkup:
-        markup = InlineKeyboardMarkup()
+        builder = InlineKeyboardBuilder()
         buttons = []
 
         if not items:
@@ -319,10 +326,11 @@ class InlineMarkup:
             item = get_item(user_item.name)
             buttons.append(
                 InlineKeyboardButton(
-                    f"{item.emoji} {user_item.quantity}",
+                    text=f"{item.emoji} {user_item.quantity}",
                     callback_data=f"use {item.translit()} {user.id}",
                 )
             )
 
-        markup.add(*buttons)
-        return markup
+        builder.add(*buttons)
+        builder.adjust(3)
+        return builder.as_markup()

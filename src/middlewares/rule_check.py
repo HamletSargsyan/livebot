@@ -1,16 +1,15 @@
-from typing import Union
-from telebot import BaseMiddleware, CancelUpdate
-from telebot.types import Message, CallbackQuery
-from telebot.util import quick_markup
+from typing import Any, Awaitable, Callable
 
-from helpers.utils import get_user_tag
+from aiogram import BaseMiddleware
+from aiogram.types import CallbackQuery, Message, TelegramObject
+
+from config import TELEGRAM_ID
 from database.funcs import database
 from database.models import UserModel
+from helpers.utils import get_user_tag, quick_markup
 
-from config import TELEGRAM_ID, bot
 
-
-def send_rules_message(message: Message, user: UserModel):
+async def send_rules_message(message: Message, user: UserModel):
     mess = f"{get_user_tag(user)}, перед там как использовать бота, ты должен прочитать правила"
     markup = quick_markup(
         {
@@ -22,27 +21,28 @@ def send_rules_message(message: Message, user: UserModel):
         row_width=1,
     )
 
-    bot.send_message(message.chat.id, mess, reply_markup=markup)
+    await message.answer(mess, reply_markup=markup)
 
 
 class RuleCheckMiddleware(BaseMiddleware):
-    def __init__(self) -> None:
-        self.update_types = ["message", "callback_query"]
+    async def __call__(
+        self,
+        handler: Callable[[TelegramObject, dict[str, Any]], Awaitable[Any]],
+        event: TelegramObject,
+        data: dict[str, Any],
+    ):
+        if isinstance(event, (Message, CallbackQuery)):
+            if event.from_user.id == TELEGRAM_ID or event.from_user.is_bot:
+                return
 
-    def pre_process(self, message: Message | CallbackQuery, data):
-        if message.from_user.is_bot or message.from_user.id == TELEGRAM_ID:
-            return CancelUpdate()
-        user = database.users.get(id=message.from_user.id)
+            user = database.users.get(id=event.from_user.id)
 
-        if user.accepted_rules:
-            return
+            if user.accepted_rules:
+                return await handler(event, data)
 
-        if isinstance(message, Message) and not message.text.startswith("/start"):
-            send_rules_message(message, user)
-            return CancelUpdate()
-        if isinstance(message, CallbackQuery) and not message.data.startswith("accept_rules"):
-            send_rules_message(message.message, user)  # pyright: ignore
-            return CancelUpdate()
-
-    def post_process(self, message: Union[Message, CallbackQuery], data, exception):
-        pass
+            if isinstance(event, Message) and not event.text.startswith("/start"):
+                await send_rules_message(event, user)
+                return
+            if isinstance(event, CallbackQuery) and not event.data.startswith("accept_rules"):
+                await send_rules_message(event.message, user)  # pyright: ignore
+                return

@@ -1,0 +1,15 @@
+[
+  {
+    "label": "format",
+    "command": "task format",
+    "hide": "on_success"
+  },
+  {
+    "label": "fix",
+    "command": "task fix"
+  },
+  {
+    "label": "lint",
+    "command": "task lint"
+  }
+]
