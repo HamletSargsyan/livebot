@@ -8,17 +8,17 @@ from helpers.utils import antiflood, quick_markup, utcnow
 
 
 async def _notification():
-    users = database.users.get_all()
+    users = await database.users.async_get_all()
 
     for user in users:
         try:
-            user_notification = database.notifications.get(owner=user._id)
+            user_notification = await database.notifications.async_get(owner=user._id)
         except NoResult:
             user_notification = NotificationModel(owner=user._id)
-            id = database.notifications.add(**user_notification.to_dict()).inserted_id
+            id = await database.notifications.async_add(**user_notification.to_dict()).inserted_id
             user_notification._id = id
 
-        user = database.users.get(_id=user._id)
+        user = await database.users.async_get(_id=user._id)
         if not user.action:
             continue
         try:
@@ -45,7 +45,7 @@ async def _notification():
         except TelegramAPIError:
             continue
 
-        database.notifications.update(**user_notification.to_dict())
+        await database.notifications.async_update(**user_notification.to_dict())
 
 
 async def notification():

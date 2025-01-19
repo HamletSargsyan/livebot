@@ -8,10 +8,10 @@ from base.player import check_user_stats
 
 
 async def _check():
-    users = database.users.get_all()
+    users = await database.users.async_get_all()
 
     for user in users:
-        user = database.users.get(_id=user._id)
+        user = await database.users.async_get(_id=user._id)
         match random.randint(0, 5):
             case 0:
                 user.hunger += 1
@@ -27,7 +27,7 @@ async def _check():
             )
         )
 
-        database.users.update(**user.to_dict())
+        await database.users.async_update(**user.to_dict())
         await check_user_stats(user)
 
 

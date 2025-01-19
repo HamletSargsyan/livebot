@@ -12,8 +12,7 @@ from database.funcs import database
 from handlers import router as handlers_router
 from helpers.exceptions import NoResult
 from middlewares import middlewares
-from tasks.check import check
-from tasks.notification import notification
+from tasks import run_tasks
 
 
 dp = Dispatcher(
@@ -58,11 +57,6 @@ def init_middlewares():
         dp.message.middleware(middleware())
 
 
-async def setup_tasks():
-    tasks = [check(), notification()]
-    await asyncio.gather(*tasks)
-
-
 async def main(args: argparse.Namespace):
     logger.info("Бот включен")
 
@@ -75,9 +69,6 @@ async def main(args: argparse.Namespace):
     await configure_bot_commands()
     init_middlewares()
 
-    if not args.without_tasks:
-        await setup_tasks()
-
     for uid in config.telegram.owners:
         try:
             user = database.users.get(id=uid)
@@ -85,6 +76,9 @@ async def main(args: argparse.Namespace):
             continue
         user.is_admin = True
         database.users.update(**user.to_dict())
+
+    if not args.without_tasks:
+        run_tasks()
 
     await dp.start_polling(bot, handle_signals=False)
 
