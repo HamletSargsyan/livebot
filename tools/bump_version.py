@@ -102,7 +102,7 @@ run_command(
 )
 run_command("gh pr merge dev")
 run_command(
-    f'gh release create v{version} --target main --notes-file release_body.md {"-p" if prerelease else ""} --title v{version}'
+    f"gh release create v{version} --target main --notes-file release_body.md {'-p' if prerelease else ''} --title v{version}"
 )
 
 

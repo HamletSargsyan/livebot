@@ -90,7 +90,7 @@ async def start(message: Message, command: CommandObject):
 
         user = database.users.get(id=message.from_user.id)
 
-        mess = f"Здорова {user.name}, добро пожаловать в игру\n\n" "Помощь: /help"
+        mess = f"Здорова {user.name}, добро пожаловать в игру\n\nПомощь: /help"
 
         if param := command.args:
             users_id = [str(user.id) for user in database.users.get_all()]
@@ -1000,8 +1000,7 @@ async def new_chat_member(event: ChatMemberUpdated):
     user = database.users.get(id=event.from_user.id)
     if str(event.chat.id) == config.telegram.chat_id:
         mess = (
-            f"👋 Привет {get_user_tag(user)}, "
-            "добро пожаловать в официальный чат по лайвботу 💙\n\n"
+            f"👋 Привет {get_user_tag(user)}, добро пожаловать в официальный чат по лайвботу 💙\n\n"
         )
     else:
         mess = f"👋 {get_user_tag(user)} присоединился к чату"

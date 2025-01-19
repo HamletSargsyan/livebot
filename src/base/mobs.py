@@ -3,9 +3,8 @@ from abc import ABC, abstractmethod
 from typing import Optional
 
 from aiogram.types import Message
-from telebot.util import quick_markup
 
-from helpers.utils import get_item_emoji
+from helpers.utils import get_item_emoji, quick_markup
 
 from base.items import ITEMS
 
@@ -47,7 +46,7 @@ class Dog(BaseMob):
     async def on_meet(self):
         if not self.user or not self.message:
             return
-        mess = "Привет дружок, хочешь подружится?\n\n" f"Я хочу {self.quantity} 🦴"
+        mess = f"Привет дружок, хочешь подружится?\n\nЯ хочу {self.quantity} 🦴"
 
         markup = quick_markup(
             {
@@ -98,7 +97,7 @@ class Chest(BaseMob):
     async def on_meet(self):
         if not self.user or not self.message:
             return
-        mess = "<b>Сундук</b>\n\n" "- Ой а что это такое...?"
+        mess = "<b>Сундук</b>\n\n- Ой а что это такое...?"
         markup = quick_markup(
             {
                 "Открыть": {"callback_data": f"chest open {self.user.id}"},

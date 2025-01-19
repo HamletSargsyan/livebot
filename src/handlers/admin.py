@@ -44,7 +44,7 @@ async def warn_cmd(message: Message, command: CommandObject):
 
     database.users.update(**reply_user.to_dict())
 
-    mess = f"{get_user_tag(reply_user)} получил варн.\n\n" f"<b>Причина</b>\n" f"<i>{reason}</i>"
+    mess = f"{get_user_tag(reply_user)} получил варн.\n\n<b>Причина</b>\n<i>{reason}</i>"
     markup = quick_markup({"Правила": {"url": "https://hamletsargsyan.github.io/livebot/rules"}})
 
     await message.answer(mess, reply_markup=markup)
@@ -180,9 +180,7 @@ async def pban_cmd(message: Message, command: CommandObject):
     await message.bot.ban_chat_member(message.chat.id, reply_user.id)
 
     mess = (
-        f"{get_user_tag(reply_user)} получил перманентный бан.\n\n"
-        f"<b>Причина</b>\n"
-        f"<i>{reason}</i>"
+        f"{get_user_tag(reply_user)} получил перманентный бан.\n\n<b>Причина</b>\n<i>{reason}</i>"
     )
     markup = quick_markup({"Правила": {"url": "https://hamletsargsyan.github.io/livebot/rules"}})
 
@@ -226,7 +224,7 @@ async def add_promo(message: Message):
 
         if promo_code:
             promo = "".join(random.choices(chars, k=6))
-        mess = "<b>Новый промокод</b>\n\n" f"<b>Код:</b> <code>{promo}</code>\n"
+        mess = f"<b>Новый промокод</b>\n\n<b>Код:</b> <code>{promo}</code>\n"
 
         items = {}
         usage_count = 1

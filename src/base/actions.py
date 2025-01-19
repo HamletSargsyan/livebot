@@ -185,7 +185,7 @@ async def work(call: CallbackQuery, user: UserModel):
         coin *= 2
         xp += random.uniform(5.0, 7.5)
 
-    mess = f"Закончил работу\n\n" f"+ {coin} бабло {get_item_emoji('бабло')}"
+    mess = f"Закончил работу\n\n+ {coin} бабло {get_item_emoji('бабло')}"
 
     user.coin += coin
 

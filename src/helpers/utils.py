@@ -461,7 +461,7 @@ async def antiflood(func: Awaitable[T]) -> T:
 
 
 if sys.version_info >= (3, 12):
-    batched = itertools.batched  # pylint: disable=invalid-name
+    batched = itertools.batched  # pylint: disable=invalid-name,no-member
 else:
 
     def batched(iterable: Iterable[T], n: int) -> Generator[tuple[T, ...], None, None]:
