@@ -20,7 +20,7 @@ tasks:
       - ruff check --respect-gitignore src tools
       - pylint -f colorized src
       - cspell lint "**"
-      # - pyright src tools
+      - pyright src tools
 
   format:
     ignore_error: true
