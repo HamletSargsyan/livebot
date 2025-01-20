@@ -88,12 +88,12 @@ async def start(message: Message, command: CommandObject):
     async with Loading(message):
         user_id = message.from_user.id
 
-        user = database.users.get(id=message.from_user.id)
+        user = await database.users.async_get(id=message.from_user.id)
 
         mess = f"Здорова {user.name}, добро пожаловать в игру\n\nПомощь: /help"
 
         if param := command.args:
-            users_id = [str(user.id) for user in database.users.get_all()]
+            users_id = [str(user.id) for user in await database.users.async_get_all()]
 
             if param in users_id:
                 if str(user_id) == param:
@@ -102,15 +102,15 @@ async def start(message: Message, command: CommandObject):
                 if user is not None:
                     await message.reply(mess)
                     return
-                ref_user = user = database.users.get(id=int(param))
+                ref_user = user = await database.users.async_get(id=int(param))
                 if not ref_user:
                     await message.reply(mess, reply_markup=START_MARKUP)
                     return
-                user = database.users.get(id=message.from_user.id)
+                user = await database.users.async_get(id=message.from_user.id)
 
                 coin = random.randint(5000, 15000)
                 ref_user.coin += coin
-                database.users.update(**ref_user.to_dict())
+                await database.users.async_update(**ref_user.to_dict())
                 increment_achievement_progress(ref_user, "друзья навеки")
 
                 await safe(
@@ -149,9 +149,9 @@ async def help(message: Message):
 async def profile_cmd(message: Message):
     async with Loading(message):
         if message.reply_to_message:
-            user = user = database.users.get(id=message.reply_to_message.id)
+            user = user = await database.users.async_get(id=message.reply_to_message.id)
         else:
-            user = database.users.get(id=message.from_user.id)
+            user = await database.users.async_get(id=message.from_user.id)
 
         await check_user_stats(user, message.chat.id)
 
@@ -172,10 +172,10 @@ async def profile_cmd(message: Message):
 @router.message(Command("bag"))
 async def bag_cmd(message: Message):
     async with Loading(message):
-        user = database.users.get(id=message.from_user.id)
+        user = await database.users.async_get(id=message.from_user.id)
 
         mess = "<b>Рюкзак</b>\n\n"
-        inventory = database.items.get_all(**{"owner": user._id})
+        inventory = await database.items.async_get_all(**{"owner": user._id})
         if not inventory:
             mess += "<i>Пусто...</i>"
         else:
@@ -198,7 +198,7 @@ async def bag_cmd(message: Message):
 async def items_cmd(message: Message):
     async with Loading(message):
         mess = f"<b>Предметы</b>\n\n1 / {len(list(batched(ITEMS, 6)))}"
-        user = database.users.get(id=message.from_user.id)
+        user = await database.users.async_get(id=message.from_user.id)
         markup = markup = InlineMarkup.items_pager(user=user)
 
         await message.reply(mess, reply_markup=markup)
@@ -227,7 +227,7 @@ async def shop_cmd(message: Message):
             await message.reply(err_mess)
             return
 
-        user = database.users.get(id=message.from_user.id)
+        user = await database.users.async_get(id=message.from_user.id)
 
         item_name = args[1]
         try:
@@ -254,8 +254,8 @@ async def shop_cmd(message: Message):
         user_item = get_or_add_user_item(user, get_item(item.name).name)
 
         user_item.quantity += count
-        database.users.update(**user.to_dict())
-        database.items.update(**user_item.to_dict())
+        await database.users.async_update(**user.to_dict())
+        await database.items.async_update(**user_item.to_dict())
 
         emoji = get_item_emoji(item.name)
         await message.reply(
@@ -283,7 +283,7 @@ async def casino(message: Message, command: CommandObject):
         except ValueError:
             count = 1
 
-        user = database.users.get(id=message.from_user.id)
+        user = await database.users.async_get(id=message.from_user.id)
 
         ticket = get_or_add_user_item(user, "билет")
 
@@ -320,8 +320,8 @@ async def casino(message: Message, command: CommandObject):
             user.coin += count * 2
             user.casino_win += count * 2
 
-        database.users.update(**user.to_dict())
-        database.items.update(**ticket.to_dict())
+        await database.users.async_update(**user.to_dict())
+        await database.items.async_update(**ticket.to_dict())
         await check_user_stats(user, message.chat.id)
 
 
@@ -329,7 +329,7 @@ async def casino(message: Message, command: CommandObject):
 @router.message(Command("craft"))
 async def workbench_cmd(message: Message):
     async with Loading(message):
-        user = database.users.get(id=message.from_user.id)
+        user = await database.users.async_get(id=message.from_user.id)
 
         mess = (
             "<b>🧰Верстак🧰</b>\n\n"
@@ -388,7 +388,7 @@ async def workbench_cmd(message: Message):
                 return
 
             user_item.quantity -= craft_item[1] * count
-            database.items.update(**user_item.to_dict())
+            await database.items.async_update(**user_item.to_dict())
 
         item = get_or_add_user_item(user, name)
 
@@ -399,8 +399,8 @@ async def workbench_cmd(message: Message):
 
         user.xp += xp
 
-        database.items.update(**item.to_dict())
-        database.users.update(**user.to_dict())
+        await database.items.async_update(**item.to_dict())
+        await database.users.async_update(**user.to_dict())
         await message.reply(f"Скрафтил {count} {name} {get_item_emoji(name)}\n+ {int(xp)} хп")
 
         await check_user_stats(user, message.chat.id)
@@ -413,8 +413,8 @@ async def transfer_cmd(message: Message):
             await message.reply("Кому кидать собрался??")
             return
 
-        user = database.users.get(id=message.from_user.id)
-        reply_user = database.users.get(id=message.reply_to_message.id)
+        user = await database.users.async_get(id=message.from_user.id)
+        reply_user = await database.users.async_get(id=message.reply_to_message.id)
 
         args = message.text.split(" ")
 
@@ -468,8 +468,8 @@ async def transfer_cmd(message: Message):
             f"{item.emoji} {item_name} {quantity}"
         )
 
-        database.users.update(**user.to_dict())
-        database.users.update(**reply_user.to_dict())
+        await database.users.async_update(**user.to_dict())
+        await database.users.async_update(**reply_user.to_dict())
 
         await message.answer(mess)
 
@@ -477,7 +477,7 @@ async def transfer_cmd(message: Message):
 @router.message(Command("event"))
 async def event_cmd(message: Message):
     async with Loading(message):
-        user = database.users.get(id=message.from_user.id)
+        user = await database.users.async_get(id=message.from_user.id)
         markup = quick_markup(
             {"Гайд": {"url": "https://hamletsargsyan.github.io/livebot/guide/#ивент"}}
         )
@@ -504,11 +504,11 @@ async def event_cmd(message: Message):
             "<b>Топ 10 по 🍬</b>\n\n"
         )
 
-        items = database.items.get_all(name="конфета")
+        items = await database.items.async_get_all(name="конфета")
         sorted_items = sorted(items, key=lambda item: item.quantity, reverse=True)
         for index, item in enumerate(sorted_items, start=1):
             if item.quantity > 0:
-                owner = database.users.get(**{"_id": item.owner})
+                owner = await database.users.async_get(**{"_id": item.owner})
                 mess += f"{index}. {owner.name} - {item.quantity}\n"
             if index == 10:
                 break
@@ -537,7 +537,7 @@ async def top_cmd(message: Message):
 @router.message(Command("use"))
 async def use_cmd(message: Message):
     async with Loading(message):
-        user = database.users.get(id=message.from_user.id)
+        user = await database.users.async_get(id=message.from_user.id)
 
         args = message.text.split(" ")
 
@@ -556,7 +556,7 @@ async def use_cmd(message: Message):
 @router.message(Command("ref"))
 async def ref_cmd(message: Message):
     async with Loading(message):
-        user = database.users.get(id=message.from_user.id)
+        user = await database.users.async_get(id=message.from_user.id)
 
         mess = (
             "Хочешь заработать?\n"
@@ -569,7 +569,7 @@ async def ref_cmd(message: Message):
 @router.message(Command("promo"))
 async def promo(message: Message) -> None:
     async with Loading(message):
-        user = database.users.get(id=message.from_user.id)
+        user = await database.users.async_get(id=message.from_user.id)
 
         await message.delete()
         if not await check_user_subscription(user):
@@ -581,7 +581,7 @@ async def promo(message: Message) -> None:
         if len(text) != 1:
             text = text[1]
 
-            code = database.promos.get(name=text)
+            code = await database.promos.async_get(name=text)
             if code:
                 promo_users = code.users
                 if user.id in promo_users:
@@ -602,16 +602,16 @@ async def promo(message: Message) -> None:
                 for item in code.items:
                     if item == "бабло":
                         user.coin += code.items[item]
-                        database.users.update(**user.to_dict())
+                        await database.users.async_update(**user.to_dict())
                     else:
                         user_item = get_or_add_user_item(user, item)
                         user_item.quantity += code.items[item]
-                        database.items.update(**user_item.to_dict())
+                        await database.items.async_update(**user_item.to_dict())
                     mess += f"+ {code.items[item]} {item} {get_item_emoji(item)}\n"
                 promo_users.append(user.id)
                 code.users = promo_users
 
-                database.promos.update(**code.to_dict())
+                await database.promos.async_update(**code.to_dict())
                 await message.answer_sticker(
                     "CAACAgIAAxkBAAEpjI9l0i13xK0052Ruta0D5a5lWozGBgACHQMAAladvQrFMjBk7XkPEzQE",
                 )
@@ -623,7 +623,7 @@ async def promo(message: Message) -> None:
 @router.message(Command("stats"))
 async def stats_cmd(message: Message):
     async with Loading(message):
-        user = database.users.get(id=message.from_user.id)
+        user = await database.users.async_get(id=message.from_user.id)
 
         mess = (
             "<b>Статистика</b>\n\n\n"
@@ -643,9 +643,9 @@ async def stats_cmd(message: Message):
 @router.message(Command("quest"))
 async def quest_cmd(message: Message):
     async with Loading(message):
-        user = database.users.get(id=message.from_user.id)
+        user = await database.users.async_get(id=message.from_user.id)
         try:
-            quest = database.quests.get(owner=user._id)
+            quest = await database.quests.async_get(owner=user._id)
         except NoResult:
             quest = None
 
@@ -701,7 +701,7 @@ async def exchanger_cmd(message: Message):
     #     )
     #     return
     async with Loading(message):
-        user = database.users.get(id=message.from_user.id)
+        user = await database.users.async_get(id=message.from_user.id)
         markup = quick_markup(
             {"Гайд": {"url": "https://hamletsargsyan.github.io/livebot/guide/#обменник"}}
         )
@@ -711,13 +711,13 @@ async def exchanger_cmd(message: Message):
             return
 
         try:
-            exchanger = database.exchangers.get(owner=user._id)
+            exchanger = await database.exchangers.async_get(owner=user._id)
         except NoResult:
             exchanger = generate_exchanger(user)
 
         if exchanger.expires < utcnow():
             exchanger = generate_exchanger(user)
-            database.exchangers.update(**exchanger.to_dict())
+            await database.exchangers.async_update(**exchanger.to_dict())
 
         time_difference = get_time_difference_string(exchanger.expires - utcnow())
         mess = (
@@ -755,8 +755,8 @@ async def exchanger_cmd(message: Message):
         user.coin += coin
         user_item.quantity -= quantity
 
-        database.users.update(**user.to_dict())
-        database.items.update(**user_item.to_dict())
+        await database.users.async_update(**user.to_dict())
+        await database.items.async_update(**user_item.to_dict())
 
         emoji = get_item_emoji(exchanger.item)
         await message.reply(
@@ -768,10 +768,10 @@ async def exchanger_cmd(message: Message):
 @router.message(Command("dog"))
 async def dog_cmd(message: Message):
     async with Loading(message):
-        user = database.users.get(id=message.from_user.id)
+        user = await database.users.async_get(id=message.from_user.id)
 
         try:
-            dog = database.dogs.get(owner=user._id)
+            dog = await database.dogs.async_get(owner=user._id)
         except NoResult:
             dog = None
 
@@ -811,10 +811,10 @@ async def dog_cmd(message: Message):
 @router.message(Command("rename_dog"))
 async def rename_dog_command(message: Message):
     async with Loading(message):
-        user = database.users.get(id=message.from_user.id)
+        user = await database.users.async_get(id=message.from_user.id)
 
         try:
-            dog = database.dogs.get(owner=user._id)
+            dog = await database.dogs.async_get(owner=user._id)
         except NoResult:
             dog = None
 
@@ -829,7 +829,7 @@ async def rename_dog_command(message: Message):
             return
 
         dog.name = name
-        database.dogs.update(**dog.to_dict())
+        await database.dogs.async_update(**dog.to_dict())
 
         await message.reply("Переименовал собачку")
 
@@ -862,7 +862,7 @@ async def price_cmd(message: Message):
 @router.message(Command("home"))
 async def home_cmd(message: Message):
     async with Loading(message):
-        user = database.users.get(id=message.from_user.id)
+        user = await database.users.async_get(id=message.from_user.id)
         mess = "🏠 Дом милый дом"
 
         markup = InlineMarkup.home_main(user)
@@ -880,7 +880,7 @@ async def guide_cmd(message: Message):
 
 @router.message(Command("market"))
 async def market_cmd(message: Message):
-    user = database.users.get(id=message.from_user.id)
+    user = await database.users.async_get(id=message.from_user.id)
 
     mess = "<b>Рынок</b>\n\n"
 
@@ -893,7 +893,7 @@ async def market_cmd(message: Message):
 
 @router.message(Command("daily_gift"))
 async def daily_gift_cmd(message: Message):
-    user = database.users.get(id=message.from_user.id)
+    user = await database.users.async_get(id=message.from_user.id)
 
     if not check_user_subscription(user):
         await send_channel_subscribe_message(message)
@@ -931,7 +931,7 @@ async def time_cmd(message: Message):
 
 @router.message(Command("achievements"))
 async def achievements_cmd(message: Message):
-    user = database.users.get(id=message.from_user.id)
+    user = await database.users.async_get(id=message.from_user.id)
 
     markup = InlineMarkup.achievements(user)
 
@@ -950,7 +950,7 @@ async def rules_cmd(message: Message):
 
 @router.message(Command("violations"))
 async def violations_cmd(message: Message):
-    user = database.users.get(id=message.from_user.id)
+    user = await database.users.async_get(id=message.from_user.id)
 
     if len(user.violations) == 0:
         await message.reply("У тебя нет нарушений")
@@ -972,7 +972,7 @@ async def violations_cmd(message: Message):
 
 @router.message(Command("event_shop"))
 async def event_shop_cmd(message: Message):
-    user = database.users.get(id=message.from_user.id)
+    user = await database.users.async_get(id=message.from_user.id)
     user_event_item = get_or_add_user_item(user, "конфета")
 
     item = get_item(user_event_item.name)
@@ -997,7 +997,7 @@ async def new_chat_member(event: ChatMemberUpdated):
             },
         }
     )
-    user = database.users.get(id=event.from_user.id)
+    user = await database.users.async_get(id=event.from_user.id)
     if str(event.chat.id) == config.telegram.chat_id:
         mess = (
             f"👋 Привет {get_user_tag(user)}, добро пожаловать в официальный чат по лайвботу 💙\n\n"
@@ -1009,14 +1009,14 @@ async def new_chat_member(event: ChatMemberUpdated):
 
 @router.chat_member(ChatMemberUpdatedFilter(IS_MEMBER >> IS_NOT_MEMBER))
 async def left_chat_member(event: ChatMemberUpdated):
-    user = database.users.get(id=event.from_user.id)
+    user = await database.users.async_get(id=event.from_user.id)
     mess = f"😢 {get_user_tag(user)} покинул чат"
     await event.answer(mess)
 
 
 @router.message()
 async def text_message_handler(message: Message):
-    user = database.users.get(id=message.from_user.id)
+    user = await database.users.async_get(id=message.from_user.id)
     text = message.text.lower().strip()
 
     match text:

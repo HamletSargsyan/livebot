@@ -22,7 +22,7 @@ from helpers.utils import (
 
 async def street(call: CallbackQuery, user: UserModel):
     try:
-        dog = database.dogs.get(**{"owner": user._id})
+        dog = await database.dogs.async_get(**{"owner": user._id})
     except NoResult:
         dog = None
 
@@ -37,7 +37,7 @@ async def street(call: CallbackQuery, user: UserModel):
 
     if user.action is None:
         user.action = UserAction("street", current_time + timedelta(hours=1))
-        database.users.update(**user.to_dict())
+        await database.users.async_update(**user.to_dict())
     elif user.action.type != "street":
         await call.answer("Ты занят чем то другим", show_alert=True)
         return
@@ -59,7 +59,7 @@ async def street(call: CallbackQuery, user: UserModel):
                     return
                 user.met_mob = True
 
-                database.users.update(**user.to_dict())
+                await database.users.async_update(**user.to_dict())
                 await mob.on_meet()
                 return
 
@@ -115,17 +115,17 @@ async def street(call: CallbackQuery, user: UserModel):
             mess += f"+ {quantity} {item_[0]} {get_item_emoji(item_[0])}\n"
             if item_[0] == "бабло":
                 user.coin += quantity
-                database.users.update(**user.to_dict())
+                await database.users.async_update(**user.to_dict())
             else:
                 user_item = get_or_add_user_item(user, item_[0])
                 user_item.quantity += quantity
-                database.items.update(**user_item.to_dict())
+                await database.items.async_update(**user_item.to_dict())
 
     if dog:
         dog.hunger += random.randint(0, 5)
         # dog.fatigue += random.randint(0, 10)
         dog.xp += random.uniform(1.5, 2.5)
-        database.dogs.update(**dog.to_dict())
+        await database.dogs.async_update(**dog.to_dict())
 
     user.xp += xp
     user.action = None
@@ -134,13 +134,13 @@ async def street(call: CallbackQuery, user: UserModel):
     user.fatigue += random.randint(3, 8)
     user.mood -= random.randint(3, 6)
     user.met_mob = False
-    database.users.update(**user.to_dict())
+    await database.users.async_update(**user.to_dict())
     increment_achievement_progress(user, "бродяга")
 
     try:
-        user_notification = database.notifications.get(owner=user._id)
+        user_notification = await database.notifications.async_get(owner=user._id)
         user_notification.walk = False
-        database.notifications.update(**user_notification.to_dict())
+        await database.notifications.async_update(**user_notification.to_dict())
     except NoResult:
         pass
 
@@ -164,7 +164,7 @@ async def work(call: CallbackQuery, user: UserModel):
 
     if user.action is None:
         user.action = UserAction("work", current_time + timedelta(hours=3))
-        database.users.update(**user.to_dict())
+        await database.users.async_update(**user.to_dict())
     elif user.action.type != "work":
         await call.answer("Ты занят чем то другим", show_alert=True)
         return
@@ -196,13 +196,13 @@ async def work(call: CallbackQuery, user: UserModel):
     user.hunger += random.randint(3, 6)
     user.mood -= random.randint(3, 6)
 
-    database.users.update(**user.to_dict())
+    await database.users.async_update(**user.to_dict())
     increment_achievement_progress(user, "работяга")
 
     try:
-        user_notification = database.notifications.get(owner=user._id)
+        user_notification = await database.notifications.async_get(owner=user._id)
         user_notification.work = False
-        database.notifications.update(**user_notification.to_dict())
+        await database.notifications.async_update(**user_notification.to_dict())
     except NoResult:
         pass
     await call.message.edit_text(mess)
@@ -214,7 +214,7 @@ async def sleep(call: CallbackQuery, user: UserModel):
 
     if user.action is None:
         user.action = UserAction("sleep", current_time + timedelta(hours=random.randint(3, 8)))
-        database.users.update(**user.to_dict())
+        await database.users.async_update(**user.to_dict())
     elif user.action.type != "sleep":
         await call.answer("Ты занят чем то другим", show_alert=True)
         return
@@ -235,13 +235,13 @@ async def sleep(call: CallbackQuery, user: UserModel):
     user.action = None
 
     try:
-        user_notification = database.notifications.get(owner=user._id)
+        user_notification = await database.notifications.async_get(owner=user._id)
         user_notification.sleep = False
-        database.notifications.update(**user_notification.to_dict())
+        await database.notifications.async_update(**user_notification.to_dict())
     except NoResult:
         pass
 
-    database.users.update(**user.to_dict())
+    await database.users.async_update(**user.to_dict())
     increment_achievement_progress(user, "сонный")
 
     mess = "Охх, хорошенько поспал"
@@ -262,7 +262,7 @@ async def game(call: CallbackQuery, user: UserModel):
             current_time + timedelta(hours=random.randint(0, 3), minutes=random.randint(15, 20)),
         )
 
-        database.users.update(**user.to_dict())
+        await database.users.async_update(**user.to_dict())
     elif user.action.type != "game":
         await call.answer("Ты занят чем то другим", show_alert=True)
         return
@@ -285,13 +285,13 @@ async def game(call: CallbackQuery, user: UserModel):
     user.action = None
 
     try:
-        user_notification = database.notifications.get(owner=user._id)
+        user_notification = await database.notifications.async_get(owner=user._id)
         user_notification.game = False
-        database.notifications.update(**user_notification.to_dict())
+        await database.notifications.async_update(**user_notification.to_dict())
     except NoResult:
         pass
 
-    database.users.update(**user.to_dict())
+    await database.users.async_update(**user.to_dict())
     increment_achievement_progress(user, "игроман")
 
     mess = "Как же хорошо было играть 😊"

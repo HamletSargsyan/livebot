@@ -56,7 +56,7 @@ async def level_up(user: UserModel, chat_id: Union[str, int, None] = None):
 
     box.quantity += 1
 
-    database.items.update(**box.to_dict())
+    await database.items.async_update(**box.to_dict())
     await bot.send_sticker(
         chat_id,
         "CAACAgIAAxkBAAEpjItl0i05sChI02Gz_uGnAtLyPBcJwgACXhIAAuyZKUl879mlR_dkOzQE",  # cSpell:ignore CAAC
@@ -120,7 +120,7 @@ async def check_user_stats(user: UserModel, chat_id: Union[str, int, None] = Non
     #     user.name = remove_not_allowed_symbols(tg_user.first_name)
 
     try:
-        dog = database.dogs.get(**{"owner": user._id})
+        dog = await database.dogs.async_get(**{"owner": user._id})
     except NoResult:
         dog = None
 
@@ -153,8 +153,8 @@ async def check_user_stats(user: UserModel, chat_id: Union[str, int, None] = Non
         if dog.hunger > 100:
             dog.hunger = 100
 
-        database.dogs.update(**dog.to_dict())
-    database.users.update(**user.to_dict())
+        await database.dogs.async_update(**dog.to_dict())
+    await database.users.async_update(**user.to_dict())
 
 
 def generate_quest(user: UserModel):
@@ -280,7 +280,7 @@ def get_available_items_for_use(user: UserModel) -> list[ItemModel]:
 
 async def use_item(message: Message, name: str):
     async with Loading(message):
-        user = database.users.get(id=message.from_user.id)
+        user = await database.users.async_get(id=message.from_user.id)
 
         item = get_item(name)
 
@@ -340,7 +340,7 @@ async def use_item(message: Message, name: str):
                         _item = get_or_add_user_item(user, item_.name)
 
                         _item.quantity += quantity
-                        database.items.update(**_item.to_dict())
+                        await database.items.async_update(**_item.to_dict())
 
                 user_item.quantity -= 1
 
@@ -390,8 +390,8 @@ async def use_item(message: Message, name: str):
 
                 await message.reply(mess)
 
-        database.users.update(**user.to_dict())
-        database.items.update(**user_item.to_dict())
+        await database.users.async_update(**user.to_dict())
+        await database.items.async_update(**user_item.to_dict())
         await check_user_stats(user, message.chat.id)
 
 

@@ -317,7 +317,7 @@ async def award_user_achievement(user: UserModel, achievement: Achievement):
     from database.funcs import database
 
     ach = AchievementModel(name=achievement.name, owner=user._id)
-    database.achievements.add(**ach.to_dict())
+    await database.achievements.async_add(**ach.to_dict())
 
     reward = ""
 
@@ -325,11 +325,11 @@ async def award_user_achievement(user: UserModel, achievement: Achievement):
         reward = f"+ {quantity} {item} {get_item_emoji(item)}\n"
         if item == "бабло":
             user.coin += quantity
-            database.users.update(**user.to_dict())
+            await database.users.async_update(**user.to_dict())
         else:
             user_item = get_or_add_user_item(user, item)
             user_item.quantity += quantity
-            database.items.update(**user_item.to_dict())
+            await database.items.async_update(**user_item.to_dict())
 
     await bot.send_message(
         user.id,

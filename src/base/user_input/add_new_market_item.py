@@ -46,8 +46,8 @@ async def name_state(call: CallbackQuery, state: FSMContext):
 
     await state.update_data(name=item.name)
 
-    user = database.users.get(id=call.from_user.id)
-    user_item = database.items.get(name=item.name, owner=user._id)
+    user = await database.users.async_get(id=call.from_user.id)
+    user_item = await database.items.async_get(name=item.name, owner=user._id)
 
     markup = InlineMarkup.delate_state(user)
     await call.message.edit_text(
@@ -66,16 +66,16 @@ def select_item_state(message: Message, state: FSMContext): ...
 
 @router.message(StateFilter(AddNewItemState.quantity, AddNewItemState.price), ~IsDigitFilter())
 async def invalid_int_input(message: Message):
-    user = database.users.get(id=message.from_user.id)
+    user = await database.users.async_get(id=message.from_user.id)
     markup = InlineMarkup.delate_state(user)
     await message.reply("Введите число", reply_markup=markup)
 
 
 @router.message(StateFilter(AddNewItemState.quantity), IsDigitFilter())
 async def quantity_state(message: Message, state: FSMContext):
-    user = database.users.get(id=message.from_user.id)
+    user = await database.users.async_get(id=message.from_user.id)
     data = await state.get_data()
-    user_item = database.items.get(owner=user._id, name=data.get("name"))
+    user_item = await database.items.async_get(owner=user._id, name=data.get("name"))
     await state.update_data(user_item=user_item)
 
     if user_item.quantity < int(message.text):  # type: ignore
@@ -102,11 +102,11 @@ async def quantity_state(message: Message, state: FSMContext):
 
 @router.message(StateFilter(AddNewItemState.price), IsDigitFilter())
 async def price_state(message: Message, state: FSMContext):
-    user = database.users.get(id=message.from_user.id)
+    user = await database.users.async_get(id=message.from_user.id)
 
     data = await state.get_data()
     try:
-        user_item = database.items.get(owner=user._id, name=data.get("name"))
+        user_item = await database.items.async_get(owner=user._id, name=data.get("name"))
     except NoResult:
         await message.reply("У тебя нет такого предмета")
         return
@@ -125,7 +125,7 @@ async def price_state(message: Message, state: FSMContext):
     await state.clear()
     database.market_items.add(**item.to_dict())
     user_item.quantity -= item.quantity
-    database.items.update(**user_item.to_dict())
+    await database.items.async_update(**user_item.to_dict())
 
     call_message_id = redis_cache.get(f"{message.from_user.id}_item_add_message")
 

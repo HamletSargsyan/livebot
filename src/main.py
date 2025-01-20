@@ -71,11 +71,11 @@ async def main(args: argparse.Namespace):
 
     for uid in config.telegram.owners:
         try:
-            user = database.users.get(id=uid)
+            user = await database.users.async_get(id=uid)
         except NoResult:
             continue
         user.is_admin = True
-        database.users.update(**user.to_dict())
+        await database.users.async_update(**user.to_dict())
 
     if not args.without_tasks:
         run_tasks()

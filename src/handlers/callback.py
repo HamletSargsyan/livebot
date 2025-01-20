@@ -57,10 +57,10 @@ router = Router()
 @router.callback_query(F.data.startswith("dog"))
 async def dog_callback(call: CallbackQuery):
     data = call.data.split(" ")
-    user = database.users.get(id=call.from_user.id)
+    user = await database.users.async_get(id=call.from_user.id)
 
     try:
-        dog = database.dogs.get(owner=user._id)
+        dog = await database.dogs.async_get(owner=user._id)
     except NoResult:
         dog = None
 
@@ -97,7 +97,7 @@ async def dog_callback(call: CallbackQuery):
 
         dog = DogModel(owner=user._id)
         dog.name = f"Собачка-{user.id}"
-        database.dogs.add(**dog.to_dict())
+        await database.dogs.async_add(**dog.to_dict())
 
         await call.message.delete()
         await call.message.answer_sticker(
@@ -130,8 +130,8 @@ async def dog_callback(call: CallbackQuery):
             f"{dog.name} поел мяса и восстановил {count} единиц голода",
             show_alert=True,
         )
-        database.dogs.update(**dog.to_dict())
-        database.items.update(**item.to_dict())
+        await database.dogs.async_update(**dog.to_dict())
+        await database.items.async_update(**item.to_dict())
 
         await check_user_stats(user, call.message.chat.id)
 
@@ -178,9 +178,9 @@ async def dog_callback(call: CallbackQuery):
         await call.answer(f"{dog.name} проснулся", show_alert=True)
         dog.sleep_time = utcnow()
 
-    database.users.update(**user.to_dict())
+    await database.users.async_update(**user.to_dict())
     if dog:
-        database.dogs.update(**dog.to_dict())
+        await database.dogs.async_update(**dog.to_dict())
     await check_user_stats(user)
 
 
@@ -192,7 +192,7 @@ async def new_quest_callback(call: CallbackQuery):
     if not isinstance(call.message, Message):
         return
 
-    user = database.users.get(id=call.from_user.id)
+    user = await database.users.async_get(id=call.from_user.id)
 
     if not user.new_quest_coin_quantity:
         user.new_quest_coin_quantity = 2
@@ -210,7 +210,7 @@ async def new_quest_callback(call: CallbackQuery):
     generate_quest(user)
     user.coin -= user.new_quest_coin_quantity
     user.new_quest_coin_quantity += random.randint(10, 20)
-    database.users.update(**user.to_dict())
+    await database.users.async_update(**user.to_dict())
 
     await call.answer(
         "Ты получил новый квест, напиши /quest чтобы посмотреть",
@@ -226,10 +226,10 @@ async def finish_quest_callback(call: CallbackQuery):
     if not isinstance(call.message, Message):
         return
 
-    user = database.users.get(id=call.from_user.id)
+    user = await database.users.async_get(id=call.from_user.id)
 
     try:
-        quest = database.quests.get(**{"owner": user._id})
+        quest = await database.quests.async_get(**{"owner": user._id})
     except NoResult:
         quest = generate_quest(user)
 
@@ -242,8 +242,8 @@ async def finish_quest_callback(call: CallbackQuery):
     item.quantity -= quest.quantity
     user.xp += quest.xp
     user.coin += quest.reward
-    database.users.update(**user.to_dict())
-    database.items.update(**item.to_dict())
+    await database.users.async_update(**user.to_dict())
+    await database.items.async_update(**item.to_dict())
 
     mess = (
         "Ураа, ты завершил квест\n"
@@ -275,7 +275,7 @@ async def use_callback(call: CallbackQuery):
     if call.data.split(" ")[-1] != str(call.from_user.id):
         return
 
-    user = database.users.get(id=call.from_user.id)
+    user = await database.users.async_get(id=call.from_user.id)
 
     item = get_item(call.data.split(" ")[1])
 
@@ -301,7 +301,7 @@ async def item_info_main_callback(call: CallbackQuery):
         return
 
     try:
-        user = database.users.get(id=call.from_user.id)
+        user = await database.users.async_get(id=call.from_user.id)
         action = call.data.split(" ")[1]
         pos = int(call.data.split(" ")[2])
         max_pos = len(list(batched(ITEMS, 6))) - 1
@@ -362,7 +362,7 @@ async def trader_callback(call: CallbackQuery):
 
     if not isinstance(call.message, Message):
         return
-    user = database.users.get(id=call.from_user.id)
+    user = await database.users.async_get(id=call.from_user.id)
 
     if data[1] == "leave":
         await call.message.delete()
@@ -419,7 +419,7 @@ async def chest_callback(call: CallbackQuery):
 
     if not isinstance(call.message, Message):
         return
-    user = database.users.get(id=call.from_user.id)
+    user = await database.users.async_get(id=call.from_user.id)
 
     if data[1] == "open":
         key = get_or_add_user_item(user, "ключ")
@@ -446,7 +446,7 @@ async def chest_callback(call: CallbackQuery):
             mess += f"+ {quantity} {item.name} {item.emoji}\n"
             user_item = get_or_add_user_item(user, item.name)
             user_item.quantity += quantity
-            database.items.update(**user_item.to_dict())
+            await database.items.async_update(**user_item.to_dict())
         increment_achievement_progress(user, "сундук-собиратель")
         await call.message.delete()
         if call.message.reply_to_message:
@@ -467,7 +467,7 @@ async def actions_callback(call: CallbackQuery):
     if data[-1] != str(call.from_user.id):
         return
 
-    user = database.users.get(id=call.from_user.id)
+    user = await database.users.async_get(id=call.from_user.id)
 
     if data[1] == "choice":
         markup = InlineMarkup.actions_choice(user)
@@ -496,7 +496,7 @@ async def open_callback(call: CallbackQuery):
     if data[-1] != str(call.from_user.id):
         return
 
-    user = database.users.get(id=call.from_user.id)
+    user = await database.users.async_get(id=call.from_user.id)
 
     if data[1] == "home":
         mess = "🏠 Дом милый дом"
@@ -521,7 +521,7 @@ async def market_callback(call: CallbackQuery, state: FSMContext):
     if data[-1] != str(call.from_user.id):
         return
 
-    user = database.users.get(id=call.from_user.id)
+    user = await database.users.async_get(id=call.from_user.id)
 
     if data[1] == "add":
         user_market_items_len = len(database.market_items.get_all(owner=user._id))
@@ -531,7 +531,7 @@ async def market_callback(call: CallbackQuery, state: FSMContext):
         from base.user_input.add_new_market_item import AddNewItemState
 
         user_items = sorted(
-            database.items.get_all(owner=user._id),
+            await database.items.async_get_all(owner=user._id),
             key=lambda i: i.quantity,
             reverse=True,
         )
@@ -571,7 +571,7 @@ async def market_callback(call: CallbackQuery, state: FSMContext):
             )
             return
 
-        item_owner = database.users.get(_id=market_item.owner)
+        item_owner = await database.users.async_get(_id=market_item.owner)
 
         if item_owner.id == user.id:
             await call.answer("Сам у себя будешь покупать?", show_alert=True)
@@ -596,9 +596,9 @@ async def market_callback(call: CallbackQuery, state: FSMContext):
             )
             user_item.quantity = market_item.quantity
 
-        database.items.update(**user_item.to_dict())
-        database.users.update(**user.to_dict())
-        database.users.update(**item_owner.to_dict())
+        await database.items.async_update(**user_item.to_dict())
+        await database.users.async_update(**user.to_dict())
+        await database.users.async_update(**item_owner.to_dict())
         database.market_items.delete(**market_item.to_dict())
 
         increment_achievement_progress(user, "богач", market_item.price)
@@ -636,7 +636,7 @@ async def market_callback(call: CallbackQuery, state: FSMContext):
         market_item = database.market_items.get(_id=ObjectId(data[2]))
         user_item = get_or_add_user_item(user, market_item.name)
         user_item.quantity += market_item.quantity
-        database.items.update(**user_item.to_dict())
+        await database.items.async_update(**user_item.to_dict())
         database.market_items.delete(**market_item.to_dict())
         await call.answer(
             "предмет удален успешно",
@@ -682,12 +682,12 @@ async def market_item_open_callback(call: CallbackQuery):
     if data[-1] != str(call.from_user.id):
         return
 
-    user = database.users.get(id=call.from_user.id)
+    user = await database.users.async_get(id=call.from_user.id)
     item_id = ObjectId(data[1])
 
     market_item = database.market_items.get(_id=item_id)
 
-    item_owner = database.users.get(_id=market_item.owner)
+    item_owner = await database.users.async_get(_id=market_item.owner)
     emoji = get_item_emoji(market_item.name)
     mess = (
         f"<b>{emoji} {market_item.name} | {market_item.quantity} шт.</b>\n"
@@ -722,14 +722,14 @@ async def levelup_callback(call: CallbackQuery):
     if data[-1] != str(call.from_user.id):
         return
 
-    user = database.users.get(id=call.from_user.id)
+    user = await database.users.async_get(id=call.from_user.id)
 
     if data[1] == "luck":
         user.luck += 1
     elif data[1] == "market":
         user.max_items_count_in_market += 1
 
-    database.users.update(**user.to_dict())
+    await database.users.async_update(**user.to_dict())
     await call.answer("Поздравляю 🎉🎉", show_alert=True)
     await call.message.edit_reply_markup(reply_markup=None)
 
@@ -741,7 +741,7 @@ async def daily_gift_callback(call: CallbackQuery):
     if data[-1] != str(call.from_user.id):
         return
 
-    user = database.users.get(id=call.from_user.id)
+    user = await database.users.async_get(id=call.from_user.id)
 
     if data[1] == "claim":
         if not check_user_subscription(user):
@@ -783,7 +783,7 @@ async def daily_gift_callback(call: CallbackQuery):
             try:
                 user_item = get_or_add_user_item(user, item.name)
                 user_item.quantity += quantity
-                database.items.update(**user_item.to_dict())
+                await database.items.async_update(**user_item.to_dict())
             except ItemIsCoin:
                 user.coin += quantity
             mess += f"+{quantity} {item.name} {item.emoji}\n"
@@ -800,10 +800,10 @@ async def transfer_callback(call: CallbackQuery):
     if data[-1] != str(call.from_user.id):
         return
 
-    user = database.users.get(id=call.from_user.id)
-    reply_user = database.users.get(id=int(data[-2]))
+    user = await database.users.async_get(id=call.from_user.id)
+    reply_user = await database.users.async_get(id=int(data[-2]))
 
-    item = database.items.get(_id=ObjectId(data[1]))
+    item = await database.items.async_get(_id=ObjectId(data[1]))
 
     if item.quantity <= 0:
         await call.answer("У тебя нет такого предмета")
@@ -811,15 +811,15 @@ async def transfer_callback(call: CallbackQuery):
 
     item.owner = reply_user._id
 
-    database.items.update(**item.to_dict())
+    await database.items.async_update(**item.to_dict())
     mess = (
         f"{user.name} подарил {reply_user.name}\n"
         "----------------\n"
         f"{get_item_emoji(item.name)} {item.name} ({int(item.usage)}%)"  # type: ignore
     )
 
-    database.users.update(**user.to_dict())
-    database.users.update(**reply_user.to_dict())
+    await database.users.async_update(**user.to_dict())
+    await database.users.async_update(**reply_user.to_dict())
 
     await call.message.answer(mess)
 
@@ -831,7 +831,7 @@ async def achievements_callback(call: CallbackQuery):
     if data[-1] != str(call.from_user.id):
         return
 
-    user = database.users.get(id=call.from_user.id)
+    user = await database.users.async_get(id=call.from_user.id)
 
     if data[1] == "view":
         ach = get_achievement(data[2])
@@ -863,9 +863,9 @@ async def accept_rules_callback(call: CallbackQuery):
     if data[-1] != str(call.from_user.id):
         return
 
-    user = database.users.get(id=call.from_user.id)
+    user = await database.users.async_get(id=call.from_user.id)
     user.accepted_rules = True
-    database.users.update(**user.to_dict())
+    await database.users.async_update(**user.to_dict())
 
     await call.answer(
         "Теперь можешь спокойно пользовался ботом",
@@ -885,7 +885,7 @@ async def event_shop_callback(call: CallbackQuery):
     if data[1] != "buy":
         return
 
-    user = database.users.get(id=call.from_user.id)
+    user = await database.users.async_get(id=call.from_user.id)
 
     candy = get_or_add_user_item(user, "конфета")
 
@@ -900,8 +900,8 @@ async def event_shop_callback(call: CallbackQuery):
     user_item.quantity += 1
     candy.quantity -= quantity
 
-    database.items.update(**user_item.to_dict())
-    database.items.update(**candy.to_dict())
+    await database.items.async_update(**user_item.to_dict())
+    await database.items.async_update(**candy.to_dict())
 
     mess = "<b>Ивентовый магазин</b>\n\n"
     mess += f"У тебя {candy.quantity} {get_item_emoji(candy.name)}"

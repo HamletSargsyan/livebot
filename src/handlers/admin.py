@@ -29,20 +29,20 @@ router = Router()
 
 @router.message(Command("warn"))
 async def warn_cmd(message: Message, command: CommandObject):
-    user = database.users.get(id=message.from_user.id)
+    user = await database.users.async_get(id=message.from_user.id)
     if not user.is_admin:
         return
 
     if not message.reply_to_message:
         return
-    reply_user = database.users.get(id=message.reply_to_message.from_user.id)
+    reply_user = await database.users.async_get(id=message.reply_to_message.from_user.id)
     reason = command.args
     if not reason:
         return
 
     reply_user.violations.append(Violation(reason, "warn"))
 
-    database.users.update(**reply_user.to_dict())
+    await database.users.async_update(**reply_user.to_dict())
 
     mess = f"{get_user_tag(reply_user)} получил варн.\n\n<b>Причина</b>\n<i>{reason}</i>"
     markup = quick_markup({"Правила": {"url": "https://hamletsargsyan.github.io/livebot/rules"}})
@@ -52,13 +52,13 @@ async def warn_cmd(message: Message, command: CommandObject):
 
 @router.message(Command("mute"))
 async def mute_cmd(message: Message, command: CommandObject):
-    user = database.users.get(id=message.from_user.id)
+    user = await database.users.async_get(id=message.from_user.id)
     if not user.is_admin:
         return
 
     if not message.reply_to_message:
         return
-    reply_user = database.users.get(id=message.reply_to_message.from_user.id)
+    reply_user = await database.users.async_get(id=message.reply_to_message.from_user.id)
 
     args = command.args
     if args is None:
@@ -77,7 +77,7 @@ async def mute_cmd(message: Message, command: CommandObject):
 
     reply_user.violations.append(Violation(reason, "mute", until_date=mute_end_time))
 
-    database.users.update(**reply_user.to_dict())
+    await database.users.async_update(**reply_user.to_dict())
 
     await message.bot.restrict_chat_member(
         message.chat.id,
@@ -98,13 +98,13 @@ async def mute_cmd(message: Message, command: CommandObject):
 
 @router.message(Command("ban"))
 async def ban_cmd(message: Message, command: CommandObject):
-    user = database.users.get(id=message.from_user.id)
+    user = await database.users.async_get(id=message.from_user.id)
     if not user.is_admin:
         return
 
     if not message.reply_to_message:
         return
-    reply_user = database.users.get(id=message.reply_to_message.from_user.id)
+    reply_user = await database.users.async_get(id=message.reply_to_message.from_user.id)
 
     args = command.args
 
@@ -125,7 +125,7 @@ async def ban_cmd(message: Message, command: CommandObject):
 
     reply_user.violations.append(Violation(reason, "ban", until_date=ban_end_time))
 
-    database.users.update(**reply_user.to_dict())
+    await database.users.async_update(**reply_user.to_dict())
 
     await message.bot.restrict_chat_member(
         message.chat.id,
@@ -158,13 +158,13 @@ async def pban_cmd(message: Message, command: CommandObject):
     Usage:
         /pban time{d,h,m} [reason]
     """
-    user = database.users.get(id=message.from_user.id)
+    user = await database.users.async_get(id=message.from_user.id)
     if not user.is_admin:
         return
 
     if not message.reply_to_message:
         return
-    reply_user = database.users.get(id=message.reply_to_message.from_user.id)
+    reply_user = await database.users.async_get(id=message.reply_to_message.from_user.id)
 
     args = command.args
 
@@ -175,7 +175,7 @@ async def pban_cmd(message: Message, command: CommandObject):
 
     reply_user.violations.append(Violation(reason, "permanent-ban"))
 
-    database.users.update(**reply_user.to_dict())
+    await database.users.async_update(**reply_user.to_dict())
 
     await message.bot.ban_chat_member(message.chat.id, reply_user.id)
 
@@ -189,19 +189,19 @@ async def pban_cmd(message: Message, command: CommandObject):
 
 @router.message(Command("unban"))
 async def unban_cmd(message: Message):
-    user = database.users.get(id=message.from_user.id)
+    user = await database.users.async_get(id=message.from_user.id)
     if not user.is_admin:
         return
 
     if not message.reply_to_message:
         return
-    reply_user = database.users.get(id=message.reply_to_message.from_user.id)
+    reply_user = await database.users.async_get(id=message.reply_to_message.from_user.id)
     reply_user.violations = [
         violation
         for violation in reply_user.violations
         if violation.type not in ["ban", "permanent-ban"]
     ]
-    database.users.update(**reply_user.to_dict())
+    await database.users.async_update(**reply_user.to_dict())
     await message.bot.unban_chat_member(message.chat.id, reply_user.id, only_if_banned=True)
 
     await message.answer(f"{get_user_tag(reply_user)} разбанен")
@@ -210,7 +210,7 @@ async def unban_cmd(message: Message):
 @router.message(Command("add_promo"))
 async def add_promo(message: Message):
     async with Loading(message):
-        user = database.users.get(id=message.from_user.id)
+        user = await database.users.async_get(id=message.from_user.id)
 
         if not user.is_admin:
             return
@@ -218,7 +218,7 @@ async def add_promo(message: Message):
         chars = string.digits + string.ascii_letters
         promo = "".join(random.choices(chars, k=6))
         try:
-            promo_code = database.promos.get(name=promo)
+            promo_code = await database.promos.async_get(name=promo)
         except NoResult:
             promo_code = None
 
@@ -255,14 +255,14 @@ async def add_promo(message: Message):
 
         code = PromoModel(name=promo, usage_count=usage_count, description=description, items=items)
 
-        database.promos.add(**code.to_dict())
+        await database.promos.async_add(**code.to_dict())
 
         await message.reply(mess)
 
 
 @router.message(Command("broadcast"))
 async def broadcast_cmd(message: Message):
-    user = database.users.get(id=message.from_user.id)
+    user = await database.users.async_get(id=message.from_user.id)
 
     if not user.is_admin:
         return
@@ -278,7 +278,7 @@ async def broadcast_cmd(message: Message):
         msg.exit_funcs.add(partial(redis_cache.delete, "broadcast"))
 
         start_time = time.monotonic()
-        users = database.users.get_all()
+        users = await database.users.async_get_all()
 
         total_count = len(users)
         success_count = 0

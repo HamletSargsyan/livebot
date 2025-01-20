@@ -35,7 +35,7 @@ class RuleCheckMiddleware(BaseMiddleware):
             if event.from_user.id == TELEGRAM_ID or event.from_user.is_bot:
                 return
 
-            user = database.users.get(id=event.from_user.id)
+            user = await database.users.async_get(id=event.from_user.id)
 
             if user.accepted_rules:
                 return await handler(event, data)
