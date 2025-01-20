@@ -1,8 +1,9 @@
 from typing import Type
+
 from aiogram import BaseMiddleware
 
-from middlewares.register import RegisterMiddleware
 from middlewares.actives import ActiveMiddleware
+from middlewares.register import RegisterMiddleware
 from middlewares.rule_check import RuleCheckMiddleware
 
 middlewares: list[Type[BaseMiddleware]] = [

@@ -2,9 +2,9 @@ import asyncio
 import random
 from itertools import filterfalse
 
-from helpers.utils import utcnow
-from database.funcs import database
 from base.player import check_user_stats
+from database.funcs import database
+from helpers.utils import utcnow
 
 
 async def _check():

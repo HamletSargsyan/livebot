@@ -4,12 +4,10 @@ from datetime import timedelta
 from aiogram.types import CallbackQuery
 
 from base.mobs import generate_mob
-from base.weather import get_weather
 from base.player import check_user_stats, get_or_add_user_item
-
+from base.weather import get_weather
 from database.funcs import database
 from database.models import UserAction, UserModel
-
 from helpers.exceptions import NoResult
 from helpers.markups import InlineMarkup
 from helpers.utils import (

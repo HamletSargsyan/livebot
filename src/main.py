@@ -2,9 +2,8 @@ import argparse
 import asyncio
 
 from aiogram import Dispatcher
-from aiogram.types import BotCommand
 from aiogram.fsm.storage.redis import RedisStorage
-
+from aiogram.types import BotCommand
 from tinylogging import Level
 
 from config import aiogram_logger, bot, config, logger
@@ -13,7 +12,6 @@ from handlers import router as handlers_router
 from helpers.exceptions import NoResult
 from middlewares import middlewares
 from tasks import run_tasks
-
 
 dp = Dispatcher(
     state_storage=RedisStorage.from_url(config.redis.url),

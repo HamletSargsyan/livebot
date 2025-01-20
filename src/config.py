@@ -4,11 +4,9 @@ from datetime import UTC, datetime
 from typing import Final, Optional
 
 import toml
-
 from aiogram import Bot
 from aiogram.client.default import DefaultBotProperties
 from aiogram.types import LinkPreviewOptions
-
 from dns import resolver
 from semver import Version
 from tinylogging import Level, Logger, LoggingAdapterHandler, TelegramHandler

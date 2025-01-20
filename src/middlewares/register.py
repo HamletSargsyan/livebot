@@ -1,12 +1,12 @@
 from typing import Any, Awaitable, Callable
+
 from aiogram import BaseMiddleware
 from aiogram.types import Message, TelegramObject
 
-from helpers.utils import remove_not_allowed_symbols
-
+from config import TELEGRAM_ID, logger
 from database.funcs import database
 from database.models import UserModel
-from config import TELEGRAM_ID, logger
+from helpers.utils import remove_not_allowed_symbols
 
 
 def register_user(message: Message):

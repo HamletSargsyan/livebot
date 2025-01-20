@@ -1,6 +1,7 @@
-from typing import Callable, Awaitable, Any
+from typing import Any, Awaitable, Callable
+
 from aiogram import BaseMiddleware
-from aiogram.types import Message, CallbackQuery, TelegramObject
+from aiogram.types import CallbackQuery, Message, TelegramObject
 
 from config import TELEGRAM_ID
 from database.funcs import database

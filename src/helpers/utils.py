@@ -1,19 +1,19 @@
-import sys
-import itertools
 import asyncio
+import itertools
 import json
 import random
 import statistics
+import sys
 from contextlib import suppress
-from dataclasses import is_dataclass, astuple
+from dataclasses import astuple, is_dataclass
 from datetime import UTC, datetime, timedelta
 from functools import wraps
 from typing import (
     Any,
-    Iterable,
     Awaitable,
     Callable,
     Generator,
+    Iterable,
     NoReturn,
     Optional,
     ParamSpec,

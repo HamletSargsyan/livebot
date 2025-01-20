@@ -1,29 +1,27 @@
 from typing import Final, Generic, Type, TypeVar
 
+import redis
 from bson import ObjectId
 from cachetools import TTLCache
-from pymongo import MongoClient, AsyncMongoClient
-from pymongo.collection import Collection
+from pymongo import AsyncMongoClient, MongoClient
 from pymongo.asynchronous.collection import AsyncCollection
+from pymongo.collection import Collection
 
-import redis
-
-from helpers.exceptions import NoResult
 from config import config
 from database.models import (
-    BaseModel,
     AchievementModel,
+    BaseModel,
+    DailyGiftModel,
+    DogModel,
+    ExchangerModel,
+    ItemModel,
     MarketItemModel,
     NotificationModel,
-    UserModel,
-    ItemModel,
     PromoModel,
     QuestModel,
-    ExchangerModel,
-    DogModel,
-    DailyGiftModel,
+    UserModel,
 )
-
+from helpers.exceptions import NoResult
 
 client = MongoClient(config.database.url, tz_aware=True)
 async_client = AsyncMongoClient(config.database.url, tz_aware=True)

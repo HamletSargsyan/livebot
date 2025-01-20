@@ -1,26 +1,26 @@
 from copy import deepcopy
 from typing import Literal, Optional
 
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from base.achievements import ACHIEVEMENTS
 from base.items import ITEMS
 from base.player import get_available_items_for_use
+from database.funcs import database
+from database.models import DailyGiftModel, ItemModel, MarketItemModel, UserModel
 from helpers.consts import COIN_EMOJI
 from helpers.utils import (
     achievement_status,
+    batched,
     get_item,
     get_item_emoji,
     get_pager_controllers,
     get_time_difference_string,
     is_completed_achievement,
-    utcnow,
     quick_markup,
-    batched,
+    utcnow,
 )
-from database.models import DailyGiftModel, ItemModel, MarketItemModel, UserModel
-from database.funcs import database
 
 
 class InlineMarkup:

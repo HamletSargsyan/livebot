@@ -1,23 +1,22 @@
-from aiogram import Router, F
+from aiogram import F, Router
 from aiogram.filters import StateFilter
-from aiogram.types import Message, CallbackQuery
-from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import State, StatesGroup
+from aiogram.types import CallbackQuery, Message
 
+from database.funcs import database, redis_cache
+from database.models import MarketItemModel
 from helpers.consts import COIN_EMOJI
 from helpers.enums import ItemType
+from helpers.exceptions import NoResult
 from helpers.filters import IsDigitFilter
+from helpers.markups import InlineMarkup
 from helpers.utils import (
     get_item,
     get_item_emoji,
     get_middle_item_price,
     get_user_tag,
 )
-from database.funcs import database, redis_cache
-from database.models import MarketItemModel
-from helpers.exceptions import NoResult
-from helpers.markups import InlineMarkup
-
 
 router = Router()
 

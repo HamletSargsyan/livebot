@@ -1,9 +1,10 @@
 from typing import Any
+
 import httpx
 
+from config import config
 from database.funcs import cache
 from helpers.datatypes import WeatherData
-from config import config
 
 
 def _get_coords_from_region(name: str) -> tuple[float, float]:

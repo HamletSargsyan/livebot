@@ -1,10 +1,10 @@
-from datetime import date
 import os
 import re
 import sys
+from datetime import date
+
 import changelog
 from semver import Version
-
 
 with open("version") as f:
     old_version = Version.parse(f.read())

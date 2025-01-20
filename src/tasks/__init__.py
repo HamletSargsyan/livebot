@@ -1,6 +1,6 @@
 import asyncio
-import multiprocessing
 import atexit
+import multiprocessing
 
 from tasks.check import check
 from tasks.notification import notification

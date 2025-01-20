@@ -4,12 +4,10 @@ from typing import Optional
 
 from aiogram.types import Message
 
-from helpers.utils import get_item_emoji, quick_markup
-
 from base.items import ITEMS
-
 from database.models import UserModel
 from helpers.enums import ItemRarity
+from helpers.utils import get_item_emoji, quick_markup
 
 
 class BaseMob(ABC):
