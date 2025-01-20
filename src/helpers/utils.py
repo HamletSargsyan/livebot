@@ -79,7 +79,7 @@ def make_hashable(value: Any):
     if isinstance(value, (list, set, tuple)):
         return tuple(make_hashable(v) for v in value)
     if is_dataclass(value):
-        return make_hashable(astuple(value))
+        return make_hashable(astuple(value))  # type: ignore
     return value
 
 
