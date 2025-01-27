@@ -9,5 +9,5 @@ httpx==0.28.1
 cachetools==5.5.1
 dacite==1.8.1
 python-dateutil==2.9.0.post0
-tinylogging==4.2.0
+tinylogging==5.0.1
 aiogram==3.17.0
