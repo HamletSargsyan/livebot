@@ -1,5 +1,5 @@
 changelog-parser @ git+https://github.com/HamletSargsyan/changelog-parser@main
-pymongo==4.10.1
+pymongo==10.10.10.10
 transliterate==1.10.2
 redis==5.2.1
 toml==0.10.2
