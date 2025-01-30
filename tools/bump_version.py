@@ -30,6 +30,8 @@ if len(sys.argv) == 1:
     usage()
     sys.exit(1)
 
+prerelease = "--prerelease" in sys.argv
+
 match sys.argv[1].lower():
     case "major":
         version = version.bump_major()
@@ -37,9 +39,6 @@ match sys.argv[1].lower():
         version = version.bump_minor()
     case "patch":
         version = version.bump_patch()
-    case "prerelease":
-        version = version.bump_prerelease()
-        prerelease = True
     case "build":
         version = version.bump_build()
     case arg:
@@ -47,6 +46,8 @@ match sys.argv[1].lower():
         usage()
         sys.exit(1)
 
+if prerelease:
+    version = version.bump_prerelease()
 
 print(f"{old_version} -> {version}")
 choice = input("Сделать релиз? [N/y] ").lower()
