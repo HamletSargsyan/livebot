@@ -12,7 +12,7 @@ with open("version") as f:
 
 
 def usage():
-    print(f"Usage: python3 {sys.argv[0]} [ major | minor | patch | prerelease | build ]")
+    print(f"Usage: python3 {sys.argv[0]} [ major | minor | patch | build ] [--prerelease]")
     sys.exit(0)
 
 
