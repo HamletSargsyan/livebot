@@ -24,13 +24,13 @@ def run_command(command: str):
         sys.exit(1)
 
 
-prerelease = False
+prerelease = "--prerelease" in sys.argv
+if prerelease:
+    sys.argv.remove("--prerelease")
 
 if len(sys.argv) == 1:
     usage()
     sys.exit(1)
-
-prerelease = "--prerelease" in sys.argv
 
 match sys.argv[1].lower():
     case "major":
@@ -60,7 +60,6 @@ run_command("git switch dev")
 with open("version", "w") as f:
     f.write(str(version))
 
-
 with open("CHANGELOG.md", "r") as f:
     changes = changelog.loads(f.read())
 
@@ -76,14 +75,11 @@ for change in changes:
         )
         break
 
-
 with open("CHANGELOG.md", "w") as f:
     f.write(changelog.dumps(changes))
 
-
 with open("CHANGELOG.md") as f:
     changes = changelog.load(f)[1]
-
 
 content = changelog.dumps([changes], "").strip()
 
@@ -92,7 +88,6 @@ if match := re.match(r"## \[\d+\.\d+\.\d+\] - \d{4}-\d{2}-\d{2}", content):
 
 with open("release_body.md", "w") as f:
     f.write(content)
-
 
 run_command("git switch main")
 run_command("task fix && task lint && task format")
@@ -105,7 +100,6 @@ run_command("gh pr merge dev")
 run_command(
     f"gh release create v{version} --target main --notes-file release_body.md {'-p' if prerelease else ''} --title v{version}"
 )
-
 
 print("\n\nРелиз успешно создан и опубликован.\n\n")
 
