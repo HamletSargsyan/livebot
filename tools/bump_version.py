@@ -1,3 +1,4 @@
+import argparse
 import os
 import re
 import sys
@@ -11,9 +12,9 @@ with open("version") as f:
     version = old_version
 
 
-def usage():
-    print(f"Usage: python3 {sys.argv[0]} [ major | minor | patch | build ] [--prerelease]")
-    sys.exit(0)
+def usage(exit_code: int = 0):
+    parser.print_usage()
+    sys.exit(exit_code)
 
 
 def run_command(command: str):
@@ -24,21 +25,36 @@ def run_command(command: str):
         sys.exit(1)
 
 
-prerelease = "--prerelease" in sys.argv
-if prerelease:
-    sys.argv.remove("--prerelease")
+parser = argparse.ArgumentParser(description="Bump version and create a release.")
+parser.add_argument(
+    "bump_type",
+    choices=["major", "minor", "patch", "prerelease", "build"],
+    help="Type of version bump",
+)
+parser.add_argument(
+    "--prerelease",
+    action="store_true",
+    help="Indicate if this is a prerelease",
+)
+args = parser.parse_args()
 
-if len(sys.argv) == 1:
-    usage()
-    sys.exit(1)
 
-match sys.argv[1].lower():
+if args.bump_type == "prerelease" and args.prerelease:
+    print("You cannot combine the 'prerelease' parameter with the '--prerelease' flag.")
+    usage(1)
+
+prerelease = args.prerelease
+
+match args.bump_type:
     case "major":
         version = version.bump_major()
     case "minor":
         version = version.bump_minor()
     case "patch":
         version = version.bump_patch()
+    case "prerelease":
+        version = version.bump_prerelease()
+        prerelease = True
     case "build":
         version = version.bump_build()
     case arg:
@@ -46,7 +62,8 @@ match sys.argv[1].lower():
         usage()
         sys.exit(1)
 
-if prerelease:
+
+if prerelease and args.bump_type != "prerelease":
     version = version.bump_prerelease()
 
 print(f"{old_version} -> {version}")
