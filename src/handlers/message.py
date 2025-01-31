@@ -892,7 +892,7 @@ async def market_cmd(message: Message):
 async def daily_gift_cmd(message: Message):
     user = await database.users.async_get(id=message.from_user.id)
 
-    if not check_user_subscription(user):
+    if not await check_user_subscription(user):
         await send_channel_subscribe_message(message)
         return
 
