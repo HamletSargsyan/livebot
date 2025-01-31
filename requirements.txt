@@ -7,7 +7,7 @@ argparse==1.4.0
 semver==3.0.4
 httpx==0.28.1
 cachetools==5.5.1
-dacite==1.8.1
+dacite==1.9.1
 python-dateutil==2.9.0.post0
 tinylogging==5.0.1
 aiogram==3.17.0
