@@ -1,9 +1,10 @@
-from datetime import datetime, timedelta, UTC
-from typing import Any, Literal, Optional
 from dataclasses import asdict, dataclass, field
+from datetime import UTC, datetime, timedelta
+from typing import Literal, Optional
 
-from bson import ObjectId, Int64
-from dacite import from_dict as _from_dict  # cspell: disable-line
+from bson import Int64, ObjectId
+from dacite import Data
+from dacite import from_dict as _from_dict
 from dateutil.relativedelta import relativedelta  # cspell: disable-line
 
 from helpers.enums import ItemType, Locations
@@ -27,7 +28,7 @@ class BaseModel:
         return result
 
     @classmethod
-    def from_dict(cls, dict_data: dict[str, Any]):
+    def from_dict(cls, dict_data: Data):
         return _from_dict(cls, dict_data)
 
 
@@ -45,13 +46,9 @@ class ItemModel(BaseModel):
 
         _item = get_item(self.name)
         if _item.type == ItemType.USABLE and self.quantity > 1:
-            raise ValueError(
-                "Quantity must be 0 or 1 for items with type `ItemType.USABLE`"
-            )
+            raise ValueError("Quantity must be 0 or 1 for items with type `ItemType.USABLE`")
         if _item.type == ItemType.COUNTABLE and self.usage is not None:
-            raise ValueError(
-                "Usage must be `None` for items with type `ItemType.COUNTABLE`"
-            )
+            raise ValueError("Usage must be `None` for items with type `ItemType.COUNTABLE`")
         if not _item.can_equip and self.is_equipped:
             raise ValueError(f"Item {self.name} cannot be equipped")
 
@@ -183,13 +180,9 @@ class MarketItemModel(BaseModel):
 
         _item = get_item(self.name)
         if _item.type == ItemType.USABLE and self.quantity > 1:
-            raise ValueError(
-                "Quantity must be 0 or 1 for items with type `ItemType.USABLE`"
-            )
+            raise ValueError("Quantity must be 0 or 1 for items with type `ItemType.USABLE`")
         if _item.type == ItemType.COUNTABLE and self.usage is not None:
-            raise ValueError(
-                "Usage must be `None` for items with type `ItemType.COUNTABLE`"
-            )
+            raise ValueError("Usage must be `None` for items with type `ItemType.COUNTABLE`")
 
 
 @dataclass
@@ -197,9 +190,7 @@ class DailyGiftModel(BaseModel):
     _id: ObjectId = field(default_factory=ObjectId)
     owner: ObjectId = field(default_factory=ObjectId)
     last_claimed_at: Optional[datetime] = None
-    next_claimable_at: datetime = field(
-        default_factory=lambda: _utcnow() + timedelta(days=1)
-    )
+    next_claimable_at: datetime = field(default_factory=lambda: _utcnow() + timedelta(days=1))
     is_claimed: bool = False
     items: list = field(default_factory=list)
     streak: int = 0

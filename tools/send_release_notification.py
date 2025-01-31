@@ -1,8 +1,7 @@
 import os
 from typing import Any, NoReturn, Union
-import httpx
 
-from telebot import TeleBot
+import httpx
 
 
 def get_github_release_info(version) -> Union[dict[Any, Any], NoReturn]:
@@ -37,8 +36,19 @@ def send_release_notification():
         f"{body}"
     )
 
-    bot = TeleBot(bot_token, parse_mode="markdown", disable_web_page_preview=True)
-    bot.send_message(chat_id, message)
+    payload = {
+        "chat_id": chat_id,
+        "text": message,
+        "parse_mode": "markdown",
+        "disable_web_page_preview": True,
+    }
+
+    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+
+    response = httpx.post(url, json=payload)
+    if not response.is_success:
+        print(response.text)
+    response.raise_for_status()
 
 
 if __name__ == "__main__":

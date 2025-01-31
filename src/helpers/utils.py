@@ -1,11 +1,19 @@
-from contextlib import suppress
-from functools import wraps
+import asyncio
+import itertools
 import json
 import random
 import statistics
+import sys
+from contextlib import suppress
+from dataclasses import astuple, is_dataclass
+from datetime import UTC, datetime, timedelta
+from functools import wraps
 from typing import (
     Any,
+    Awaitable,
     Callable,
+    Generator,
+    Iterable,
     NoReturn,
     Optional,
     ParamSpec,
@@ -13,28 +21,22 @@ from typing import (
     TypeVar,
     Union,
 )
-from datetime import UTC, datetime, timedelta
 
 import httpx
+from aiogram.exceptions import TelegramAPIError, TelegramRetryAfter
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 from semver import Version
 
-from telebot.types import Message, InlineKeyboardButton, User
-from telebot.util import antiflood, escape, split_string, quick_markup
-
-from tinylogging import Record, Level
-
 from base.achievements import ACHIEVEMENTS
-from config import (
-    bot,
-    logger,
-    config,
-    VERSION,
-)
-from database.models import AchievementModel, UserModel
-from helpers.datatypes import Achievement, Item
-from helpers.exceptions import AchievementNotFoundError, ItemNotFoundError, NoResult
 from base.items import ITEMS
+from config import VERSION, bot, config, logger
+from database.funcs import cache
+from database.models import AchievementModel, UserModel
+from helpers.consts import PAGER_CONTROLLERS
+from helpers.datatypes import Achievement, Item
 from helpers.enums import ItemRarity
+from helpers.exceptions import AchievementNotFoundError, ItemNotFoundError, NoResult
 
 T = TypeVar("T")
 P = ParamSpec("P")
@@ -55,7 +57,10 @@ def deprecated(
             if warn_once and func.__name__ in _deprecated_funcs:
                 return func(*args, **kwargs)
             _deprecated_funcs.add(func.__name__)
-            msg = f"начиная с версии {deprecated_in} функция `{func.__name__}` помечена как устаревшая и будет удалена в версии {remove_in}, (текущая версия: {VERSION})"
+            msg = (
+                f"начиная с версии {deprecated_in} функция `{func.__name__}` помечена"
+                f" как устаревшая и будет удалена в версии {remove_in} (текущая версия: {VERSION})"
+            )
 
             if message:
                 msg += f" | {message}"
@@ -68,43 +73,39 @@ def deprecated(
     return decorator
 
 
+def make_hashable(value: Any):
+    if isinstance(value, dict):
+        return tuple((k, make_hashable(v)) for k, v in sorted(value.items()))
+    if isinstance(value, (list, set, tuple)):
+        return tuple(make_hashable(v) for v in value)
+    if is_dataclass(value):
+        return make_hashable(astuple(value))  # type: ignore
+    return value
+
+
+def cached(func: Callable[P, T]):
+    @wraps(func)
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+        key = frozenset((make_hashable(args), make_hashable(kwargs)))
+        if key in cache:
+            result: T = cache[key]
+        else:
+            result = func(*args, **kwargs)
+        return result
+
+    return wrapper
+
+
 def utcnow() -> datetime:
     return datetime.now(UTC)
 
 
-def log(record: Record) -> None:
-    emoji_dict = {
-        Level.DEBUG: "👾",
-        Level.INFO: "ℹ️",
-        Level.WARNING: "⚠️",
-        Level.ERROR: "🛑",
-        Level.CRITICAL: "⛔",
-    }
-    current_time = datetime.now(UTC).strftime("%d.%m.%Y %H:%M:%S")
-    log_template = (
-        f'<b>{emoji_dict.get(record.level, "")} {record.level.name}</b>\n\n'
-        f"{current_time}\n\n"
-        f"<b>Логгер:</b> <code>{record.name}</code>\n"  # cspell: disable-line
-        # f"<b>Модуль:</b> <code>{record.module}</code>\n"
-        f"<b>Путь к файлу:</b> <code>{record.filename}</code>\n"
-        f"<b>Файл</b>: <code>{record.relpath}</code>\n"
-        f"<b>Строка:</b> {record.line}\n\n"
-        '<pre><code class="language-shell">{text}</code></pre>'
-    )
-
-    for text in split_string(record.message, 3000):
-        try:
-            antiflood(
-                bot.send_message,
-                config.telegram.log_chat_id,
-                log_template.format(text=escape(text)),
-                message_thread_id=config.telegram.log_thread_id,
-            )
-        except Exception as e:
-            print(e)
-            print(text)
+@cached
+def split_string(text: str, chars_per_string: int) -> list[str]:
+    return [text[i : i + chars_per_string] for i in range(0, len(text), chars_per_string)]
 
 
+@cached
 def remove_not_allowed_symbols(text: str) -> str:
     not_allowed_symbols = ["#", "<", ">", "{", "}", '"', "'", "$", "(", ")", "@"]
     cleaned_text = "".join(char for char in text if char not in not_allowed_symbols)
@@ -112,6 +113,7 @@ def remove_not_allowed_symbols(text: str) -> str:
     return cleaned_text
 
 
+@cached
 def get_time_difference_string(d: timedelta) -> str:
     years, days_in_year = divmod(d.days, 365)
     months, days = divmod(days_in_year, 30)
@@ -134,22 +136,25 @@ def get_time_difference_string(d: timedelta) -> str:
     return data
 
 
+@cached
 def get_user_tag(user: UserModel):
     return f"<a href='tg://user?id={user.id}'>{user.name}</a>"
 
 
+@cached
 def get_item(name: str) -> Union[Item, NoReturn]:
     for item in ITEMS:
         item.name = item.name.lower()
         if item.name == name:
             return item
-        elif item.altnames and name in item.altnames:
+        if item.altnames and name in item.altnames:
             return item
-        elif name == item.translit():
+        if name == item.translit():
             return item
     raise ItemNotFoundError(f"Item {name} not found")
 
 
+@cached
 def get_item_emoji(item_name: str) -> str:
     try:
         return get_item(item_name).emoji or ""
@@ -157,6 +162,7 @@ def get_item_emoji(item_name: str) -> str:
         return ""
 
 
+@cached
 def get_item_count_for_rarity(rarity: ItemRarity) -> int:
     if rarity == ItemRarity.COMMON:
         quantity = random.randint(5, 20)
@@ -174,8 +180,9 @@ def get_item_count_for_rarity(rarity: ItemRarity) -> int:
 class Loading:
     def __init__(self, message: Message):
         self.message = message
+        self.loading_message: Message
 
-    def __enter__(self):
+    async def __aenter__(self):
         with open("src/base/hints.json") as f:
             hints: list[dict[str, str]] = json.load(f)
 
@@ -189,30 +196,21 @@ class Loading:
         mess = f"<b>Загрузка...</b>\n\n<i>{hint['message']}</i>"
 
         try:
-            msg = bot.reply_to(self.message, mess, reply_markup=markup)
+            msg = await self.loading_message.reply(mess, reply_markup=markup)
         except Exception:
-            msg = bot.send_message(self.message.chat.id, mess, reply_markup=markup)
+            msg = await self.message.answer(mess, reply_markup=markup)
         self.loading_message = msg
 
-    def __exit__(self, exc_type, exc_value, traceback):
-        bot.delete_message(self.loading_message.chat.id, self.loading_message.id)
+    async def __aexit__(self, exc_type, exc_value, traceback):
+        await self.loading_message.delete()
 
 
-PAGER_CONTROLLERS = [
-    InlineKeyboardButton("↩️", callback_data="{name} start {pos} {user_id}"),
-    InlineKeyboardButton("⬅️", callback_data="{name} back {pos} {user_id}"),
-    InlineKeyboardButton("➡️", callback_data="{name} next {pos} {user_id}"),
-    InlineKeyboardButton("↪️", callback_data="{name} end {pos} {user_id}"),
-]
-
-
+@cached
 def get_pager_controllers(name: str, pos: int, user_id: Union[int, str]):
     return [
         InlineKeyboardButton(
-            controller.text,
-            callback_data=controller.callback_data.format(
-                name=name, pos=pos, user_id=user_id
-            ),
+            text=controller.text,
+            callback_data=controller.callback_data.format(name=name, pos=pos, user_id=user_id),
         )
         for controller in PAGER_CONTROLLERS
     ]
@@ -236,35 +234,42 @@ def get_middle_item_price(name: str) -> int:
     return int(price)
 
 
+@cached
 def calc_xp_for_level(level: int) -> int:
     return 5 * level + 50 * level + 100
 
 
-def check_user_subscription(user: UserModel) -> bool:
-    tg_user = bot.get_chat_member(config.telegram.channel_id, user.id)
+async def check_user_subscription(user: UserModel) -> bool:
+    tg_user = await bot.get_chat_member(config.telegram.channel_id, user.id)
     if tg_user.status in ["member", "administrator", "creator"]:
         return True
     return False
 
 
-def send_channel_subscribe_message(message: Message):
-    chat_info = bot.get_chat(config.telegram.channel_id)
+async def send_channel_subscribe_message(message: Message):
+    chat_info = await message.bot.get_chat(config.telegram.channel_id)
     markup = quick_markup({"Подписаться": {"url": f"t.me/{chat_info.username}"}})
     mess = "Чтобы использовать эту функцию нужно подписаться на новостной канал"
-    bot.reply_to(message, mess, reply_markup=markup)
+    await message.reply(mess, reply_markup=markup)
 
 
 def check_version() -> str:  # type: ignore
     url = "https://api.github.com/repos/HamletSargsyan/livebot/releases/latest"
-    response = httpx.get(url)
 
-    if response.status_code != 200:
-        logger.error(response.text)
-        response.raise_for_status()
+    if "bot_latest_version" in cache:
+        version: Version = Version.parse(cache.get("bot_latest_version"))  # type: ignore
+    else:
+        response = httpx.get(url)
 
-    latest_release = response.json()
+        if response.status_code != 200:
+            logger.error(response.text)
+            response.raise_for_status()
 
-    latest_version = Version.parse(latest_release["tag_name"].replace("v", ""))
+        latest_release = response.json()
+        version = Version.parse(latest_release["tag_name"].replace("v", ""))
+        cache["bot_latest_version"] = str(version)
+
+    latest_version = version
 
     match VERSION.compare(latest_version):
         case -1:
@@ -275,20 +280,12 @@ def check_version() -> str:  # type: ignore
             return "текущая версия бота больше чем в репозитории"
 
 
-@deprecated(
-    remove_in=Version(major=12),
-    deprecated_in=Version(major=10),
-    message="Use `message.from_user` instead",
-)
-def from_user(message: Message) -> User:
-    return message.from_user  # type: ignore
-
-
+@cached
 def get_achievement(name: str) -> Achievement:
     for achievement in ACHIEVEMENTS:
         if name == achievement.name:
             return achievement
-        elif name == achievement.translit() or name == achievement.key:
+        if name == achievement.translit() or name == achievement.key:
             return achievement
     raise AchievementNotFoundError(name)
 
@@ -296,7 +293,7 @@ def get_achievement(name: str) -> Achievement:
 def achievement_progress(user: UserModel, name: str) -> str:
     ach = get_achievement(name)
     achievement_progress = user.achievement_progress.get(ach.key, 0)
-    percentage = calc_percentage(achievement_progress, ach.need)
+    percentage = min(100.0, calc_percentage(achievement_progress, ach.need))
 
     progress = f"Выполнил: {achievement_progress}/{ach.need}\n"
     progress += f"[{create_progress_bar(percentage)}] {percentage:.2f}%"
@@ -313,14 +310,14 @@ def is_completed_achievement(user: UserModel, name: str) -> bool:
         return False
 
 
-def award_user_achievement(user: UserModel, achievement: Achievement):
+async def award_user_achievement(user: UserModel, achievement: Achievement):
     if is_completed_achievement(user, achievement.name):
         return
-    from database.funcs import database
     from base.player import get_or_add_user_item
+    from database.funcs import database
 
     ach = AchievementModel(name=achievement.name, owner=user._id)
-    database.achievements.add(**ach.to_dict())
+    await database.achievements.async_add(**ach.to_dict())
 
     reward = ""
 
@@ -328,13 +325,13 @@ def award_user_achievement(user: UserModel, achievement: Achievement):
         reward = f"+ {quantity} {item} {get_item_emoji(item)}\n"
         if item == "бабло":
             user.coin += quantity
-            database.users.update(**user.to_dict())
+            await database.users.async_update(**user.to_dict())
         else:
             user_item = get_or_add_user_item(user, item)
             user_item.quantity += quantity
-            database.items.update(**user_item.to_dict())
+            await database.items.async_update(**user_item.to_dict())
 
-    bot.send_message(
+    await bot.send_message(
         user.id,
         f'Поздравляю🎉, ты получил достижение "{ach.name}"\n\nЗа это ты получил:\n{reward}',
     )
@@ -355,14 +352,16 @@ def increment_achievement_progress(user: UserModel, key: str, quantity: int = 1)
         )
 
 
+@cached
 def calc_percentage(part: int, total: int = 100) -> float:
     if total == 0:
         raise ValueError("Общий объем не может быть равен нулю")
     return (part / total) * 100
 
 
+@cached
 def create_progress_bar(percentage: float) -> str:
-    if not (0 <= percentage <= 100):
+    if not (0 <= percentage <= 100):  # pylint: disable=superfluous-parens
         raise ValueError("Процент должен быть в диапазоне от 0 до 100.")
 
     length: int = 10
@@ -381,12 +380,12 @@ def achievement_status(user: UserModel, achievement: Achievement) -> int:
     is_completed = is_completed_achievement(user, achievement.name)
     if progress > 0 and not is_completed:
         return 0  # В процессе
-    elif is_completed:
+    if is_completed:
         return 2  # Выполнено
-    else:
-        return 1  # Не начато
+    return 1  # Не начато
 
 
+@cached
 def parse_time_duration(time_str: str) -> timedelta:
     """
     Parse time duration in the format like 2d, 3h, 15m and return the timedelta.
@@ -396,16 +395,15 @@ def parse_time_duration(time_str: str) -> timedelta:
 
     if unit == "d":
         return timedelta(days=value)
-    elif unit == "h":
+    if unit == "h":
         return timedelta(hours=value)
-    elif unit == "m":
+    if unit == "m":
         return timedelta(minutes=value)
-    else:
-        raise ValueError(
-            "Неверный формат времени. Используйте {d,h,m} для дней, часов, минут."
-        )
+
+    raise ValueError("Неверный формат времени. Используйте {d,h,m} для дней, часов, минут.")
 
 
+@cached
 def pretty_datetime(d: datetime) -> str:
     return d.strftime("%H:%M %d.%m.%Y")
 
@@ -424,22 +422,52 @@ class MessageEditor:
         self._mess = f"<b>{self.title}</b>"
         self.exit_funcs: set[Callable[[], None | Any]] = set()
 
-    def __enter__(self) -> Self:
-        self.message = antiflood(bot.reply_to, self.user_message, self._mess)
+    async def __aenter__(self) -> Self:
+        self.message = await antiflood(self.user_message.reply(self._mess))
 
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
         for func in self.exit_funcs:
             func()
 
-    def write(self, new_text: str):
+    async def write(self, new_text: str):
         self._mess = text = f"{self._mess}\n<b>*</b>  {new_text}"
-        self.message = antiflood(
-            bot.edit_message_text, text, self.message.chat.id, self.message.id
-        )
+        self.message = await antiflood(self.message.edit_text(text))
 
 
-def safe(func: Callable[P, T], *args: P.args, **kwargs: P.kwargs) -> Optional[T]:
-    with suppress(BaseException):
-        return func(*args, **kwargs)
+async def safe(func: Awaitable[T]) -> Optional[T]:
+    with suppress(TelegramAPIError):
+        return await antiflood(func)
+
+
+@cached
+def quick_markup(values: dict[str, dict[str, Any]], row_width: int = 2) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    buttons = [InlineKeyboardButton(text=text, **kwargs) for text, kwargs in values.items()]
+    builder.add(*buttons)
+    builder.adjust(row_width)
+    return builder.as_markup()
+
+
+async def antiflood(func: Awaitable[T]) -> T:
+    number_retries = 5
+    for _ in range(number_retries):
+        try:
+            return await func
+        except TelegramRetryAfter as e:
+            await asyncio.sleep(e.retry_after)
+    return await func
+
+
+if sys.version_info >= (3, 12):
+    batched = itertools.batched  # pylint: disable=invalid-name,no-member
+else:
+
+    def batched(iterable: Iterable[T], n: int) -> Generator[tuple[T, ...], None, None]:
+        # https://docs.python.org/3.12/library/itertools.html#itertools.batched
+        if n < 1:
+            raise ValueError("n must be at least one")
+        iterator = iter(iterable)
+        while batch := tuple(itertools.islice(iterator, n)):
+            yield batch

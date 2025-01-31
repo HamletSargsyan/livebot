@@ -30,7 +30,7 @@ jobs:
     - name: Install requirements
       run: pip install -r requirements.txt
 
-    - name: Install dev requitements
+    - name: Install dev requirements
       run: task dev-install
 
     - name: lint

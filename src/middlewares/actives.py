@@ -1,24 +1,30 @@
-from typing import Union
-from telebot import BaseMiddleware, CancelUpdate
-from telebot.types import Message, CallbackQuery
+from typing import Any, Awaitable, Callable
 
+from aiogram import BaseMiddleware
+from aiogram.types import CallbackQuery, Message, TelegramObject
+
+from config import TELEGRAM_ID
 from database.funcs import database
 from helpers.utils import increment_achievement_progress, utcnow
 
 
 class ActiveMiddleware(BaseMiddleware):
-    def __init__(self) -> None:
-        self.update_types = ["message", "callback_query"]
+    async def __call__(
+        self,
+        handler: Callable[[TelegramObject, dict[str, Any]], Awaitable[Any]],
+        event: TelegramObject,
+        data: dict[str, Any],
+    ):
+        result = await handler(event, data)
+        if isinstance(event, (Message, CallbackQuery)):
+            if event.from_user.id == TELEGRAM_ID or event.from_user.is_bot:
+                return
 
-    def pre_process(self, message: Union[Message, CallbackQuery], data):
-        if message.from_user.is_bot:  # type: ignore
-            return CancelUpdate()
+            user_id = event.from_user.id
+            user = await database.users.async_get(id=user_id)
+            user.last_active_time = utcnow()
+            await database.users.async_update(**user.to_dict())
 
-    def post_process(self, message: Union[Message, CallbackQuery], data, exception):
-        user_id = message.from_user.id  # type: ignore
-        user = database.users.get(id=user_id)
-        user.last_active_time = utcnow()
-        database.users.update(**user.to_dict())
-
-        if (utcnow() - user.registered_at).days >= 7:
-            increment_achievement_progress(user, "новичок")
+            if (utcnow() - user.registered_at).days >= 7:
+                increment_achievement_progress(user, "новичок")
+            return result

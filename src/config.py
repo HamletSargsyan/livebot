@@ -1,20 +1,16 @@
-import json
-from dns import resolver
+import logging
 from dataclasses import dataclass
-from typing import Final, Optional
 from datetime import UTC, datetime
+from typing import Final, Optional
 
 import toml
-from redis import Redis
+from aiogram import Bot
+from aiogram.client.default import DefaultBotProperties
+from aiogram.types import LinkPreviewOptions
+from dns import resolver
 from semver import Version
-
-from tinylogging import Logger, Level, BaseHandler, LoggingAdapterHandler
-
-import telebot
-from telebot import ExceptionHandler
-from telebot.storage import StateRedisStorage
-from telebot.custom_filters import StateFilter, IsDigitFilter
-
+from tinylogging import Level, Logger, LoggingAdapterHandler, TelegramHandler
+from tinylogging.helpers import TelegramFormatter
 
 TELEGRAM_ID: Final = 777000
 
@@ -51,7 +47,6 @@ class TelegramConfig:
 
 @dataclass
 class WeatherConfig:
-    api_key: str
     region: str
 
 
@@ -115,54 +110,33 @@ with open("version") as f:
 logger = Logger("Bot", Level.DEBUG if config.general.debug else Level.INFO)
 
 
-class TelegramLogsHandler(BaseHandler):
-    def emit(self, record):
-        if record.level <= Level.DEBUG and record.name == telebot.logger.name:
-            return
-        from helpers.utils import log
+logger.handlers.add(
+    TelegramHandler(
+        chat_id=config.telegram.log_chat_id,
+        token=config.telegram.token,
+        message_thread_id=config.telegram.log_thread_id,
+        formatter=TelegramFormatter(),
+    )
+)
 
-        log(record)
-
-
-logger.handlers.add(TelegramLogsHandler())
-
-
-telebot.logger.handlers = []
+aiogram_logger = logging.getLogger("aiogram")
+aiogram_logger.handlers = []
 
 for handler in logger.handlers:
-    telebot.logger.addHandler(LoggingAdapterHandler(handler))
+    aiogram_logger.handlers.append(LoggingAdapterHandler(handler))
 
-telebot.logger.setLevel("DEBUG" if config.general.debug else "INFO")
-
-
-class RedisStorage(StateRedisStorage):
-    def set_record(self, key, value):
-        connection = Redis(connection_pool=self.redis)
-        connection.setex(self.prefix + str(key), 120, json.dumps(value))
-        connection.close()
-        return True
-
-
-state_storage = RedisStorage(redis_url=config.redis.url)
-
-
-class ErrorHandler(ExceptionHandler):
-    def handle(self, exception: Exception) -> bool:  # pyright: ignore
-        logger.error(str(exception))
-        return True
-
-
-bot = telebot.TeleBot(
-    config.telegram.token,
-    parse_mode="html",
-    skip_pending=True,
-    num_threads=10,
-    disable_web_page_preview=True,
-    use_class_middlewares=True,
-    state_storage=state_storage,
-    exception_handler=ErrorHandler(),
+bot: Final = Bot(
+    token=config.telegram.token,
+    default=DefaultBotProperties(
+        parse_mode="html",
+        allow_sending_without_reply=True,
+        link_preview=LinkPreviewOptions(
+            is_disabled=True,
+        ),
+    ),
 )
 
 
-bot.add_custom_filter(StateFilter(bot))
-bot.add_custom_filter(IsDigitFilter())
+# TODO
+# bot.add_custom_filter(StateFilter(bot))
+# bot.add_custom_filter(IsDigitFilter())

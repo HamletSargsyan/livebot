@@ -2,7 +2,6 @@ from typing import Final
 
 from helpers.datatypes import Achievement
 
-
 ACHIEVEMENTS: Final[list[Achievement]] = [
     Achievement(
         name="работяга",

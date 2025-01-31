@@ -1,9 +1,10 @@
 from typing import Type
-from telebot.handler_backends import BaseMiddleware
 
-from .register import RegisterMiddleware
-from .actives import ActiveMiddleware
-from .rule_check import RuleCheckMiddleware
+from aiogram import BaseMiddleware
+
+from middlewares.actives import ActiveMiddleware
+from middlewares.register import RegisterMiddleware
+from middlewares.rule_check import RuleCheckMiddleware
 
 middlewares: list[Type[BaseMiddleware]] = [
     RegisterMiddleware,

@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [11.0.0-rc.1] - 2025-01-31
+
+### Добавлено
+
+- Механизм кеширования для запросов получения версии бота ([#87](https://github.com/HamletSargsyan/livebot/issues/87))
+
+### Изменено
+
+- Переход с сервиса OpenWeatherMapApi на open-meteo ([#88](https://github.com/HamletSargsyan/livebot/issues/88))
+- Проведён рефакторинг кода для улучшения читаемости и поддержки с использованием pylint
+- Миграция на aiogram ([#90](https://github.com/HamletSargsyan/livebot/issues/90))
+
+### Исправлено
+
+- Баг при просмотре конкретного достижения ([#86](https://github.com/HamletSargsyan/livebot/issues/86))
+
 ## [10.3.0] - 2024-12-24
 
 ### Добавлено

@@ -1,17 +1,12 @@
 {
-    "extraPaths": [
-        "src/"
-    ],
-    "include": [
-        "src",
-        "tools/"
-    ],
-    "exclude": [
-        "**/.venv",
-        "**/__pycache__",
-    ],
-    "pythonVersion": "3.11",
-    "pythonPlatform": "Linux",
-    "reportMissingTypeStubs": false,
-    "reportOptionalMemberAccess": false,
+  "extraPaths": ["src/"],
+  "include": ["src", "tools/"],
+  "exclude": ["**/.venv", "**/__pycache__"],
+  "pythonVersion": "3.11",
+  "pythonPlatform": "Linux",
+  "reportMissingTypeStubs": false,
+  "reportMissingImports": false,
+  "reportMissingModuleSource": false,
+  "reportOptionalMemberAccess": false,
+  "reportAttributeAccessIssue": false
 }

@@ -1,5 +1,5 @@
-from helpers.enums import ItemRarity, ItemType
 from helpers.datatypes import Item
+from helpers.enums import ItemRarity, ItemType
 
 rarity_weights = {
     ItemRarity.COMMON: 6,
