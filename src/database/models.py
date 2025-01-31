@@ -3,8 +3,8 @@ from datetime import UTC, datetime, timedelta
 from typing import Literal, Optional
 
 from bson import Int64, ObjectId
-from dacite import Data
 from dacite import from_dict as _from_dict
+from dacite.data import Data
 from dateutil.relativedelta import relativedelta  # cspell: disable-line
 
 from helpers.enums import ItemType, Locations
