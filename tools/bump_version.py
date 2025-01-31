@@ -62,7 +62,8 @@ match args.bump_type:
         usage()
         sys.exit(1)
 
-if prerelease:
+
+if prerelease and args.bump_type != "prerelease":
     version = version.bump_prerelease()
 
 print(f"{old_version} -> {version}")
