@@ -38,6 +38,11 @@ parser.add_argument(
 )
 args = parser.parse_args()
 
+
+if args.bump_type == "prerelease" and args.prerelease:
+    print("You cannot combine the 'prerelease' parameter with the '--prerelease' flag.")
+    usage(1)
+
 prerelease = args.prerelease
 
 match args.bump_type:
@@ -58,9 +63,6 @@ match args.bump_type:
         sys.exit(1)
 
 if prerelease:
-    if args.prerelease:
-        print("You cannot combine the 'prerelease' parameter with the '--prerelease' flag.")
-        usage(1)
     version = version.bump_prerelease()
 
 print(f"{old_version} -> {version}")
