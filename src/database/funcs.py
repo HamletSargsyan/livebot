@@ -88,7 +88,7 @@ class BaseDB(Generic[T]):
         return self.model.from_dict(obj)
 
     async def async_get_all(self, **data) -> list[T]:
-        obj = self.async_collection.find(data)
+        obj = await self.async_collection.find(data).to_list()
         if not obj:
             raise NoResult
         return [self.model.from_dict(attrs) for attrs in obj]

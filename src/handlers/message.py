@@ -172,7 +172,7 @@ async def bag_cmd(message: Message):
         user = await database.users.async_get(id=message.from_user.id)
 
         mess = "<b>Рюкзак</b>\n\n"
-        inventory = await database.items.async_get_all(**{"owner": user._id})
+        inventory = await database.items.async_get_all(owner=user._id)
         if not inventory:
             mess += "<i>Пусто...</i>"
         else:
