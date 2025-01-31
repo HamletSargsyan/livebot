@@ -12,7 +12,9 @@ with open("version") as f:
 
 
 def usage():
-    print(f"Usage: python3 {sys.argv[0]} [ major | minor | patch | build ] [--prerelease]")
+    print(
+        f"Usage: python3 {sys.argv[0]} [ major | minor | patch | prerelease | build ] [--prerelease]"
+    )
     sys.exit(0)
 
 
@@ -39,6 +41,9 @@ match sys.argv[1].lower():
         version = version.bump_minor()
     case "patch":
         version = version.bump_patch()
+    case "prerelease":
+        version = version.bump_prerelease()
+        prerelease = True
     case "build":
         version = version.bump_build()
     case arg:
@@ -47,6 +52,10 @@ match sys.argv[1].lower():
         sys.exit(1)
 
 if prerelease:
+    if "prerelease" in sys.argv:
+        print("You cannot combine the 'prerelease' parameter with the '--prerelease' flag.")
+        usage()
+        sys.exit(1)
     version = version.bump_prerelease()
 
 print(f"{old_version} -> {version}")
