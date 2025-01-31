@@ -89,9 +89,9 @@ if match := re.match(r"## \[\d+\.\d+\.\d+\] - \d{4}-\d{2}-\d{2}", content):
 with open("release_body.md", "w") as f:
     f.write(content)
 
-run_command("git switch main")
 run_command("task fix && task lint && task format")
 run_command('git add . && git commit -a -m "bump version" && git push')
+run_command("git switch main")
 
 run_command(
     f'gh pr create --base main --head dev --title "Release v{version}" --body "Автоматический PR для релиза версии {version}"'
