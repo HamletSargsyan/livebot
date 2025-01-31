@@ -1,9 +1,10 @@
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime, timedelta
-from typing import Any, Literal, Optional
+from typing import Literal, Optional
 
 from bson import Int64, ObjectId
-from dacite import from_dict as _from_dict  # cspell: disable-line
+from dacite import Data
+from dacite import from_dict as _from_dict
 from dateutil.relativedelta import relativedelta  # cspell: disable-line
 
 from helpers.enums import ItemType, Locations
@@ -27,7 +28,7 @@ class BaseModel:
         return result
 
     @classmethod
-    def from_dict(cls, dict_data: dict[str, Any]):
+    def from_dict(cls, dict_data: Data):
         return _from_dict(cls, dict_data)
 
 
