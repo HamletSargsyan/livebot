@@ -12,9 +12,9 @@ with open("version") as f:
     version = old_version
 
 
-def usage():
+def usage(exit_code: int = 0):
     parser.print_usage()
-    sys.exit(0)
+    sys.exit(exit_code)
 
 
 def run_command(command: str):
@@ -60,8 +60,7 @@ match args.bump_type:
 if prerelease:
     if args.prerelease:
         print("You cannot combine the 'prerelease' parameter with the '--prerelease' flag.")
-        usage()
-        sys.exit(1)
+        usage(1)
     version = version.bump_prerelease()
 
 print(f"{old_version} -> {version}")
