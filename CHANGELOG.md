@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [11.0.0-rc.5] - 2025-02-01
+
 ### Исправлено
 
 - Расчет времени для ачивок `новичок` и `олд`
