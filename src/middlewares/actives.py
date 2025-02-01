@@ -22,9 +22,13 @@ class ActiveMiddleware(BaseMiddleware):
 
             user_id = event.from_user.id
             user = await database.users.async_get(id=user_id)
+
+            last_active_time = user.last_active_time
+
             user.last_active_time = utcnow()
             await database.users.async_update(**user.to_dict())
 
-            if (utcnow() - user.registered_at).days >= 7:
+            if (utcnow() - last_active_time).days >= 1:
                 increment_achievement_progress(user, "новичок")
+                increment_achievement_progress(user, "олд")
             return result
