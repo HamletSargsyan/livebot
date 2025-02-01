@@ -15,8 +15,9 @@ repos:
         types: [python]
         pass_filenames: false
         exclude: "src/\\*test\\*.py"
-      - id: cpell-check
+      - id: check-spell
         name: spell-check
         entry: task spell-check
         language: system
+        pass_filenames: false
         exclude: ".pre-commit-config.yaml"

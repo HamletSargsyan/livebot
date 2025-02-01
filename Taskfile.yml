@@ -35,14 +35,14 @@ tasks:
   dev-install:
     cmds:
       - pip install --upgrade ruff pyright pre-commit pylint
+      - npm install -g cspell @cspell/dict-ru_ru
+      - cspell link add @cspell/dict-ru_ru
 
   dev-setup:
     deps:
       - dev-install
       - create-config
     cmds:
-      - npm install -g cspell @cspell/dict-ru_ru
-      - cspell link add @cspell/dict-ru_ru
       - pre-commit install
 
   clean:
