@@ -253,6 +253,7 @@ async def finish_quest_callback(call: CallbackQuery):
     mess += get_time_difference_string(total_time)
 
     generate_quest(user)
+    increment_achievement_progress(user, "квестоман")
     await call.message.delete()
 
     user_message = call.message.reply_to_message
