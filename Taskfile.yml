@@ -4,6 +4,7 @@ tasks:
   default:
     - task: lint
     - task: fix
+    - task: spell-check
     - task: format
 
   run:
@@ -18,7 +19,6 @@ tasks:
   lint:
     cmds:
       - ruff check --respect-gitignore src tools
-      - cspell lint "**"
       - pylint -f colorized src
       - pyright src tools
 
@@ -29,6 +29,9 @@ tasks:
   fix:
     cmd: ruff check --respect-gitignore --fix src tools
 
+  spell-check:
+    cmd: cspell lint "**"
+
   dev-install:
     cmds:
       - pip install --upgrade ruff pyright pre-commit pylint
@@ -38,6 +41,8 @@ tasks:
       - dev-install
       - create-config
     cmds:
+      - npm install -g cspell @cspell/dict-ru_ru
+      - cspell link add @cspell/dict-ru_ru
       - pre-commit install
 
   clean:
