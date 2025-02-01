@@ -18,8 +18,8 @@ tasks:
   lint:
     cmds:
       - ruff check --respect-gitignore src tools
-      - pylint -f colorized src
       - cspell lint "**"
+      - pylint -f colorized src
       - pyright src tools
 
   format:

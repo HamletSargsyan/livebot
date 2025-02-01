@@ -40,7 +40,7 @@ class RuleCheckMiddleware(BaseMiddleware):
             if user.accepted_rules:
                 return await handler(event, data)
 
-            if isinstance(event, Message) and not event.text.startswith("/start"):
+            if isinstance(event, Message):
                 await send_rules_message(event, user)
                 return
             if isinstance(event, CallbackQuery) and not event.data.startswith("accept_rules"):

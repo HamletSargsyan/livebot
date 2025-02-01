@@ -15,7 +15,7 @@ async def _notification():
             user_notification = await database.notifications.async_get(owner=user._id)
         except NoResult:
             user_notification = NotificationModel(owner=user._id)
-            id = await database.notifications.async_add(**user_notification.to_dict()).inserted_id
+            id = (await database.notifications.async_add(**user_notification.to_dict())).inserted_id
             user_notification._id = id
 
         user = await database.users.async_get(_id=user._id)

@@ -135,8 +135,3 @@ bot: Final = Bot(
         ),
     ),
 )
-
-
-# TODO
-# bot.add_custom_filter(StateFilter(bot))
-# bot.add_custom_filter(IsDigitFilter())
