@@ -156,16 +156,12 @@ async def check_user_stats(user: UserModel, chat_id: Union[str, int, None] = Non
 
 def generate_quest(user: UserModel):
     try:
-        old_quest = database.quests.get(**{"owner": user._id})
+        old_quest = database.quests.get(owner=user._id)
         database.quests.delete(**old_quest.to_dict())
     except NoResult:
         pass
 
-    allowed_items = []
-
-    for item in ITEMS:
-        if item.is_task_item:
-            allowed_items.append(item)
+    allowed_items = [item for item in ITEMS if item.is_task_item]
 
     item: Item = random.choice(allowed_items)
     quantity = random.randint(2, 10) * user.level

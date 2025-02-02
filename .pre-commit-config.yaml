@@ -1,16 +1,22 @@
 repos:
   - repo: local
     hooks:
-      - id: lint
-        name: lint
-        entry: task lint
+      - id: format
+        name: format
+        entry: task format
         language: system
         types: [python]
         pass_filenames: false
         exclude: "src/\\*test\\*.py"
-      - id: format
-        name: format
-        entry: task format
+      - id: check-spell
+        name: spell-check
+        entry: task spell-check
+        language: system
+        pass_filenames: false
+        exclude: ".pre-commit-config.yaml"
+      - id: lint
+        name: lint
+        entry: task lint
         language: system
         types: [python]
         pass_filenames: false

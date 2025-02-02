@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [11.0.0-rc.6] - 2025-02-02
+
+### Добавлено
+
+- Новое достижение: `квестоман`
+
+### Исправлено
+
+- Баг [#113](https://github.com/HamletSargsyan/livebot/issues/113)
+
 ## [11.0.0-rc.5] - 2025-02-01
 
 ### Исправлено

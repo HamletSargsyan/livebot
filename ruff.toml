@@ -23,6 +23,7 @@ exclude = [
     "buck-out",
     "build",
     "dist",
+    "src/*test*.*"
 ]
 
 # Same as Black.
