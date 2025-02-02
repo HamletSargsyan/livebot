@@ -67,7 +67,18 @@ if prerelease and args.bump_type != "prerelease":
     version = version.bump_prerelease()
 
 print(f"{old_version} -> {version}")
-choice = input("Сделать релиз? [N/y] ").lower()
+
+# Чтение CHANGELOG и отображение изменений для новой версии
+with open("CHANGELOG.md", "r") as f:
+    changes = changelog.loads(f.read())
+
+unreleased_changes = next((c for c in changes if str(c["version"]).lower() == "unreleased"), None)
+
+if unreleased_changes:
+    print("\nИзменения для новой версии:")
+    print(changelog.dumps([unreleased_changes], "").strip())
+
+choice = input("\nСделать релиз? [N/y] ").lower()
 
 if choice != "y":
     sys.exit(0)
@@ -77,19 +88,11 @@ run_command("git switch dev")
 with open("version", "w") as f:
     f.write(str(version))
 
-with open("CHANGELOG.md", "r") as f:
-    changes = changelog.loads(f.read())
-
 for change in changes:
     if str(change["version"]).lower() == "unreleased":
         change["version"] = version
         change["date"] = date.today()
-        changes.insert(
-            0,
-            {
-                "version": "Unreleased",
-            },
-        )
+        changes.insert(0, {"version": "Unreleased"})
         break
 
 with open("CHANGELOG.md", "w") as f:
