@@ -3,8 +3,9 @@ from aiogram.exceptions import TelegramAPIError
 from config import bot
 from database.funcs import database
 from database.models import NotificationModel
+from helpers.datetime_utils import utcnow
 from helpers.exceptions import NoResult
-from helpers.utils import antiflood, quick_markup, utcnow
+from helpers.utils import antiflood, quick_markup
 
 
 async def _notification():

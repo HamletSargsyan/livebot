@@ -1,5 +1,5 @@
 from dataclasses import asdict, dataclass, field
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta
 from typing import Literal, Optional
 
 from bson import Int64, ObjectId
@@ -7,11 +7,8 @@ from dacite import from_dict as _from_dict
 from dacite.data import Data
 from dateutil.relativedelta import relativedelta  # cspell: disable-line
 
+from helpers.datetime_utils import utcnow
 from helpers.enums import ItemType, Locations
-
-
-def _utcnow():
-    return datetime.now(UTC)
 
 
 @dataclass
@@ -61,7 +58,7 @@ class PromoModel(BaseModel):
     description: Optional[str] = None
     items: dict = field(default_factory=dict)
     users: list = field(default_factory=list)
-    created_at: datetime = field(default_factory=_utcnow)
+    created_at: datetime = field(default_factory=utcnow)
     _id: ObjectId = field(default_factory=ObjectId)
 
 
@@ -69,7 +66,7 @@ class PromoModel(BaseModel):
 class QuestModel(BaseModel):
     name: str
     quantity: int = 1
-    start_time: datetime = field(default_factory=_utcnow)
+    start_time: datetime = field(default_factory=utcnow)
     xp: float = 1.0
     reward: int = 1
     owner: ObjectId = field(default_factory=ObjectId)
@@ -95,7 +92,7 @@ class DogModel(BaseModel):
     health: int = 100
     hunger: int = 0
     fatigue: int = 0
-    sleep_time: datetime = field(default_factory=_utcnow)
+    sleep_time: datetime = field(default_factory=utcnow)
     owner: ObjectId = field(default_factory=ObjectId)
 
 
@@ -117,7 +114,7 @@ class NotificationModel(BaseModel):
 class Violation:
     reason: str
     type: Literal["warn", "mute", "ban", "permanent-ban"]
-    date: datetime = field(default_factory=_utcnow)
+    date: datetime = field(default_factory=utcnow)
     is_permanent: bool = False
     until_date: Optional[datetime] = None
 
@@ -125,14 +122,14 @@ class Violation:
         if self.type == "permanent-ban":
             self.is_permanent = True
         elif self.type == "warn" and not self.until_date:
-            self.until_date = _utcnow() + relativedelta(months=3)
+            self.until_date = utcnow() + relativedelta(months=3)
 
 
 @dataclass
 class UserAction:
     type: Literal["street", "work", "sleep", "game"]
     end: datetime
-    start: datetime = field(default_factory=_utcnow)
+    start: datetime = field(default_factory=utcnow)
 
 
 @dataclass
@@ -140,7 +137,7 @@ class UserModel(BaseModel):
     id: int
     name: str
     _id: ObjectId = field(default_factory=ObjectId)
-    registered_at: datetime = field(default_factory=_utcnow)
+    registered_at: datetime = field(default_factory=utcnow)
     level: int = 1
     xp: float = 0.0
     max_xp: int = 155
@@ -160,7 +157,7 @@ class UserModel(BaseModel):
     new_quest_coin_quantity: int = 2
     max_items_count_in_market: int = 4
     luck: int = 1
-    last_active_time: datetime = field(default_factory=_utcnow)
+    last_active_time: datetime = field(default_factory=utcnow)
     achievement_progress: dict = field(default_factory=dict)
     accepted_rules: bool = False
 
@@ -172,7 +169,7 @@ class MarketItemModel(BaseModel):
     _id: ObjectId = field(default_factory=ObjectId)
     quantity: int = 0
     usage: Optional[float] = None
-    published_at: datetime = field(default_factory=_utcnow)
+    published_at: datetime = field(default_factory=utcnow)
     owner: ObjectId = field(default_factory=ObjectId)
 
     def __post_init__(self):
@@ -190,7 +187,7 @@ class DailyGiftModel(BaseModel):
     _id: ObjectId = field(default_factory=ObjectId)
     owner: ObjectId = field(default_factory=ObjectId)
     last_claimed_at: Optional[datetime] = None
-    next_claimable_at: datetime = field(default_factory=lambda: _utcnow() + timedelta(days=1))
+    next_claimable_at: datetime = field(default_factory=lambda: utcnow() + timedelta(days=1))
     is_claimed: bool = False
     items: list = field(default_factory=list)
     streak: int = 0
@@ -201,4 +198,4 @@ class AchievementModel(BaseModel):
     name: str
     _id: ObjectId = field(default_factory=ObjectId)
     owner: ObjectId = field(default_factory=ObjectId)
-    created_at: datetime = field(default_factory=_utcnow)
+    created_at: datetime = field(default_factory=utcnow)

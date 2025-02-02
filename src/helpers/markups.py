@@ -10,6 +10,7 @@ from base.player import get_available_items_for_use
 from database.funcs import database
 from database.models import DailyGiftModel, ItemModel, MarketItemModel, UserModel
 from helpers.consts import COIN_EMOJI
+from helpers.datetime_utils import utcnow
 from helpers.utils import (
     achievement_status,
     batched,
@@ -19,7 +20,6 @@ from helpers.utils import (
     get_time_difference_string,
     is_completed_achievement,
     quick_markup,
-    utcnow,
 )
 
 

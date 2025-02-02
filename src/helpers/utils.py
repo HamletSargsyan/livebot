@@ -6,7 +6,7 @@ import statistics
 import sys
 from contextlib import suppress
 from dataclasses import astuple, is_dataclass
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta
 from functools import wraps
 from typing import (
     Any,
@@ -94,10 +94,6 @@ def cached(func: Callable[P, T]):
         return result
 
     return wrapper
-
-
-def utcnow() -> datetime:
-    return datetime.now(UTC)
 
 
 @cached

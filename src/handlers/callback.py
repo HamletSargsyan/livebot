@@ -28,6 +28,7 @@ from base.player import (
 )
 from database.funcs import database
 from database.models import DogModel
+from helpers.datetime_utils import utcnow
 from helpers.enums import ItemRarity, ItemType
 from helpers.exceptions import ItemIsCoin, NoResult
 from helpers.markups import InlineMarkup
@@ -45,7 +46,6 @@ from helpers.utils import (
     increment_achievement_progress,
     quick_markup,
     safe,
-    utcnow,
 )
 
 router = Router()

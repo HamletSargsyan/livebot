@@ -11,6 +11,7 @@ from aiogram.types import ChatPermissions, Message
 from config import logger
 from database.funcs import database, redis_cache
 from database.models import PromoModel, Violation
+from helpers.datetime_utils import utcnow
 from helpers.exceptions import NoResult
 from helpers.utils import (
     Loading,
@@ -21,7 +22,6 @@ from helpers.utils import (
     parse_time_duration,
     pretty_datetime,
     quick_markup,
-    utcnow,
 )
 
 router = Router()
