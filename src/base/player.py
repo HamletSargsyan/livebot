@@ -17,6 +17,7 @@ from database.models import (
     UserModel,
 )
 from helpers.datatypes import Item
+from helpers.datetime_utils import utcnow
 from helpers.enums import ItemRarity, ItemType
 from helpers.exceptions import ItemIsCoin, NoResult
 from helpers.utils import (
@@ -28,7 +29,6 @@ from helpers.utils import (
     get_item_count_for_rarity,
     get_item_emoji,
     get_user_tag,
-    utcnow,
 )
 
 
