@@ -81,3 +81,4 @@ wakatime
 фейковой
 ачивок
 квестоман
+SUPERGROUP

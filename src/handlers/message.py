@@ -1,6 +1,7 @@
 import random
 
 from aiogram import Router
+from aiogram.enums import ChatType
 from aiogram.filters import (
     IS_MEMBER,
     IS_NOT_MEMBER,
@@ -35,6 +36,7 @@ from database.funcs import database
 from helpers.consts import COIN_EMOJI
 from helpers.enums import ItemType
 from helpers.exceptions import ItemNotFoundError, NoResult
+from helpers.filters import ChatTypeFilter
 from helpers.markups import InlineMarkup
 from helpers.utils import (
     Loading,
@@ -985,7 +987,10 @@ async def event_shop_cmd(message: Message):
 # ---------------------------------------------------------------------------- #
 
 
-@router.chat_member(ChatMemberUpdatedFilter(IS_NOT_MEMBER >> IS_MEMBER))
+@router.chat_member(
+    ChatMemberUpdatedFilter(IS_NOT_MEMBER >> IS_MEMBER),
+    ChatTypeFilter(ChatType.GROUP, ChatType.SUPERGROUP),
+)
 async def new_chat_member(event: ChatMemberUpdated):
     markup = quick_markup(
         {
@@ -1004,7 +1009,10 @@ async def new_chat_member(event: ChatMemberUpdated):
     await event.answer(mess, reply_markup=markup)
 
 
-@router.chat_member(ChatMemberUpdatedFilter(IS_MEMBER >> IS_NOT_MEMBER))
+@router.chat_member(
+    ChatMemberUpdatedFilter(IS_MEMBER >> IS_NOT_MEMBER),
+    ChatTypeFilter(ChatType.GROUP, ChatType.SUPERGROUP),
+)
 async def left_chat_member(event: ChatMemberUpdated):
     user = await database.users.async_get(id=event.from_user.id)
     mess = f"😢 {get_user_tag(user)} покинул чат"
