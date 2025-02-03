@@ -68,7 +68,6 @@ if prerelease and args.bump_type != "prerelease":
 
 print(f"{old_version} -> {version}")
 
-# Чтение CHANGELOG и отображение изменений для новой версии
 with open("CHANGELOG.md", "r") as f:
     changes = changelog.loads(f.read())
 
