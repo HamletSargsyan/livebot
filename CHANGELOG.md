@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [11.0.0-rc.8] - 2025-02-03
+
+### Исправлено
+
+- Баг [#117](https://github.com/HamletSargsyan/livebot/issues/117)
+
 ## [11.0.0-rc.7] - 2025-02-03
 
 ### Исправлено
