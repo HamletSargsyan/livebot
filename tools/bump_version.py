@@ -101,9 +101,7 @@ with open("CHANGELOG.md") as f:
     changes = changelog.load(f)[1]
 
 content = changelog.dumps([changes], "").strip()
-semver_regexp = (
-    r"## \[(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?] - \d{4}-\d{2}-\d{2}",
-)
+semver_regexp = r"## \[(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?] - \d{4}-\d{2}-\d{2}"
 
 
 if match := re.match(rf"## \[{semver_regexp}\] - \d{4}-\d{2}-\d{2}", content):
