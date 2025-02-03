@@ -110,18 +110,18 @@ class Chest(BaseMob):
 
 
 def generate_mob():
-    mob_types = [Dog, Trader, Chest]
+    mobs = [Dog, Trader, Chest]
 
     # now = datetime.datetime.now()
     # current_hour = now.hour
 
     # if 21 <= current_hour or current_hour <= 6:  # Ночь (с 21:00 до 6:00)
-    #     mob_types = []
+    #     mobs = []
     # else:  # День (с 6:00 до 21:59)
-    #     mob_types = []
+    #     mobs = []
 
-    mob = random.choice(mob_types)
+    mob = random.choice(mobs)()
     chance = random.uniform(1, 10)
 
     if mob.chance <= chance:
-        return mob()
+        return mob
