@@ -104,7 +104,7 @@ content = changelog.dumps([changes], "").strip()
 semver_regexp = r"## \[(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?] - \d{4}-\d{2}-\d{2}"
 
 
-if match := re.match(rf"## \[{semver_regexp}\] - \d{4}-\d{2}-\d{2}", content):
+if match := re.match(semver_regexp, content):
     content = content.replace(match.group(0), "").strip()
 
 with open("release_body.md", "w") as f:
