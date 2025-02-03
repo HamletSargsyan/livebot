@@ -5,7 +5,8 @@ from aiogram.types import CallbackQuery, Message, TelegramObject
 
 from config import TELEGRAM_ID
 from database.funcs import database
-from helpers.utils import increment_achievement_progress, utcnow
+from helpers.datetime_utils import utcnow
+from helpers.utils import increment_achievement_progress
 
 
 class ActiveMiddleware(BaseMiddleware):

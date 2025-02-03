@@ -34,6 +34,7 @@ from base.weather import get_weather
 from config import VERSION, config
 from database.funcs import database
 from helpers.consts import COIN_EMOJI
+from helpers.datetime_utils import utcnow
 from helpers.enums import ItemType
 from helpers.exceptions import ItemNotFoundError, NoResult
 from helpers.filters import ChatTypeFilter
@@ -52,7 +53,6 @@ from helpers.utils import (
     quick_markup,
     safe,
     send_channel_subscribe_message,
-    utcnow,
 )
 
 router = Router()

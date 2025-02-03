@@ -4,7 +4,7 @@ from itertools import filterfalse
 
 from base.player import check_user_stats
 from database.funcs import database
-from helpers.utils import utcnow
+from helpers.datetime_utils import utcnow
 
 
 async def _check():

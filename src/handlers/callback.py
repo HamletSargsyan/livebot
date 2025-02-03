@@ -28,6 +28,7 @@ from base.player import (
 )
 from database.funcs import database
 from database.models import DogModel
+from helpers.datetime_utils import utcnow
 from helpers.enums import ItemRarity, ItemType
 from helpers.exceptions import ItemIsCoin, NoResult
 from helpers.markups import InlineMarkup
@@ -45,7 +46,6 @@ from helpers.utils import (
     increment_achievement_progress,
     quick_markup,
     safe,
-    utcnow,
 )
 
 router = Router()
@@ -742,7 +742,7 @@ async def daily_gift_callback(call: CallbackQuery):
     user = await database.users.async_get(id=call.from_user.id)
 
     if data[1] == "claim":
-        if not check_user_subscription(user):
+        if not await check_user_subscription(user):
             await call.answer(
                 "Чтобы использовать эту функцию нужно подписаться на новостной канал",
                 show_alert=True,
@@ -758,7 +758,7 @@ async def daily_gift_callback(call: CallbackQuery):
                 show_alert=True,
             )
             markup = InlineMarkup.daily_gift(user, daily_gift)
-            await call.message.edit_message_reply_markup(reply_markup=markup)
+            await call.message.edit_reply_markup(reply_markup=markup)
             return
 
         if not daily_gift.last_claimed_at:
@@ -787,8 +787,8 @@ async def daily_gift_callback(call: CallbackQuery):
             mess += f"+{quantity} {item.name} {item.emoji}\n"
 
         markup = InlineMarkup.daily_gift(user, daily_gift)
-        await call.message.edit_message_reply_markup(reply_markup=markup)
         await call.message.answer(mess)
+        await call.message.edit_reply_markup(reply_markup=markup)
 
 
 @router.callback_query(F.data.startswith("transfer"))
