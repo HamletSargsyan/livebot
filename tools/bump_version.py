@@ -106,7 +106,7 @@ semver_regexp = (
 )
 
 
-if match := re.match(rf"## \[{semver_regexp}] - \d{4}-\d{2}-\d{2}", content):
+if match := re.match(rf"## \[{semver_regexp}\] - \d{4}-\d{2}-\d{2}", content):
     content = content.replace(match.group(0), "").strip()
 
 with open("release_body.md", "w") as f:
