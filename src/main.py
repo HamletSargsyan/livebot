@@ -77,7 +77,6 @@ async def main(args: argparse.Namespace):
 
     if not args.without_tasks:
         run_tasks()
-
     await dp.start_polling(bot, handle_signals=False)
 
 
