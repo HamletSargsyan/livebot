@@ -31,7 +31,7 @@ class InlineMarkup:
     @classmethod
     def actions_choice(cls, user: UserModel) -> InlineKeyboardMarkup:
         def active_action_emoji(name):
-            return "🔹" if user.action and user.action.type == name else "🔸"
+            return "🔹" if user.action and user.action.type == name else ""
 
         markup = quick_markup(
             {
