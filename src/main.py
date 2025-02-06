@@ -61,8 +61,10 @@ async def main(args: argparse.Namespace):
     if args.debug:
         config.general.debug = True
         logger.level = Level.DEBUG
-        aiogram_logger.setLevel(10)
+        aiogram_logger.setLevel(10)  # debug
         logger.warning("Бот работает в режиме DEBUG")
+    else:
+        aiogram_logger.setLevel(30)  # warning
 
     await configure_bot_commands()
     init_middlewares()
