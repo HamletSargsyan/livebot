@@ -25,10 +25,14 @@ def run_command(command: str):
         sys.exit(1)
 
 
+def print_line():
+    print("\n", "-" * 50, "\n", sep="")
+
+
 parser = argparse.ArgumentParser(description="Bump version and create a release.")
 parser.add_argument(
     "bump_type",
-    choices=["major", "minor", "patch", "prerelease", "build"],
+    choices=["finalize", "major", "minor", "patch", "prerelease", "build"],
     help="Type of version bump",
 )
 parser.add_argument(
@@ -46,6 +50,8 @@ if args.bump_type == "prerelease" and args.prerelease:
 prerelease = args.prerelease
 
 match args.bump_type:
+    case "finalize":
+        version = version.finalize_version()
     case "major":
         version = version.bump_major()
     case "minor":
@@ -62,7 +68,6 @@ match args.bump_type:
         usage()
         sys.exit(1)
 
-
 if prerelease and args.bump_type != "prerelease":
     version = version.bump_prerelease()
 
@@ -76,8 +81,9 @@ unreleased_changes = next((c for c in changes if str(c["version"]).lower() == "u
 if unreleased_changes:
     print("\nИзменения для новой версии:")
     print(changelog.dumps([unreleased_changes], "").strip())
+    print_line()
 
-choice = input("\nСделать релиз? [N/y] ").lower()
+choice = input("Сделать релиз? [N/y] ").lower()
 
 if choice != "y":
     sys.exit(0)
@@ -122,7 +128,9 @@ run_command(
     f"gh release create v{version} --target main --notes-file release_body.md {'-p' if prerelease else ''} --title v{version}"
 )
 
-print("\n\nРелиз успешно создан и опубликован.\n\n")
+print_line()
+print("\nРелиз успешно создан и опубликован.\n")
+print_line()
 
 run_command("git switch main")
 run_command("git pull")
