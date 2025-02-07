@@ -512,6 +512,18 @@ def dog_level_top(max_index: int = 20):
     )
 
 
+def karma_top(max_index: int = 20):
+    return get_top(
+        "карма",
+        database.users,
+        lambda o: o.karma > 0,
+        lambda o: o.karma,
+        lambda o: o.name,
+        lambda o: o.karma,
+        max_index,
+    )
+
+
 def generate_daily_gift(user: UserModel):
     try:
         daily_gift = database.daily_gifts.get(owner=user._id)

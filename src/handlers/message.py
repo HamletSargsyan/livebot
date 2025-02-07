@@ -109,6 +109,7 @@ async def start(message: Message, command: CommandObject):
 
                 coin = random.randint(5000, 15000)
                 ref_user.coin += coin
+                ref_user.karma += 5
                 await database.users.async_update(**ref_user.to_dict())
                 increment_achievement_progress(ref_user, "друзья навеки")
 
@@ -163,6 +164,7 @@ async def profile_cmd(message: Message):
             f"🪙 Бабло: {user.coin}\n"
             f"🍀 Удача: {user.luck}\n"
             f"🏵 Уровень: {user.level}\n"
+            f"⚡ Карма: {user.karma}\n"
             f"🎗 Опыт {int(user.xp)}/{int(user.max_xp)}\n"
         )
         await message.reply(mess)
@@ -519,13 +521,7 @@ async def top_cmd(message: Message):
     async with Loading(message):
         mess = coin_top()
 
-        markup = quick_markup(
-            {
-                "🪙": {"callback_data": f"top coin {message.from_user.id}"},
-                "🏵": {"callback_data": f"top level {message.from_user.id}"},
-                "🐶": {"callback_data": f"top dog_level {message.from_user.id}"},
-            }
-        )
+        markup = InlineMarkup.top(message)
 
         await message.reply(mess, reply_markup=markup)
 

@@ -41,7 +41,7 @@ async def warn_cmd(message: Message, command: CommandObject):
         return
 
     reply_user.violations.append(Violation(reason, "warn"))
-
+    reply_user.karma -= 5
     await database.users.async_update(**reply_user.to_dict())
 
     mess = f"{get_user_tag(reply_user)} получил варн.\n\n<b>Причина</b>\n<i>{reason}</i>"
@@ -76,6 +76,7 @@ async def mute_cmd(message: Message, command: CommandObject):
     mute_end_time = utcnow() + mute_duration
 
     reply_user.violations.append(Violation(reason, "mute", until_date=mute_end_time))
+    reply_user.karma -= 7
 
     await database.users.async_update(**reply_user.to_dict())
 
@@ -124,7 +125,7 @@ async def ban_cmd(message: Message, command: CommandObject):
     ban_end_time = utcnow() + ban_duration
 
     reply_user.violations.append(Violation(reason, "ban", until_date=ban_end_time))
-
+    reply_user.karma -= 20
     await database.users.async_update(**reply_user.to_dict())
 
     await message.bot.restrict_chat_member(
@@ -174,6 +175,7 @@ async def pban_cmd(message: Message, command: CommandObject):
     reason = " ".join(args[1:]) if len(args) > 1 else "Без причины"
 
     reply_user.violations.append(Violation(reason, "permanent-ban"))
+    reply_user.karma -= 50
 
     await database.users.async_update(**reply_user.to_dict())
 
