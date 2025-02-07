@@ -17,7 +17,6 @@ from aiogram.types import (
 )
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
-import base.user_input  # noqa  # pylint: disable=unused-import
 from base.items import ITEMS
 from base.player import (
     check_user_stats,
