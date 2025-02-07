@@ -122,6 +122,8 @@ logger.handlers.add(
 aiogram_logger = logging.getLogger("aiogram")
 aiogram_logger.handlers = []
 
+aiogram_logger.setLevel(logger.level.name.upper())
+
 for handler in logger.handlers:
     aiogram_logger.handlers.append(LoggingAdapterHandler(handler))
 

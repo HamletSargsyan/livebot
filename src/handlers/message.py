@@ -340,7 +340,6 @@ async def workbench_cmd(message: Message):
         if not args or len(args) < 2:
             available_crafts = get_available_crafts(user)
             if available_crafts:
-                print(available_crafts)
                 mess += "<b>Доступные крафты</b>\n"
                 for craft_data in available_crafts:
                     item_name = craft_data["item_name"]
@@ -351,10 +350,8 @@ async def workbench_cmd(message: Message):
                         for user_item in resources
                     )
 
-                    print(get_item_emoji(item_name), item_name, get_item(item_name).emoji)
                     craft_str = f"{get_item_emoji(item_name)} {item_name} - {possible_crafts}\n"
                     mess += f"{craft_str}"
-            print(mess)
             await message.reply(mess)
             return
 
@@ -646,12 +643,7 @@ async def quest_cmd(message: Message):
         try:
             quest = await database.quests.async_get(owner=user._id)
         except NoResult:
-            quest = None
-
-        if not quest:
             quest = generate_quest(user)
-        if not user.new_quest_coin_quantity:
-            user.new_quest_coin_quantity = 2
 
         item = get_or_add_user_item(user, quest.name)
 

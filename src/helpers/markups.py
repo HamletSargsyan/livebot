@@ -200,7 +200,7 @@ class InlineMarkup:
         def get_text():
             if daily_gift.is_claimed:
                 return f"🕐 {get_time_difference_string(daily_gift.next_claimable_at - utcnow())}"
-            return "🔹  Получить"
+            return "🔹 Получить"
 
         return quick_markup({f"{get_text()}": {"callback_data": f"daily_gift claim {user.id}"}})
 
