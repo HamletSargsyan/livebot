@@ -19,7 +19,7 @@ from database.models import (
 from helpers.datatypes import Item
 from helpers.datetime_utils import utcnow
 from helpers.enums import ItemRarity, ItemType
-from helpers.exceptions import ItemIsCoin, NoResult
+from helpers.exceptions import AchievementNotFoundError, ItemIsCoin, NoResult
 from helpers.utils import (
     Loading,
     award_user_achievement,
@@ -536,7 +536,17 @@ def generate_daily_gift(user: UserModel):
 
 
 async def check_achievements(user: UserModel):
+    unknown_achievements = set()
     for key in list(user.achievement_progress):
-        ach = get_achievement(key.replace("-", " "))
+        try:
+            ach = get_achievement(key.lower().replace("-", " "))
+        except AchievementNotFoundError:
+            unknown_achievements.add(key)
+            continue
         if ach.check(user):
             await award_user_achievement(user, ach)
+
+    if unknown_achievements:
+        for ach in unknown_achievements:
+            del user.achievement_progress[ach]
+        await database.users.async_update(**user.to_dict())
