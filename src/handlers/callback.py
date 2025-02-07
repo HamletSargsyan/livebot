@@ -182,7 +182,7 @@ async def dog_callback(call: CallbackQuery):
 
 
 @router.callback_query(F.data.startswith("skip_quest"))
-async def new_quest_callback(call: CallbackQuery):
+async def skip_quest_callback(call: CallbackQuery):
     if call.data.split(" ")[-1] != str(call.from_user.id):
         return
 
@@ -445,7 +445,7 @@ async def chest_callback(call: CallbackQuery):
             user_item = get_or_add_user_item(user, item.name)
             user_item.quantity += quantity
             await database.items.async_update(**user_item.to_dict())
-        increment_achievement_progress(user, "сундук-собиратель")
+        increment_achievement_progress(user, "кладоискатель")
         await call.message.delete()
         if call.message.reply_to_message:
             await call.message.reply(mess)

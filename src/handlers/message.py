@@ -643,12 +643,7 @@ async def quest_cmd(message: Message):
         try:
             quest = await database.quests.async_get(owner=user._id)
         except NoResult:
-            quest = None
-
-        if not quest:
             quest = generate_quest(user)
-        if not user.new_quest_coin_quantity:
-            user.new_quest_coin_quantity = 2
 
         item = get_or_add_user_item(user, quest.name)
 
