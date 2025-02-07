@@ -23,6 +23,7 @@ from base.player import (
     generate_quest,
     get_available_items_for_use,
     get_or_add_user_item,
+    karma_top,
     level_top,
     use_item,
 )
@@ -392,15 +393,17 @@ async def top_callback(call: CallbackQuery):
     if data[-1] != str(call.from_user.id):
         return
 
-    markup = quick_markup(
-        {
-            "🪙": {"callback_data": f"top coin {call.from_user.id}"},
-            "🏵": {"callback_data": f"top level {call.from_user.id}"},
-            "🐶": {"callback_data": f"top dog_level {call.from_user.id}"},
-        }
-    )
+    if not isinstance(call.message, Message):
+        return
 
-    tops = {"coin": coin_top(), "level": level_top(), "dog_level": dog_level_top()}
+    markup = InlineMarkup.top(call.message)
+
+    tops = {
+        "coin": coin_top(),
+        "level": level_top(),
+        "dog_level": dog_level_top(),
+        "karma": karma_top(),
+    }
 
     try:
         await call.message.edit_text(tops[data[1]], reply_markup=markup)
@@ -727,6 +730,8 @@ async def levelup_callback(call: CallbackQuery):
     elif data[1] == "market":
         user.max_items_count_in_market += 1
 
+    user.karma += 2
+
     await database.users.async_update(**user.to_dict())
     await call.answer("Поздравляю 🎉🎉", show_alert=True)
     await call.message.edit_reply_markup(reply_markup=None)
@@ -863,6 +868,7 @@ async def accept_rules_callback(call: CallbackQuery):
 
     user = await database.users.async_get(id=call.from_user.id)
     user.accepted_rules = True
+    user.karma += 3
     await database.users.async_update(**user.to_dict())
 
     await call.answer(

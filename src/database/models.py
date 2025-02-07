@@ -160,6 +160,7 @@ class UserModel(BaseModel):
     last_active_time: datetime = field(default_factory=utcnow)
     achievement_progress: dict = field(default_factory=dict)
     accepted_rules: bool = False
+    karma: int = 0
 
 
 @dataclass
