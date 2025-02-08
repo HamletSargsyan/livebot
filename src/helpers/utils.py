@@ -83,7 +83,7 @@ def make_hashable(value: Any):
     return value
 
 
-def cached(func: Callable[P, T]):
+def cached(func: Callable[P, T]) -> Callable[P, T]:
     @wraps(func)
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
         key = frozenset((make_hashable(args), make_hashable(kwargs)))
