@@ -38,6 +38,7 @@ from helpers.enums import ItemType
 from helpers.exceptions import ItemNotFoundError, NoResult
 from helpers.filters import ChatTypeFilter
 from helpers.markups import InlineMarkup
+from helpers.messages import Messages
 from helpers.utils import (
     Loading,
     batched,
@@ -154,19 +155,10 @@ async def profile_cmd(message: Message):
 
         await check_user_stats(user, message.chat.id)
 
-        mess = (
-            f"<b>Профиль {user.name}</b>\n\n"
-            f"❤️ Здоровье: {user.health}\n"
-            f"🎭 Настроение: {user.mood}\n"
-            f"💤 Усталость: {user.fatigue}\n"
-            f"🍞 Голод: {user.hunger}\n"
-            f"🪙 Бабло: {user.coin}\n"
-            f"🍀 Удача: {user.luck}\n"
-            f"🏵 Уровень: {user.level}\n"
-            f"⚡ Карма: {user.karma}\n"
-            f"🎗 Опыт {int(user.xp)}/{int(user.max_xp)}\n"
-        )
-        await message.reply(mess)
+        mess = Messages.profile(user)
+
+        markup = InlineMarkup.open_friends_list(user)
+        await message.reply(mess, reply_markup=markup)
 
 
 @router.message(Command("bag"))

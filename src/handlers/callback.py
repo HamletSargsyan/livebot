@@ -33,6 +33,7 @@ from helpers.datetime_utils import utcnow
 from helpers.enums import ItemRarity, ItemType
 from helpers.exceptions import ItemIsCoin, NoResult
 from helpers.markups import InlineMarkup
+from helpers.messages import Messages
 from helpers.utils import (
     achievement_progress,
     batched,
@@ -502,17 +503,22 @@ async def open_callback(call: CallbackQuery):
     if data[1] == "home":
         mess = "🏠 Дом милый дом"
         markup = InlineMarkup.home_main(user)
-        await call.message.edit_text(mess, reply_markup=markup)
     elif data[1] == "market-profile":
         mess = "Твой ларек"
         markup = InlineMarkup.market_profile(user)
-
-        await call.message.edit_text(mess, reply_markup=markup)
     elif data[1] == "bag":
         mess = "Инвентарь"
         markup = InlineMarkup.bag(user)
+    elif data[1] == "friends_list":
+        mess = "Твои друзья"
+        markup = InlineMarkup.friends_list(user)
+    elif data[1] == "profile":
+        mess = Messages.profile(user)
+        markup = InlineMarkup.open_friends_list(user)
 
-        await call.message.edit_text(mess, reply_markup=markup)
+    else:
+        return
+    await call.message.edit_text(mess, reply_markup=markup)
 
 
 @router.callback_query(F.data.split(" ")[0] == "market")
@@ -918,3 +924,23 @@ async def event_shop_callback(call: CallbackQuery):
         f"Ты купил 1 {item.emoji} за {quantity} {get_item_emoji(candy.name)}",
         show_alert=True,
     )
+
+
+@router.callback_query(F.data.startswith("friend"))
+async def friend_callback(call: CallbackQuery):
+    data = call.data.split(" ")
+
+    if data[-1] != str(call.from_user.id):
+        return
+
+    user = await database.users.async_get(id=call.from_user.id)
+
+    if data[1] == "view":
+        friend = await database.users.async_get(id=int(data[2]))
+        mess = Messages.profile(friend)
+        markup = quick_markup({"Назад": {"callback_data": f"friend main-menu {user.id}"}})
+        await call.message.edit_text(mess, reply_markup=markup)
+    elif data[1] == "main-menu":
+        markup = InlineMarkup.friends_list(user)
+        mess = "Твои друзья"
+        await call.message.edit_text(mess, reply_markup=markup)

@@ -346,3 +346,24 @@ class InlineMarkup:
                 "🐶": {"callback_data": f"top dog_level {message.from_user.id}"},
             }
         )
+
+    @classmethod
+    def open_friends_list(cls, user: UserModel) -> InlineKeyboardMarkup:
+        return quick_markup(
+            {f"Друзья ({len(user.friends)})": {"callback_data": f"open friends_list {user.id}"}}
+        )
+
+    @classmethod
+    def friends_list(cls, user: UserModel) -> InlineKeyboardMarkup:
+        builder = InlineKeyboardBuilder()
+
+        for friend_info in user.friends:
+            friend = database.users.get(id=friend_info.id)
+            builder.add(
+                InlineKeyboardButton(
+                    text=f"{friend.name}", callback_data=f"friend view {friend.id} {user.id}"
+                )
+            )
+
+        builder.row(InlineKeyboardButton(text="Назад", callback_data=f"open profile {user.id}"))
+        return builder.as_markup()

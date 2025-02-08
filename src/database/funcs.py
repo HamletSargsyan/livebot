@@ -26,7 +26,7 @@ from helpers.exceptions import NoResult
 client = MongoClient(config.database.url, tz_aware=True)
 async_client = AsyncMongoClient(config.database.url, tz_aware=True)
 
-if config.database.name == "test":
+if config.database.name == "test" and config.general.debug:
     choice = input(f"Drop database `{config.database.name}`? [N/y] ")
     if choice == "y":
         client.drop_database(config.database.name)
