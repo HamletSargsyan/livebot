@@ -77,6 +77,7 @@ class InlineMarkup:
 
         builder = InlineKeyboardBuilder()
         builder.add(*buttons)
+        builder.adjust(2)
         builder.row(*get_pager_controllers("item_info_main", pos=index, user_id=user.id))
 
         return builder.as_markup()
