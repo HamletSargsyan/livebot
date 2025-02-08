@@ -133,6 +133,17 @@ class UserAction:
 
 
 @dataclass
+class FriendInfo:
+    id: int
+    since: datetime = field(default_factory=utcnow)
+    is_best: bool = False
+    friendship_rating: int = 0
+    last_interaction: datetime = field(default_factory=utcnow)
+    interaction_count: int = 0
+    note: Optional[str] = None
+
+
+@dataclass
 class UserModel(BaseModel):
     id: int
     name: str
@@ -161,6 +172,7 @@ class UserModel(BaseModel):
     achievement_progress: dict = field(default_factory=dict)
     accepted_rules: bool = False
     karma: int = 0
+    friends: list[FriendInfo] = field(default_factory=list)
 
 
 @dataclass
