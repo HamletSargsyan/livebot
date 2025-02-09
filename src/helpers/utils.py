@@ -83,7 +83,7 @@ def make_hashable(value: Any):
     return value
 
 
-def cached(func: Callable[P, T]):
+def cached(func: Callable[P, T]) -> Callable[P, T]:
     @wraps(func)
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
         key = frozenset((make_hashable(args), make_hashable(kwargs)))
@@ -97,16 +97,11 @@ def cached(func: Callable[P, T]):
 
 
 @cached
-def split_string(text: str, chars_per_string: int) -> list[str]:
-    return [text[i : i + chars_per_string] for i in range(0, len(text), chars_per_string)]
-
-
-@cached
 def remove_not_allowed_symbols(text: str) -> str:
     not_allowed_symbols = ["#", "<", ">", "{", "}", '"', "'", "$", "(", ")", "@"]
     cleaned_text = "".join(char for char in text if char not in not_allowed_symbols)
 
-    return cleaned_text
+    return cleaned_text.strip()
 
 
 @cached
