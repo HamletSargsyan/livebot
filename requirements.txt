@@ -6,7 +6,7 @@ toml==0.10.2
 argparse==1.4.0
 semver==3.0.4
 httpx==0.28.1
-cachetools==5.5.1
+cachetools==5.5.2
 dacite==1.9.2
 python-dateutil==2.9.0.post0
 tinylogging==5.0.1
