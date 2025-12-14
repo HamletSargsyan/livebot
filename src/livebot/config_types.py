@@ -65,7 +65,7 @@ class Config(DataClassTOMLMixin):
             return False
 
         config = tomlkit.document()
-        config.add(tomlkit.comment("config docs: https://0xM4LL0C.github.io/livebot/dev/config/"))
+        config.add(tomlkit.comment("config docs: https://0xM4LL0C.github.io/livebot/main/config/"))
 
         default_config = Config(
             general=GeneralConfig(weather_region="weather region"),
