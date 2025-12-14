@@ -1,3 +1,4 @@
+import difflib
 import random
 from typing import Optional, ParamSpec, TypeVar
 
@@ -25,9 +26,11 @@ def get_item(name: str) -> Item:
     for item in ITEMS:
         if item.name == name:
             return item
-        if item.altnames and name in item.altnames:
+        if name in item.altnames:
             return item
         if item.translit() == name:
+            return item
+        if difflib.get_close_matches(name, [item.name, item.translit(), *item.altnames]):
             return item
     raise ItemNotFoundError(name)
 
