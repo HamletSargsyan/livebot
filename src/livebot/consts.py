@@ -1,6 +1,6 @@
+from importlib.metadata import version
 from typing import Final
 
-import tomlkit
 from bson import ObjectId
 from semver import Version
 from xdg_base_dirs import xdg_cache_home, xdg_config_home, xdg_data_home
@@ -23,9 +23,7 @@ HOUR: Final = MINUTE * 60
 DAY: Final = HOUR * 24
 WEEK: Final = DAY * 7
 
-with (DATA_DIR / "pyproject.toml").open("r", encoding="utf-8") as f:
-    _raw_version = tomlkit.parse(f.read()).unwrap()["project"]["version"]
-VERSION: Final = Version.parse(_raw_version)
+VERSION: Final = Version.parse(version(APP_NAME))
 
 AUTHOR = "0xM4LL0C"
 REPO_URL: Final = f"https://github.com/{AUTHOR}/{APP_NAME}/"
