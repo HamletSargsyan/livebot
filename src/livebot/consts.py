@@ -12,6 +12,8 @@ CONFIG_DIR: Final = xdg_config_home() / APP_NAME
 CACHE_DIR: Final = xdg_cache_home() / APP_NAME
 DATA_DIR: Final = xdg_data_home() / APP_NAME
 
+CONFIG_FILE: Final = CONFIG_DIR / "config.toml"
+
 COIN_EMOJI: Final = "🪙"
 TELEGRAM_ID: Final = 777000
 EMPTY_OBJECTID: Final = ObjectId("000000000000000000000000")

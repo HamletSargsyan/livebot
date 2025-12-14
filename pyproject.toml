@@ -51,7 +51,7 @@ packages = ["src/livebot"]
 
 [tool.uv.sources.changelog-parser]
 git = "https://github.com/0xM4LL0C/changelog-parser"
-rev = "main"
+rev = "ef39dc3c89d086fbd7f85a3a15572346f74c3735"
 
 [dependency-groups]
 dev = [

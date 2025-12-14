@@ -1,7 +1,8 @@
 from argparse import ArgumentParser, Namespace
+from pathlib import Path
 from typing import Final
 
-from livebot.consts import VERSION
+from livebot.consts import CONFIG_FILE, VERSION
 
 
 def parse_args() -> Namespace:
@@ -12,6 +13,7 @@ def parse_args() -> Namespace:
     parser.add_argument(
         "-v", "--version", action="version", version=str(VERSION), help="bot version"
     )
+    parser.add_argument("-c", "--config", type=Path, default=CONFIG_FILE, help="config path")
 
     return parser.parse_args()
 
