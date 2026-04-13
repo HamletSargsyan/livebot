@@ -59,7 +59,7 @@ dev = [
   "httpx>=0.28.1",
   "pre-commit>=4.5.1",
   "pylint>=3.3.7",
-  "pyright>=1.1.401",
+  "pyright>=1.1.408",
   "ruff>=0.15.10",
   "watchfiles>=1.1.1",
 ]
