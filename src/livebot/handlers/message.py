@@ -143,7 +143,7 @@ async def casino_cmd(message: Message, command: CommandObject):
         await message.reply(t("item-not-enough", item_name="бабло"))
         return
 
-    dice = await message.answer_dice("🎰")
+    dice = await message.answer_dice(emoji="🎰")
 
     await asyncio.sleep(2)
 

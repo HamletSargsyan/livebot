@@ -74,7 +74,7 @@ tasks:
     cmd: rg -I -n -H -e "# TODO" -e "# FIXME" -e "# NOTE" --glob "!Taskfile.yml" --ignore-file .gitignore || true
 
   dev-run:
-    cmd: watchfiles "python3 src/livebot/main.py --debug --no-interactive" src
+    cmd: watchfiles "python3 src/livebot/main.py --debug --no-interactive --config ./.config/config.toml" src
 
   install:
     cmds:

@@ -2,7 +2,7 @@
 *.log
 nohup.out
 config.toml
-src/*test*.*
+src/**/*test*.*
 release_body.md
 docker-compose.yml
 

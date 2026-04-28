@@ -7,7 +7,7 @@ from aiogram.fsm.storage.memory import MemoryStorage, SimpleEventIsolation
 from aiogram.types import BotCommand
 
 from livebot.config import bot, config, logger
-from livebot.consts import APP_NAME, CACHE_DIR, CONFIG_DIR, DATA_DIR, VERSION
+from livebot.consts import APP_NAME, CACHE_DIR, CONFIG_FILE, DATA_DIR, VERSION
 from livebot.database.models import UserModel
 from livebot.handlers import router
 from livebot.helpers.exceptions import NoResult
@@ -67,7 +67,7 @@ async def main(args: Namespace) -> None:
     if config.general.debug:
         logger.warning("bot running in debug mode")
 
-    logger.debug(f"config dir: {CONFIG_DIR}")
+    logger.debug(f"config file: {CONFIG_FILE}")
     logger.debug(f"data dir: {DATA_DIR}")
     logger.debug(f"cache dir: {CACHE_DIR}")
 

@@ -140,7 +140,7 @@ class BaseModel(SubModel):
         del dct["_id"]
         result = self.sync_collection.insert_one(dct)
         self.oid = result.inserted_id
-        self.update()
+        assert self.oid
 
     def update(self) -> None:
         dct = self.to_dict()
@@ -170,7 +170,8 @@ class BaseModel(SubModel):
         del dct["_id"]
         result = await self.async_collection.insert_one(dct)
         self.oid = result.inserted_id
-        await self.update_async()
+
+        assert self.oid
 
     @classmethod
     async def check_exists_async(cls, **options) -> bool:

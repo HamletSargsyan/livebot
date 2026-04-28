@@ -467,8 +467,6 @@ async def daily_gift_callback(query: CallbackQuery, callback_data: DailyGiftCall
 
     items = ""
 
-    assert user.daily_gift.items
-
     for item_name, quantity in user.daily_gift.items.items():
         item = get_item(item_name)
 

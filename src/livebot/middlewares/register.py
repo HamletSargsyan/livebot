@@ -37,7 +37,8 @@ class RegisterMiddleware(BaseMiddleware):
             if event.from_user.id == TELEGRAM_ID or event.from_user.is_bot:
                 return
 
-            if not event.text.startswith("/start"):
+            has_deeplink = event.text.startswith("/start") and (len(event.text.split(" ")) > 1)
+            if not has_deeplink:
                 await register_user(event)
 
             if event.reply_to_message:
