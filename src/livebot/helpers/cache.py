@@ -8,7 +8,7 @@ from typing import Any, Awaitable, Callable, Literal, Optional, ParamSpec, TypeV
 
 from cachetools import LRUCache
 
-from livebot.consts import CACHE_DIR
+from livebot.consts import CACHE_DIR, VERSION
 
 
 P = ParamSpec("P")
@@ -32,7 +32,7 @@ def make_hash(*args: Any) -> str:
 
 class DiskCache:
     def __init__(self, path: Path, max_items: int = 2048):
-        self.path = path
+        self.path = path / f"{VERSION.major}.{VERSION.minor}"
         self.path.mkdir(exist_ok=True)
         self.index_file = self.path / "index.pkl"
         self.index = self._load_index()

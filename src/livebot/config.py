@@ -14,7 +14,7 @@ from livebot.consts import APP_NAME, CACHE_DIR, CONFIG_DIR, DATA_DIR
 for directory in [CONFIG_DIR, CACHE_DIR, DATA_DIR]:
     directory.mkdir(exist_ok=True)
 
-config: Final = Config.from_file(CONFIG_DIR / "config.toml")
+config: Final = Config.from_file(ARGS.config)
 config.merge(ARGS)
 
 logger: Final = Logger(APP_NAME, Level.DEBUG if config.general.debug else Level.INFO)

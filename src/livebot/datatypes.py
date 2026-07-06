@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Literal, Optional
 
 import transliterate
@@ -32,7 +32,7 @@ class Item:
     is_quest_item: bool = False
     can_exchange: bool = False
     is_consumable: bool = False
-    altnames: Optional[list[str]] = None
+    altnames: list[str] = field(default_factory=list)
     craft: Optional[list[ItemCraft]] = None
     effect: Optional[int] = None
     price: Optional[int] = None
